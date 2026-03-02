@@ -46,7 +46,7 @@ export async function translatePost(title: string, content: string): Promise<{ t
       Title: "${title}"
     `;
     const titleResponse = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.5-flash-lite",
       contents: titlePrompt,
     });
     const title_en = (titleResponse.text || title).trim().replace(/^"|"$/g, ''); // Remove quotes if added
