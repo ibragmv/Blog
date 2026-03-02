@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase, type Post } from '@/lib/supabase';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Loader2, Save, ArrowLeft, Languages } from 'lucide-react';
-import { translatePost } from '@/services/translation';
+import { translatePost, testConnection } from '@/services/translation';
 
 export default function PostEditor() {
   const { id } = useParams();
@@ -18,6 +18,7 @@ export default function PostEditor() {
   const [loading, setLoading] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [fetching, setFetching] = useState(isEditing);
+  const [translationError, setTranslationError] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -75,17 +76,23 @@ export default function PostEditor() {
     }
   };
 
+  const handleTestConnection = async () => {
+    const result = await testConnection();
+    alert(result.message);
+  };
+
   const handleTranslate = async () => {
     if (!title && !content) return;
     
     setTranslating(true);
+    setTranslationError(null);
     try {
       const { title_en, content_en } = await translatePost(title, content);
       setTitleEn(title_en);
       setContentEn(content_en);
     } catch (error: any) {
       console.error("Translation failed", error);
-      alert(`Translation failed: ${error.message}`);
+      setTranslationError(error.message);
     } finally {
       setTranslating(false);
     }
@@ -203,16 +210,31 @@ export default function PostEditor() {
         <div className="border-t border-zinc-800 pt-6 mt-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-zinc-200">English Translation</h3>
-            <button
-              type="button"
-              onClick={handleTranslate}
-              disabled={translating || !title || !content}
-              className="flex items-center px-3 py-1.5 text-sm bg-zinc-800 text-zinc-300 rounded hover:bg-zinc-700 transition-colors disabled:opacity-50"
-            >
-              {translating ? <Loader2 className="animate-spin mr-2" size={14} /> : <Languages className="mr-2" size={14} />}
-              Translate Now
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleTestConnection}
+                className="px-3 py-1.5 text-xs bg-zinc-900 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-800 transition-colors"
+              >
+                Debug Connection
+              </button>
+              <button
+                type="button"
+                onClick={handleTranslate}
+                disabled={translating || !title || !content}
+                className="flex items-center px-3 py-1.5 text-sm bg-zinc-800 text-zinc-300 rounded hover:bg-zinc-700 transition-colors disabled:opacity-50"
+              >
+                {translating ? <Loader2 className="animate-spin mr-2" size={14} /> : <Languages className="mr-2" size={14} />}
+                Translate Now
+              </button>
+            </div>
           </div>
+          
+          {translationError && (
+            <div className="mb-4 p-3 bg-red-900/20 border border-red-900/50 rounded-md text-red-200 text-sm">
+              <strong>Error:</strong> {translationError}
+            </div>
+          )}
           
           <div className="grid grid-cols-1 gap-6">
             <div className="space-y-2">
