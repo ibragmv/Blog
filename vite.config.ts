@@ -15,4 +15,7 @@ export default defineConfig({
     port: 3000,
     hmr: process.env.DISABLE_HMR !== 'true',
   },
+  build: {
+    chunkSizeWarningLimit: 1000,
+  }
 });
