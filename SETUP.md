@@ -1,21 +1,26 @@
-
 # Supabase Database Setup Guide
 
-This guide will help you initialize your database schema and configure Row Level Security (RLS) policies. Follow these steps to get your blog up and running.
+This guide will help you initialize your database schema and configure Row Level Security (RLS) policies. Follow these steps to get your blog up and running with translation support.
 
 ## 1. Initialize Tables & Enable RLS
 
-Go to your [Supabase Dashboard](https://supabase.com/dashboard), navigate to the **SQL Editor**, and run the following script to create your tables and enable security:
+Go to your [Supabase Dashboard](https://supabase.com/dashboard), navigate to the **SQL Editor**, and run the following script to create your tables and enable security.
+
+### Option A: Fresh Start (New Database)
+
+Use this if you haven't created the tables yet.
 
 ```sql
--- Create Posts Table
+-- Create Posts Table with Translation Support
 create table if not exists public.posts (
   id uuid default gen_random_uuid() primary key,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
   title text not null,
+  title_en text, -- English translation of the title
   slug text not null unique,
   content text not null,
+  content_en text, -- English translation of the content
   published boolean default false
 );
 
@@ -30,6 +35,21 @@ create table if not exists public.links (
 );
 
 -- IMPORTANT: Explicitly Enable Row Level Security
+alter table public.posts enable row level security;
+alter table public.links enable row level security;
+```
+
+### Option B: Update Existing Database
+
+Use this if you already created the tables using the old guide and need to add translation support.
+
+```sql
+-- Add translation columns to existing posts table
+alter table public.posts 
+add column if not exists title_en text,
+add column if not exists content_en text;
+
+-- Ensure RLS is enabled for existing tables
 alter table public.posts enable row level security;
 alter table public.links enable row level security;
 ```
@@ -76,7 +96,6 @@ To access the admin panel at `/login`, you need to manually create an administra
 ## 4. Final Check
 
 Once the scripts are executed:
-- Your `posts` and `links` tables should appear in the **Table Editor**.
+- Your `posts` table should have `title_en` and `content_en` columns in the **Table Editor**.
 - The "RLS" badge should be green (Enabled) for both tables.
 - You can now start adding content via your site's admin panel.
-```

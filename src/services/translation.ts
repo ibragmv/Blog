@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+
+const apiKey = process.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 export async function translateContent(text: string, targetLang: 'en' | 'ru' = 'en'): Promise<string> {
@@ -21,7 +22,7 @@ export async function translateContent(text: string, targetLang: 'en' | 'ru' = '
     `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-3-flash-preview",
       contents: prompt,
     });
     return response.text || text;
@@ -45,7 +46,7 @@ export async function translatePost(title: string, content: string): Promise<{ t
       Title: "${title}"
     `;
     const titleResponse = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-3-flash-preview",
       contents: titlePrompt,
     });
     const title_en = (titleResponse.text || title).trim().replace(/^"|"$/g, ''); // Remove quotes if added
@@ -61,7 +62,7 @@ export async function translatePost(title: string, content: string): Promise<{ t
       ${content}
     `;
     const contentResponse = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-3-flash-preview",
       contents: contentPrompt,
     });
     const content_en = contentResponse.text || content;
