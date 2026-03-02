@@ -17,7 +17,7 @@ interface MarkdownRendererProps {
 
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
   return (
-    <div className={cn("prose prose-zinc dark:prose-invert max-w-none break-words", className)}>
+    <div className={cn("prose prose-zinc dark:prose-invert max-w-none wrap-break-words", className)}>
       <Markdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeRaw, rehypeHighlight, rehypeKatex]}
