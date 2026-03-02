@@ -83,9 +83,9 @@ export default function PostEditor() {
       const { title_en, content_en } = await translatePost(title, content);
       setTitleEn(title_en);
       setContentEn(content_en);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Translation failed", error);
-      alert("Translation failed. Please try again.");
+      alert(`Translation failed: ${error.message}`);
     } finally {
       setTranslating(false);
     }

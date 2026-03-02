@@ -5,13 +5,13 @@ const apiKey = process.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 // Models to try in order of preference
-const PRIMARY_MODEL = "gemini-2.0-flash";
-const FALLBACK_MODEL = "gemini-1.5-flash";
+// Using 1.5-flash as primary for maximum stability on Vercel
+const PRIMARY_MODEL = "gemini-1.5-flash";
+const FALLBACK_MODEL = "gemini-2.0-flash";
 
 export async function translateContent(text: string, targetLang: 'en' | 'ru' = 'en'): Promise<string> {
   if (!ai) {
-    console.warn("Gemini API key not found. Please set VITE_GEMINI_API_KEY in your environment variables.");
-    return text; // Return original text if no API key
+    throw new Error("Gemini API key not found. Please set VITE_GEMINI_API_KEY in your Vercel environment variables.");
   }
 
   if (!text || text.trim() === '') return '';
@@ -39,17 +39,16 @@ export async function translateContent(text: string, targetLang: 'en' | 'ru' = '
         contents: prompt,
       });
       return response.text || text;
-    } catch (fallbackError) {
+    } catch (fallbackError: any) {
       console.error("Translation failed with both models:", fallbackError);
-      return text;
+      throw new Error(`Translation failed: ${fallbackError.message || "Unknown error"}`);
     }
   }
 }
 
 export async function translatePost(title: string, content: string): Promise<{ title_en: string, content_en: string }> {
   if (!ai) {
-     console.warn("Gemini API key not found. Skipping translation.");
-     return { title_en: title, content_en: content };
+     throw new Error("Gemini API key not found. Please set VITE_GEMINI_API_KEY in your Vercel environment variables.");
   }
 
   try {
@@ -105,8 +104,8 @@ export async function translatePost(title: string, content: string): Promise<{ t
     }
 
     return { title_en, content_en };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Translation process failed completely:", error);
-    return { title_en: title, content_en: content };
+    throw new Error(`Translation failed: ${error.message || "Unknown error"}`);
   }
 }
