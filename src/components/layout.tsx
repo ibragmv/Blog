@@ -23,7 +23,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-300 font-sans selection:bg-zinc-200 dark:selection:bg-zinc-800 selection:text-zinc-900 dark:selection:text-zinc-100 transition-colors duration-300">
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-sm border-b border-zinc-200 dark:border-zinc-900 transition-colors duration-300">
         <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
-          <NavLink to="/" className="flex flex-col leading-none font-bold tracking-tight text-zinc-900 dark:text-zinc-100 hover:opacity-70 transition-opacity font-display uppercase">
+          <NavLink to="/" className="flex items-center gap-3 leading-none font-bold tracking-tight text-zinc-900 dark:text-zinc-100 hover:opacity-70 transition-opacity font-display uppercase">
+            <img src={SITE_CONFIG.logo} alt="Logo" className="w-8 h-8" />
+            <div className="flex flex-col">
             {isMultiWord ? (
               <>
                 <span className="text-xl">{titleWords[0]}</span>
@@ -32,6 +34,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             ) : (
               <span className="text-2xl">{SITE_CONFIG.title}</span>
             )}
+            </div>
           </NavLink>
 
           <div className="flex items-center gap-4">
