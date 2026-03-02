@@ -15,8 +15,10 @@ export const supabase = createClient(
 export type Post = {
   id: string;
   title: string;
+  title_en?: string; // English translation of the title
   slug: string;
   content: string;
+  content_en?: string; // English translation of the content
   created_at: string;
   published: boolean;
   is_page?: boolean; // To distinguish between blog posts and static pages like Home

@@ -3,13 +3,15 @@ import { useParams, Link } from 'react-router-dom';
 import { supabase, type Post } from '@/lib/supabase';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { format } from 'date-fns';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Languages } from 'lucide-react';
 import { SITE_CONFIG } from '@/config';
+import { cn } from '@/lib/utils';
 
 export default function BlogPost() {
   const { slug } = useParams();
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
+  const [language, setLanguage] = useState<'ru' | 'en'>('ru');
 
   useEffect(() => {
     async function fetchPost() {
@@ -55,26 +57,61 @@ export default function BlogPost() {
     );
   }
 
+  const hasTranslation = !!post.title_en && !!post.content_en;
+  const currentTitle = language === 'en' && post.title_en ? post.title_en : post.title;
+  const currentContent = language === 'en' && post.content_en ? post.content_en : post.content;
+
   return (
     <article className="animate-in fade-in duration-500">
-      <Link 
-        to="/blog" 
-        className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 mb-8 transition-colors"
-      >
-        <ArrowLeft size={16} className="mr-2" />
-        Back to writing
-      </Link>
+      <div className="flex items-center justify-between mb-8">
+        <Link 
+          to="/blog" 
+          className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 transition-colors"
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Back to writing
+        </Link>
+
+        {hasTranslation && (
+          <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 rounded-lg p-1 border border-zinc-200 dark:border-zinc-800">
+            <button
+              onClick={() => setLanguage('ru')}
+              className={cn(
+                "px-3 py-1 text-sm font-medium rounded-md transition-all",
+                language === 'ru' 
+                  ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" 
+                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+              )}
+            >
+              RU
+            </button>
+            <button
+              onClick={() => setLanguage('en')}
+              className={cn(
+                "px-3 py-1 text-sm font-medium rounded-md transition-all",
+                language === 'en' 
+                  ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" 
+                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+              )}
+            >
+              EN
+            </button>
+          </div>
+        )}
+      </div>
       
       <header className="mb-10">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-zinc-900 dark:text-zinc-100 font-display">
-          {post.title}
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-zinc-900 dark:text-zinc-100 font-display transition-all duration-300">
+          {currentTitle}
         </h1>
         <time className="text-zinc-500 text-sm">
           {format(new Date(post.created_at), 'MMMM d, yyyy')}
         </time>
       </header>
 
-      <MarkdownRenderer content={post.content} />
+      <div className="transition-opacity duration-300">
+        <MarkdownRenderer content={currentContent} />
+      </div>
     </article>
   );
 }

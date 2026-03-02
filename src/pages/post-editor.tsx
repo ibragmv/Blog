@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { supabase, type Post } from '@/lib/supabase';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Loader2, Save, ArrowLeft } from 'lucide-react';
+import { Loader2, Save, ArrowLeft, Languages } from 'lucide-react';
+import { translatePost } from '@/services/translation';
 
 export default function PostEditor() {
   const { id } = useParams();
@@ -11,8 +12,11 @@ export default function PostEditor() {
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [content, setContent] = useState('');
+  const [titleEn, setTitleEn] = useState('');
+  const [contentEn, setContentEn] = useState('');
   const [published, setPublished] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [translating, setTranslating] = useState(false);
   const [fetching, setFetching] = useState(isEditing);
 
   useEffect(() => {
@@ -43,6 +47,8 @@ export default function PostEditor() {
         setTitle(data.title);
         setSlug(data.slug);
         setContent(data.content);
+        setTitleEn(data.title_en || '');
+        setContentEn(data.content_en || '');
         setPublished(data.published);
       } else {
         navigate('/admin');
@@ -69,14 +75,46 @@ export default function PostEditor() {
     }
   };
 
+  const handleTranslate = async () => {
+    if (!title && !content) return;
+    
+    setTranslating(true);
+    try {
+      const { title_en, content_en } = await translatePost(title, content);
+      setTitleEn(title_en);
+      setContentEn(content_en);
+    } catch (error) {
+      console.error("Translation failed", error);
+      alert("Translation failed. Please try again.");
+    } finally {
+      setTranslating(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // Auto-translate if English fields are empty
+    let finalTitleEn = titleEn;
+    let finalContentEn = contentEn;
+
+    if ((!finalTitleEn || !finalContentEn) && (title || content)) {
+      try {
+        const { title_en, content_en } = await translatePost(title, content);
+        if (!finalTitleEn) finalTitleEn = title_en;
+        if (!finalContentEn) finalContentEn = content_en;
+      } catch (error) {
+        console.error("Auto-translation failed", error);
+      }
+    }
 
     const postData = {
       title,
       slug,
       content,
+      title_en: finalTitleEn,
+      content_en: finalContentEn,
       published,
       updated_at: new Date().toISOString(),
     };
@@ -127,7 +165,7 @@ export default function PostEditor() {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-zinc-400">Title</label>
+            <label className="block text-sm font-medium text-zinc-400">Title (Russian)</label>
             <input
               type="text"
               value={title}
@@ -146,12 +184,11 @@ export default function PostEditor() {
               className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-700 text-zinc-200 placeholder-zinc-600 font-mono text-sm"
               required
             />
-            <p className="text-xs text-zinc-500">Unique identifier for the URL (e.g., my-first-post)</p>
           </div>
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-400">Content (Markdown)</label>
+          <label className="block text-sm font-medium text-zinc-400">Content (Russian - Markdown)</label>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
@@ -160,6 +197,46 @@ export default function PostEditor() {
             placeholder="# Write your post here..."
             required
           />
+        </div>
+
+        {/* Translation Section */}
+        <div className="border-t border-zinc-800 pt-6 mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium text-zinc-200">English Translation</h3>
+            <button
+              type="button"
+              onClick={handleTranslate}
+              disabled={translating || !title || !content}
+              className="flex items-center px-3 py-1.5 text-sm bg-zinc-800 text-zinc-300 rounded hover:bg-zinc-700 transition-colors disabled:opacity-50"
+            >
+              {translating ? <Loader2 className="animate-spin mr-2" size={14} /> : <Languages className="mr-2" size={14} />}
+              Translate Now
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-zinc-400">Title (English)</label>
+              <input
+                type="text"
+                value={titleEn}
+                onChange={(e) => setTitleEn(e.target.value)}
+                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-700 text-zinc-200 placeholder-zinc-600"
+                placeholder="Auto-translated title will appear here..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-zinc-400">Content (English - Markdown)</label>
+              <textarea
+                value={contentEn}
+                onChange={(e) => setContentEn(e.target.value)}
+                rows={15}
+                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-700 text-zinc-200 placeholder-zinc-600 font-mono text-sm leading-relaxed"
+                placeholder="Auto-translated content will appear here..."
+              />
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
