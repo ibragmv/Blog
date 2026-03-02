@@ -5,9 +5,9 @@ const apiKey = process.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 // Models to try in order of preference
-// Using 1.5-flash as primary for maximum stability on Vercel
+// gemini-2.0-flash often has strict quotas (limit: 0) on free tiers.
+// gemini-1.5-flash is the most stable and generous for free tier usage.
 const PRIMARY_MODEL = "gemini-1.5-flash";
-const FALLBACK_MODEL = "gemini-2.0-flash";
 
 export async function translateContent(text: string, targetLang: 'en' | 'ru' = 'en'): Promise<string> {
   if (!ai) {
@@ -32,17 +32,14 @@ export async function translateContent(text: string, targetLang: 'en' | 'ru' = '
     });
     return response.text || text;
   } catch (error: any) {
-    console.warn(`Translation with ${PRIMARY_MODEL} failed, trying fallback...`, error);
-    try {
-      const response = await ai.models.generateContent({
-        model: FALLBACK_MODEL,
-        contents: prompt,
-      });
-      return response.text || text;
-    } catch (fallbackError: any) {
-      console.error("Translation failed with both models:", fallbackError);
-      throw new Error(`Translation failed: ${fallbackError.message || "Unknown error"}`);
+    console.error(`Translation with ${PRIMARY_MODEL} failed:`, error);
+    
+    // Handle specific error codes
+    if (error.message?.includes('429') || error.status === 429) {
+      throw new Error("Translation quota exceeded. Please wait a minute and try again.");
     }
+    
+    throw new Error(`Translation failed: ${error.message || "Unknown error"}`);
   }
 }
 
@@ -67,13 +64,13 @@ export async function translatePost(title: string, content: string): Promise<{ t
         contents: titlePrompt,
       });
       title_en = (titleResponse.text || title).trim().replace(/^"|"$/g, '');
-    } catch (e) {
-      console.warn(`Title translation with ${PRIMARY_MODEL} failed, trying fallback...`);
-      const titleResponse = await ai.models.generateContent({
-        model: FALLBACK_MODEL,
-        contents: titlePrompt,
-      });
-      title_en = (titleResponse.text || title).trim().replace(/^"|"$/g, '');
+    } catch (e: any) {
+      console.error("Title translation failed:", e);
+      if (e.message?.includes('429') || e.status === 429) {
+         throw new Error("Translation quota exceeded. Please wait a minute and try again.");
+      }
+      // For title, we can fallback to original if it's not a quota error
+      title_en = title;
     }
 
     // Translate Content
@@ -94,18 +91,18 @@ export async function translatePost(title: string, content: string): Promise<{ t
         contents: contentPrompt,
       });
       content_en = contentResponse.text || content;
-    } catch (e) {
-      console.warn(`Content translation with ${PRIMARY_MODEL} failed, trying fallback...`);
-      const contentResponse = await ai.models.generateContent({
-        model: FALLBACK_MODEL,
-        contents: contentPrompt,
-      });
-      content_en = contentResponse.text || content;
+    } catch (e: any) {
+      console.error("Content translation failed:", e);
+      if (e.message?.includes('429') || e.status === 429) {
+         throw new Error("Translation quota exceeded. Please wait a minute and try again.");
+      }
+      // For content, we can fallback to original if it's not a quota error
+      content_en = content;
     }
 
     return { title_en, content_en };
   } catch (error: any) {
     console.error("Translation process failed completely:", error);
-    throw new Error(`Translation failed: ${error.message || "Unknown error"}`);
+    throw new Error(error.message || "Translation failed");
   }
 }
