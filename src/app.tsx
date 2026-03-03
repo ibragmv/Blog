@@ -1,16 +1,15 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { FontLoader } from './components/font-loader';
 import { Layout } from './components/layout';
 import { ThemeProvider } from './components/theme-provider';
-import { FontLoader } from './components/font-loader';
 import { TitleManager } from './components/title-manager';
-import Home from './pages/home';
+import Admin from './pages/admin';
 import Blog from './pages/blog';
 import BlogPost from './pages/blog-post';
+import Home from './pages/home';
 import Links from './pages/links';
 import Login from './pages/login';
-import Admin from './pages/admin';
 import PostEditor from './pages/post-editor';
-import RssFeed from './pages/rss';
 
 export default function App() {
   return (
@@ -25,13 +24,12 @@ export default function App() {
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/links" element={<Links />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/rss" element={<RssFeed />} />
-            
+
             {/* Admin Routes */}
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/new" element={<PostEditor />} />
             <Route path="/admin/edit/:id" element={<PostEditor />} />
-            
+
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>
