@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { supabase, type Post } from '@/lib/supabase';
+import { ArrowLeft, Languages, Loader2, Save } from 'lucide-react';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Loader2, Save, ArrowLeft, Languages } from 'lucide-react';
-import { translatePost, testConnection } from '@/services/translation';
+import { supabase } from '@/lib/supabase';
+import { testConnection, translatePost } from '@/services/translation';
 
 export default function PostEditor() {
   const { id } = useParams();
@@ -20,28 +21,10 @@ export default function PostEditor() {
   const [fetching, setFetching] = useState(isEditing);
   const [translationError, setTranslationError] = useState<string | null>(null);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) navigate('/login');
-    });
-  }, [navigate]);
-
-  useEffect(() => {
-    if (isEditing) {
-      fetchPost();
-    } else {
-      setFetching(false);
-    }
-  }, [id]);
-
-  async function fetchPost() {
+  const fetchPost = useCallback(async () => {
     try {
       if (!id) return;
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const { data, error } = await supabase.from('posts').select('*').eq('id', id).single();
 
       if (error) throw error;
       if (data) {
@@ -60,7 +43,21 @@ export default function PostEditor() {
     } finally {
       setFetching(false);
     }
-  }
+  }, [id, navigate]);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) navigate('/login');
+    });
+  }, [navigate]);
+
+  useEffect(() => {
+    if (isEditing) {
+      fetchPost();
+    } else {
+      setFetching(false);
+    }
+  }, [fetchPost, isEditing]);
 
   const generateSlug = (text: string) => {
     return text
@@ -83,16 +80,20 @@ export default function PostEditor() {
 
   const handleTranslate = async () => {
     if (!title && !content) return;
-    
+
     setTranslating(true);
     setTranslationError(null);
     try {
       const { title_en, content_en } = await translatePost(title, content);
       setTitleEn(title_en);
       setContentEn(content_en);
-    } catch (error: any) {
-      console.error("Translation failed", error);
-      setTranslationError(error.message);
+    } catch (error: unknown) {
+      console.error('Translation failed', error);
+      if (error instanceof Error) {
+        setTranslationError(error.message);
+      } else {
+        setTranslationError('An unknown error occurred');
+      }
     } finally {
       setTranslating(false);
     }
@@ -112,7 +113,7 @@ export default function PostEditor() {
         if (!finalTitleEn) finalTitleEn = title_en;
         if (!finalContentEn) finalContentEn = content_en;
       } catch (error) {
-        console.error("Auto-translation failed", error);
+        console.error('Auto-translation failed', error);
       }
     }
 
@@ -128,21 +129,20 @@ export default function PostEditor() {
 
     try {
       if (isEditing && id) {
-        const { error } = await supabase
-          .from('posts')
-          .update(postData)
-          .eq('id', id);
+        const { error } = await supabase.from('posts').update(postData).eq('id', id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from('posts')
-          .insert([postData]);
+        const { error } = await supabase.from('posts').insert([postData]);
         if (error) throw error;
       }
       navigate('/admin');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error saving post:', err);
-      alert(`Error saving post: ${err.message}`);
+      if (err instanceof Error) {
+        alert(`Error saving post: ${err.message}`);
+      } else {
+        alert('Error saving post: An unknown error occurred');
+      }
     } finally {
       setLoading(false);
     }
@@ -160,6 +160,7 @@ export default function PostEditor() {
     <div className="max-w-4xl mx-auto animate-in fade-in duration-500">
       <div className="flex items-center justify-between mb-8">
         <button
+          type="button"
           onClick={() => navigate('/admin')}
           className="flex items-center text-sm text-zinc-500 hover:text-zinc-300"
         >
@@ -172,8 +173,11 @@ export default function PostEditor() {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-zinc-400">Title (Russian)</label>
+            <label htmlFor="title" className="block text-sm font-medium text-zinc-400">
+              Title (Russian)
+            </label>
             <input
+              id="title"
               type="text"
               value={title}
               onChange={handleTitleChange}
@@ -183,8 +187,11 @@ export default function PostEditor() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-zinc-400">Slug</label>
+            <label htmlFor="slug" className="block text-sm font-medium text-zinc-400">
+              Slug
+            </label>
             <input
+              id="slug"
               type="text"
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
@@ -195,8 +202,11 @@ export default function PostEditor() {
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-400">Content (Russian - Markdown)</label>
+          <label htmlFor="content" className="block text-sm font-medium text-zinc-400">
+            Content (Russian - Markdown)
+          </label>
           <textarea
+            id="content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             rows={15}
@@ -224,22 +234,29 @@ export default function PostEditor() {
                 disabled={translating || !title || !content}
                 className="flex items-center px-3 py-1.5 text-sm bg-zinc-800 text-zinc-300 rounded hover:bg-zinc-700 transition-colors disabled:opacity-50"
               >
-                {translating ? <Loader2 className="animate-spin mr-2" size={14} /> : <Languages className="mr-2" size={14} />}
+                {translating ? (
+                  <Loader2 className="animate-spin mr-2" size={14} />
+                ) : (
+                  <Languages className="mr-2" size={14} />
+                )}
                 Translate Now
               </button>
             </div>
           </div>
-          
+
           {translationError && (
             <div className="mb-4 p-3 bg-red-900/20 border border-red-900/50 rounded-md text-red-200 text-sm">
               <strong>Error:</strong> {translationError}
             </div>
           )}
-          
+
           <div className="grid grid-cols-1 gap-6">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-zinc-400">Title (English)</label>
+              <label htmlFor="titleEn" className="block text-sm font-medium text-zinc-400">
+                Title (English)
+              </label>
               <input
+                id="titleEn"
                 type="text"
                 value={titleEn}
                 onChange={(e) => setTitleEn(e.target.value)}
@@ -249,8 +266,11 @@ export default function PostEditor() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-zinc-400">Content (English - Markdown)</label>
+              <label htmlFor="contentEn" className="block text-sm font-medium text-zinc-400">
+                Content (English - Markdown)
+              </label>
               <textarea
+                id="contentEn"
                 value={contentEn}
                 onChange={(e) => setContentEn(e.target.value)}
                 rows={15}
@@ -277,7 +297,11 @@ export default function PostEditor() {
             disabled={loading}
             className="flex items-center px-6 py-2 bg-zinc-100 text-zinc-900 rounded-md hover:bg-zinc-200 transition-colors disabled:opacity-50 font-medium"
           >
-            {loading ? <Loader2 className="animate-spin mr-2" size={16} /> : <Save className="mr-2" size={16} />}
+            {loading ? (
+              <Loader2 className="animate-spin mr-2" size={16} />
+            ) : (
+              <Save className="mr-2" size={16} />
+            )}
             Save Post
           </button>
         </div>

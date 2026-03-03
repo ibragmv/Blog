@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { supabase, type Post } from '@/lib/supabase';
-import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { format } from 'date-fns';
-import { Loader2, ArrowLeft, Languages } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { SITE_CONFIG } from '@/config';
+import { type Post, supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 
 export default function BlogPost() {
@@ -16,13 +16,9 @@ export default function BlogPost() {
   useEffect(() => {
     async function fetchPost() {
       if (!slug) return;
-      
+
       try {
-        const { data, error } = await supabase
-          .from('posts')
-          .select('*')
-          .eq('slug', slug)
-          .single();
+        const { data, error } = await supabase.from('posts').select('*').eq('slug', slug).single();
 
         if (error) throw error;
         setPost(data);
@@ -51,8 +47,12 @@ export default function BlogPost() {
   if (!post) {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold mb-4 text-zinc-900 dark:text-zinc-100 font-display">Post not found</h1>
-        <Link to="/blog" className="text-blue-600 dark:text-blue-400 hover:underline">Back to blog</Link>
+        <h1 className="text-2xl font-bold mb-4 text-zinc-900 dark:text-zinc-100 font-display">
+          Post not found
+        </h1>
+        <Link to="/blog" className="text-blue-600 dark:text-blue-400 hover:underline">
+          Back to blog
+        </Link>
       </div>
     );
   }
@@ -64,8 +64,8 @@ export default function BlogPost() {
   return (
     <article className="animate-in fade-in duration-500">
       <div className="flex items-center justify-between mb-8">
-        <Link 
-          to="/blog" 
+        <Link
+          to="/blog"
           className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 transition-colors"
         >
           <ArrowLeft size={16} className="mr-2" />
@@ -75,23 +75,25 @@ export default function BlogPost() {
         {hasTranslation && (
           <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 rounded-lg p-1 border border-zinc-200 dark:border-zinc-800">
             <button
+              type="button"
               onClick={() => setLanguage('ru')}
               className={cn(
-                "px-3 py-1 text-sm font-medium rounded-md transition-all",
-                language === 'ru' 
-                  ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" 
-                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+                'px-3 py-1 text-sm font-medium rounded-md transition-all',
+                language === 'ru'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'
               )}
             >
               RU
             </button>
             <button
+              type="button"
               onClick={() => setLanguage('en')}
               className={cn(
-                "px-3 py-1 text-sm font-medium rounded-md transition-all",
-                language === 'en' 
-                  ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" 
-                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+                'px-3 py-1 text-sm font-medium rounded-md transition-all',
+                language === 'en'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'
               )}
             >
               EN
@@ -99,7 +101,7 @@ export default function BlogPost() {
           </div>
         )}
       </div>
-      
+
       <header className="mb-10">
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-zinc-900 dark:text-zinc-100 font-display transition-all duration-300">
           {currentTitle}

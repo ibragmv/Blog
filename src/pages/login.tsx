@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import type React from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -23,8 +24,9 @@ export default function Login() {
 
       if (error) throw error;
       navigate('/admin');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -33,11 +35,14 @@ export default function Login() {
   return (
     <div className="max-w-sm mx-auto mt-20 animate-in fade-in duration-500">
       <h1 className="text-2xl font-bold mb-6 text-center text-zinc-100">Admin Login</h1>
-      
+
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-zinc-400 mb-1">Email</label>
+          <label htmlFor="email" className="block text-sm font-medium text-zinc-400 mb-1">
+            Email
+          </label>
           <input
+            id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -45,10 +50,13 @@ export default function Login() {
             required
           />
         </div>
-        
+
         <div>
-          <label className="block text-sm font-medium text-zinc-400 mb-1">Password</label>
+          <label htmlFor="password" className="block text-sm font-medium text-zinc-400 mb-1">
+            Password
+          </label>
           <input
+            id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

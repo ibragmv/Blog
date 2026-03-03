@@ -1,9 +1,9 @@
+import { Menu, Rss, Shield, X } from 'lucide-react';
 import React from 'react';
-import { NavLink, Link } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { Menu, X, Shield, Rss } from 'lucide-react';
-import { ThemeToggle } from './theme-toggle';
+import { Link, NavLink } from 'react-router-dom';
 import { SITE_CONFIG } from '@/config';
+import { cn } from '@/lib/utils';
+import { ThemeToggle } from './theme-toggle';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
@@ -14,8 +14,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { name: 'Links', path: '/links' },
   ];
 
-  // Split title into words for stacking if needed, or just display as is
-  // For the specific "Ibragim Ibragimov" stacked look, we can try to split by space
   const titleWords = SITE_CONFIG.title.split(' ');
   const isMultiWord = titleWords.length > 1;
 
@@ -23,17 +21,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-300 font-sans selection:bg-zinc-200 dark:selection:bg-zinc-800 selection:text-zinc-900 dark:selection:text-zinc-100 transition-colors duration-300">
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-sm border-b border-zinc-200 dark:border-zinc-900 transition-colors duration-300">
         <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
-          <NavLink to="/" className="flex items-center gap-3 leading-none font-bold tracking-tight text-zinc-900 dark:text-zinc-100 hover:opacity-70 transition-opacity font-display uppercase">
+          <NavLink
+            to="/"
+            className="flex items-center gap-3 leading-none font-bold tracking-tight text-zinc-900 dark:text-zinc-100 hover:opacity-70 transition-opacity font-display uppercase"
+          >
             <img src={SITE_CONFIG.logo} alt="Logo" className="w-8 h-8" />
             <div className="flex flex-col">
-            {isMultiWord ? (
-              <>
-                <span className="text-xl">{titleWords[0]}</span>
-                <span className="text-xl">{titleWords.slice(1).join(' ')}</span>
-              </>
-            ) : (
-              <span className="text-2xl">{SITE_CONFIG.title}</span>
-            )}
+              {isMultiWord ? (
+                <>
+                  <span className="text-xl">{titleWords[0]}</span>
+                  <span className="text-xl">{titleWords.slice(1).join(' ')}</span>
+                </>
+              ) : (
+                <span className="text-2xl">{SITE_CONFIG.title}</span>
+              )}
             </div>
           </NavLink>
 
@@ -46,8 +47,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   to={item.path}
                   className={({ isActive }) =>
                     cn(
-                      "text-sm font-medium transition-colors hover:text-zinc-900 dark:hover:text-zinc-100",
-                      isActive ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-500 dark:text-zinc-500"
+                      'text-sm font-medium transition-colors hover:text-zinc-900 dark:hover:text-zinc-100',
+                      isActive
+                        ? 'text-zinc-900 dark:text-zinc-100'
+                        : 'text-zinc-500 dark:text-zinc-500'
                     )
                   }
                 >
@@ -56,8 +59,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
               ))}
             </nav>
 
-            <NavLink 
-              to="/admin" 
+            <NavLink
+              to="/admin"
               className="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors p-2"
               title="Admin Panel"
             >
@@ -66,6 +69,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
             {/* Mobile Menu Toggle */}
             <button
+              type="button"
               className="md:hidden p-2 -mr-2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
@@ -84,8 +88,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 onClick={() => setIsMenuOpen(false)}
                 className={({ isActive }) =>
                   cn(
-                    "text-sm font-medium transition-colors hover:text-zinc-900 dark:hover:text-zinc-100 block py-2",
-                    isActive ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-500 dark:text-zinc-500"
+                    'text-sm font-medium transition-colors hover:text-zinc-900 dark:hover:text-zinc-100 block py-2',
+                    isActive
+                      ? 'text-zinc-900 dark:text-zinc-100'
+                      : 'text-zinc-500 dark:text-zinc-500'
                   )
                 }
               >
@@ -105,17 +111,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="text-xs text-zinc-500 dark:text-zinc-600">
             &copy; {new Date().getFullYear()} Ibragim Ibragimov. All rights reserved.
           </div>
-          
+
           <div className="flex items-center gap-6">
-            <Link 
-              to="/rss" 
+            <Link
+              to="/rss"
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30 transition-all text-xs font-medium border border-zinc-200 dark:border-zinc-800"
               title="RSS Feed"
             >
               <Rss size={14} />
               <span>RSS</span>
             </Link>
-            
+
             <ThemeToggle />
           </div>
         </div>

@@ -1,6 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { supabase, type Link } from '@/lib/supabase';
-import { Loader2, Plus, Trash2, Save, X, Github, Twitter, Linkedin, Globe, Mail, Link as LinkIcon } from 'lucide-react';
+import {
+  Github,
+  Globe,
+  Linkedin,
+  Link as LinkIcon,
+  Loader2,
+  Mail,
+  Plus,
+  Save,
+  Trash2,
+  Twitter,
+} from 'lucide-react';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { type Link, supabase } from '@/lib/supabase';
 
 const ICON_OPTIONS = [
   { value: 'default', label: 'Default', icon: LinkIcon },
@@ -15,7 +27,7 @@ export function LinksManager() {
   const [links, setLinks] = useState<Link[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   // Form State
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
@@ -23,11 +35,7 @@ export function LinksManager() {
   const [order, setOrder] = useState(0);
   const [editId, setEditId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchLinks();
-  }, []);
-
-  async function fetchLinks() {
+  const fetchLinks = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('links')
@@ -38,7 +46,7 @@ export function LinksManager() {
       setLinks(data || []);
       // Set next order automatically
       if (data && data.length > 0) {
-        const maxOrder = Math.max(...data.map(l => l.order));
+        const maxOrder = Math.max(...data.map((l) => l.order));
         setOrder(maxOrder + 1);
       }
     } catch (err) {
@@ -46,7 +54,11 @@ export function LinksManager() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    fetchLinks();
+  }, [fetchLinks]);
 
   const resetForm = () => {
     setTitle('');
@@ -55,7 +67,7 @@ export function LinksManager() {
     setEditId(null);
     // Recalculate next order
     if (links.length > 0) {
-      const maxOrder = Math.max(...links.map(l => l.order));
+      const maxOrder = Math.max(...links.map((l) => l.order));
       setOrder(maxOrder + 1);
     } else {
       setOrder(0);
@@ -77,7 +89,7 @@ export function LinksManager() {
     try {
       const { error } = await supabase.from('links').delete().eq('id', id);
       if (error) throw error;
-      setLinks(links.filter(l => l.id !== id));
+      setLinks(links.filter((l) => l.id !== id));
     } catch (err) {
       console.error('Error deleting link:', err);
       alert('Failed to delete link');
@@ -97,22 +109,18 @@ export function LinksManager() {
 
     try {
       if (editId) {
-        const { error } = await supabase
-          .from('links')
-          .update(linkData)
-          .eq('id', editId);
+        const { error } = await supabase.from('links').update(linkData).eq('id', editId);
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from('links')
-          .insert([linkData]);
+        const { error } = await supabase.from('links').insert([linkData]);
         if (error) throw error;
       }
       await fetchLinks();
       resetForm();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error saving link:', err);
-      alert(`Error saving link: ${err.message}`);
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      alert(`Error saving link: ${message}`);
     } finally {
       setLoading(false);
     }
@@ -132,6 +140,7 @@ export function LinksManager() {
         <h2 className="text-xl font-bold text-zinc-100">Manage Links</h2>
         {!isEditing && (
           <button
+            type="button"
             onClick={() => setIsEditing(true)}
             className="flex items-center px-3 py-1.5 bg-zinc-100 text-zinc-900 rounded-md hover:bg-zinc-200 transition-colors text-sm font-medium"
           >
@@ -142,11 +151,17 @@ export function LinksManager() {
       </div>
 
       {isEditing && (
-        <form onSubmit={handleSubmit} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-4 animate-in fade-in slide-in-from-top-2">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-4 animate-in fade-in slide-in-from-top-2"
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-zinc-400 mb-1">Title</label>
+              <label htmlFor="link-title" className="block text-sm font-medium text-zinc-400 mb-1">
+                Title
+              </label>
               <input
+                id="link-title"
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -155,8 +170,11 @@ export function LinksManager() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-400 mb-1">URL</label>
+              <label htmlFor="link-url" className="block text-sm font-medium text-zinc-400 mb-1">
+                URL
+              </label>
               <input
+                id="link-url"
                 type="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
@@ -165,28 +183,36 @@ export function LinksManager() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-400 mb-1">Icon</label>
+              <label htmlFor="link-icon" className="block text-sm font-medium text-zinc-400 mb-1">
+                Icon
+              </label>
               <select
+                id="link-icon"
                 value={icon}
                 onChange={(e) => setIcon(e.target.value)}
                 className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-700 text-zinc-200"
               >
                 {ICON_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-400 mb-1">Order</label>
+              <label htmlFor="link-order" className="block text-sm font-medium text-zinc-400 mb-1">
+                Order
+              </label>
               <input
+                id="link-order"
                 type="number"
                 value={order}
-                onChange={(e) => setOrder(parseInt(e.target.value))}
+                onChange={(e) => setOrder(parseInt(e.target.value, 10))}
                 className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-700 text-zinc-200"
               />
             </div>
           </div>
-          
+
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
@@ -200,7 +226,11 @@ export function LinksManager() {
               disabled={loading}
               className="flex items-center px-4 py-2 bg-zinc-100 text-zinc-900 rounded-md hover:bg-zinc-200 transition-colors text-sm font-medium"
             >
-              {loading ? <Loader2 className="animate-spin mr-2" size={16} /> : <Save className="mr-2" size={16} />}
+              {loading ? (
+                <Loader2 className="animate-spin mr-2" size={16} />
+              ) : (
+                <Save className="mr-2" size={16} />
+              )}
               {editId ? 'Update Link' : 'Save Link'}
             </button>
           </div>
@@ -220,7 +250,8 @@ export function LinksManager() {
           </thead>
           <tbody className="divide-y divide-zinc-800">
             {links.map((link) => {
-              const IconComponent = ICON_OPTIONS.find(opt => opt.value === link.icon)?.icon || LinkIcon;
+              const IconComponent =
+                ICON_OPTIONS.find((opt) => opt.value === link.icon)?.icon || LinkIcon;
               return (
                 <tr key={link.id} className="hover:bg-zinc-800/50 transition-colors">
                   <td className="px-6 py-4 text-zinc-500">{link.order}</td>
@@ -232,12 +263,15 @@ export function LinksManager() {
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
                       <button
+                        type="button"
                         onClick={() => handleEdit(link)}
                         className="p-2 text-zinc-500 hover:text-blue-400 transition-colors"
                       >
-                        <Save size={16} className="rotate-0" /> {/* Reusing Save icon as Edit for now, or import Edit2 */}
+                        <Save size={16} className="rotate-0" />{' '}
+                        {/* Reusing Save icon as Edit for now, or import Edit2 */}
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleDelete(link.id)}
                         className="p-2 text-zinc-500 hover:text-red-400 transition-colors"
                       >
