@@ -1,6 +1,6 @@
 import { Menu, Rss, Shield, X } from 'lucide-react';
 import React from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { SITE_CONFIG } from '@/config';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from './theme-toggle';
@@ -14,6 +14,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { name: 'Links', path: '/links' },
   ];
 
+  // Split title into words for stacking if needed, or just display as is
+  // For the specific "Ibragim Ibragimov" stacked look, we can try to split by space
   const titleWords = SITE_CONFIG.title.split(' ');
   const isMultiWord = titleWords.length > 1;
 
@@ -113,14 +115,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center gap-6">
-            <Link
-              to="/rss"
+            <a
+              href="/feed.xml"
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30 transition-all text-xs font-medium border border-zinc-200 dark:border-zinc-800"
               title="RSS Feed"
             >
               <Rss size={14} />
               <span>RSS</span>
-            </Link>
+            </a>
 
             <ThemeToggle />
           </div>

@@ -1,13 +1,12 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { SITE_CONFIG } from '@/config';
 import { useTheme } from '@/components/theme-provider';
+import { SITE_CONFIG } from '@/config';
 
 const ROUTES_TITLES: Record<string, string> = {
   '/': 'Home',
   '/blog': 'Blog',
   '/links': 'Links',
-  '/rss': 'RSS',
   '/login': 'Login',
   '/admin': 'Admin',
   '/admin/new': 'New Post',
@@ -21,7 +20,7 @@ export function TitleManager() {
     const updateFavicon = async () => {
       const linkId = 'dynamic-favicon';
       let link = document.getElementById(linkId) as HTMLLinkElement;
-      
+
       if (!link) {
         link = document.createElement('link');
         link.id = linkId;
@@ -36,12 +35,12 @@ export function TitleManager() {
           let svgContent = await response.text();
 
           // Determine color based on theme
-          // Note: 'system' theme resolution is handled by the ThemeProvider, 
+          // Note: 'system' theme resolution is handled by the ThemeProvider,
           // but here we might need to check system preference if theme is 'system'
           let color = '#18181b'; // zinc-900 (dark)
-          
-          const isDark = 
-            theme === 'dark' || 
+
+          const isDark =
+            theme === 'dark' ||
             (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
           if (isDark) {
@@ -51,11 +50,14 @@ export function TitleManager() {
           // Replace currentColor or stroke/fill with the calculated color
           // This is a simple replacement; for complex SVGs this might need refinement
           if (svgContent.includes('currentColor')) {
-             svgContent = svgContent.replace(/currentColor/g, color);
+            svgContent = svgContent.replace(/currentColor/g, color);
           } else {
-             // If no currentColor, try to inject fill/stroke style
-             // This assumes a simple icon
-             svgContent = svgContent.replace('<svg', `<svg style="fill: ${color}; stroke: ${color};"`);
+            // If no currentColor, try to inject fill/stroke style
+            // This assumes a simple icon
+            svgContent = svgContent.replace(
+              '<svg',
+              `<svg style="fill: ${color}; stroke: ${color};"`
+            );
           }
 
           // Encode as data URI
@@ -79,7 +81,7 @@ export function TitleManager() {
 
     if (!pageTitle) {
       if (location.pathname.startsWith('/blog/')) {
-        return; 
+        return;
       } else if (location.pathname.startsWith('/admin/edit/')) {
         pageTitle = 'Edit Post';
       }
@@ -88,7 +90,7 @@ export function TitleManager() {
     if (pageTitle) {
       document.title = `${pageTitle} ${SITE_CONFIG.titleSeparator} ${SITE_CONFIG.title}`;
     } else if (location.pathname === '/') {
-       document.title = SITE_CONFIG.title;
+      document.title = SITE_CONFIG.title;
     }
   }, [location]);
 
