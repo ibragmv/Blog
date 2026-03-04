@@ -7,7 +7,7 @@ export const config = {
 export default function handler(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const title = searchParams.get('title') || 'Can a robot write a symphony?';
+    const title = searchParams.get('title') || 'Build. Ship. Iterate.';
 
     return new ImageResponse(
       (
@@ -49,7 +49,7 @@ export default function handler(req: Request) {
                 fontFamily: 'sans-serif',
               }}
             >
-              ibragim.dev
+              github.com/ibragmv
             </span>
           </div>
 
@@ -88,3 +88,4 @@ export default function handler(req: Request) {
     });
   }
 }
+
