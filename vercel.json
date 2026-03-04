@@ -1,13 +1,12 @@
 {
   "rewrites": [
     {
-      "source": "/feed.xml",
-      "destination": "/api/feed"
+      "source": "/api/og",
+      "destination": "/api/og.tsx"
     },
     {
-      "source": "/((?!api/.*).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
 }
-  
