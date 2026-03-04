@@ -1,4 +1,5 @@
 import express from 'express';
+import { createServer } from 'http';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -10,6 +11,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function startServer() {
   const app = express();
+  const httpServer = createServer(app);
   const PORT = 3000;
   
   app.set('trust proxy', true);
@@ -19,7 +21,7 @@ async function startServer() {
   const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    console.warn('Missing Supabase environment variables. RSS feed may not work.');
+    // Silent failure for missing env vars in dev to keep logs clean
   }
 
   const supabase = createClient(
@@ -88,7 +90,9 @@ async function startServer() {
     const vite = await createViteServer({
       server: { 
         middlewareMode: true,
-        hmr: false, // Explicitly disable HMR to prevent WebSocket errors in this environment
+        hmr: {
+          server: httpServer,
+        },
       },
       appType: 'spa',
     });
@@ -103,7 +107,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }

@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { supabase, type Link as LinkType } from '@/lib/supabase';
-import { Loader2, Github, Twitter, Linkedin, Globe, Mail, Link as LinkIcon } from 'lucide-react';
+import { Github, Globe, Linkedin, Link as LinkIcon, Loader2, Mail, Twitter } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { type Link as LinkType, supabase } from '@/lib/supabase';
 
 const iconMap: Record<string, React.ReactNode> = {
   github: <Github size={20} />,
@@ -45,8 +46,10 @@ export default function Links() {
 
   return (
     <div className="max-w-md mx-auto space-y-8 animate-in fade-in duration-500">
-      <h1 className="text-3xl font-bold tracking-tight text-center text-zinc-900 dark:text-zinc-100 font-display">Connect</h1>
-      
+      <h1 className="text-3xl font-bold tracking-tight text-center text-zinc-900 dark:text-zinc-100 font-display">
+        Connect
+      </h1>
+
       <div className="grid gap-4">
         {links.length === 0 ? (
           <p className="text-center text-zinc-500">No links added yet.</p>

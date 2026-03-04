@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { MarkdownRenderer } from '@/components/markdown-renderer';
+import { supabase } from '@/lib/supabase';
 
 export default function Home() {
   const [content, setContent] = useState<string>('');
@@ -19,11 +19,13 @@ export default function Home() {
         if (error) {
           console.error('Error fetching home content:', error);
         }
-        
+
         if (data) {
           setContent(data.content);
         } else {
-          setContent("# Welcome\n\nThis is the home page. You can edit this content in the admin panel by creating a post with the slug `home`.");
+          setContent(
+            '# Welcome\n\nThis is the home page. You can edit this content in the admin panel by creating a post with the slug `home`.'
+          );
         }
       } catch (err) {
         console.error('Unexpected error:', err);

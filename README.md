@@ -1,4 +1,3 @@
-
 # Personal Blog & Admin Panel
 
 A modern, full-stack personal blog platform featuring a built-in admin dashboard. This project is powered by Supabase for data management and provides native support for Markdown-based content creation.

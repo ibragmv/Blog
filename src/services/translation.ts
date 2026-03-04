@@ -9,13 +9,7 @@ const getEnvVar = (key: string) => {
 
 const apiKey = getEnvVar('GEMINI_API_KEY') || import.meta.env.VITE_GEMINI_API_KEY;
 
-// Debug logging to help troubleshoot Vercel deployments
-if (!apiKey) {
-  console.warn('Gemini API Key is missing! Check VITE_GEMINI_API_KEY in Vercel settings.');
-} else {
-  console.log('Gemini API Key found (starts with):', `${apiKey.substring(0, 8)}...`);
-}
-
+// Debug logging removed to clean up dev output
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 const PRIMARY_MODEL = 'gemini-3-flash-preview';

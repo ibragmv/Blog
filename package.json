@@ -18,6 +18,7 @@
     "@supabase/supabase-js": "^2.98.0",
     "@tailwindcss/vite": "^4.1.14",
     "@vercel/analytics": "^1.1.0",
+    "@vercel/node": "^5.6.10",
     "@vercel/speed-insights": "^1.1.0",
     "@vitejs/plugin-react": "^5.0.4",
     "clsx": "^2.1.1",

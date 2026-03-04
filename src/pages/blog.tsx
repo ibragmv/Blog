@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { supabase, type Post } from '@/lib/supabase';
 import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { type Post, supabase } from '@/lib/supabase';
 
 export default function Blog() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -40,18 +40,16 @@ export default function Blog() {
 
   return (
     <div className="space-y-12 animate-in fade-in duration-500">
-      <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 font-display">Writing</h1>
-      
+      <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 font-display">
+        Writing
+      </h1>
+
       {posts.length === 0 ? (
         <p className="text-zinc-500">No posts found.</p>
       ) : (
         <div className="grid gap-8">
           {posts.map((post) => (
-            <Link 
-              key={post.id} 
-              to={`/blog/${post.slug}`}
-              className="group block"
-            >
+            <Link key={post.id} to={`/blog/${post.slug}`} className="group block">
               <article className="space-y-2">
                 <h2 className="text-xl font-medium text-zinc-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors font-display">
                   {post.title}
