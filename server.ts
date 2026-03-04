@@ -276,6 +276,51 @@ async function startServer() {
     }
   });
 
+  // Handle Root Route with Default OG Tags
+  app.get('/', async (req, res, next) => {
+    try {
+      const protocol = req.headers['x-forwarded-proto'] || 'https';
+      const host = req.headers['x-forwarded-host'] || req.headers.host;
+      const baseUrl = `${protocol}://${host}`;
+      
+      const ogImageUrl = `${baseUrl}/api/og`; // Uses default title
+      const title = 'Ibragim Ibragimov';
+      const description = 'Can a robot write a symphony?';
+
+      // Inject meta tags
+      const metaTags = `
+        <title>${title}</title>
+        <meta name="description" content="${description}" />
+        <meta property="og:title" content="${title}" />
+        <meta property="og:description" content="${description}" />
+        <meta property="og:image" content="${ogImageUrl}" />
+        <meta property="og:url" content="${baseUrl}" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="${title}" />
+        <meta name="twitter:description" content="${description}" />
+        <meta name="twitter:image" content="${ogImageUrl}" />
+      `;
+      
+      let html = '';
+      if (process.env.NODE_ENV !== 'production') {
+        const template = await fs.promises.readFile(path.resolve(__dirname, 'index.html'), 'utf-8');
+        html = await vite.transformIndexHtml(req.originalUrl, template);
+      } else {
+        html = await fs.promises.readFile(path.resolve(__dirname, 'dist', 'index.html'), 'utf-8');
+      }
+      
+      // Replace existing title if possible, otherwise just append to head
+      html = html.replace('<title>Ibragim Ibragimov</title>', ''); 
+      html = html.replace('</head>', `${metaTags}</head>`);
+      
+      res.send(html);
+    } catch (e) {
+      consola.error('Error injecting OG tags for root:', e);
+      next();
+    }
+  });
+
   // SPA fallback
   app.use('*', async (req, res) => {
     try {
