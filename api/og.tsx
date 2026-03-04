@@ -7,7 +7,7 @@ export const config = {
 export default function handler(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const title = searchParams.get('title') || 'Build. Ship. Iterate.';
+    const title = searchParams.get('title') || 'Can a robot write a symphony?';
 
     return new ImageResponse(
       (
