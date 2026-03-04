@@ -1,11 +1,12 @@
 {
+  "functions": {
+    "api/og.tsx": {
+      "runtime": "edge"
+    }
+  },
   "rewrites": [
     {
-      "source": "/api/og",
-      "destination": "/api/og.tsx"
-    },
-    {
-      "source": "/(.*)",
+      "source": "/((?!api/.*).*)",
       "destination": "/index.html"
     }
   ]
