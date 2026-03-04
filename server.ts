@@ -7,6 +7,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { z } from 'zod';
 import { GoogleGenAI } from '@google/genai';
+import { consola } from 'consola';
 // @ts-ignore
 import ogHandler from './api/og';
 
@@ -38,7 +39,7 @@ async function startServer() {
   const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    // Silent failure for missing env vars in dev to keep logs clean
+    consola.warn('Supabase credentials missing in environment variables');
   }
 
   const supabase = createClient(
@@ -101,7 +102,7 @@ async function startServer() {
 
       res.json({ title_en, content_en });
     } catch (error: any) {
-      console.error('Translation error:', error);
+      consola.error('Translation error:', error);
       res.status(500).json({ error: 'Translation failed', message: error.message });
     }
   });
@@ -118,7 +119,7 @@ async function startServer() {
         .limit(20);
 
       if (error) {
-        console.error('Error fetching posts for RSS:', error);
+        consola.error('Error fetching posts for RSS:', error);
         return res.status(500).send('Error generating RSS feed');
       }
 
@@ -162,112 +163,130 @@ async function startServer() {
       res.set('Content-Type', 'application/xml');
       res.send(rss);
     } catch (err) {
-      console.error('Unexpected error generating RSS feed:', err);
+      consola.error('Unexpected error generating RSS feed:', err);
       res.status(500).send('Internal Server Error');
     }
   });
 
-  // Vite middleware for development
+  // Handle Blog Post OG Tags - Available in both Dev and Prod
+  app.get('/api/og', async (req, res) => {
+    try {
+      const protocol = req.headers['x-forwarded-proto'] || 'https';
+      const host = req.headers['x-forwarded-host'] || req.headers.host;
+      const url = `${protocol}://${host}${req.url}`;
+      
+      const request = new Request(url);
+      const response = await ogHandler(request);
+      
+      response.headers.forEach((value: string, key: string) => {
+        res.setHeader(key, value);
+      });
+      
+      const arrayBuffer = await response.arrayBuffer();
+      res.status(response.status).send(Buffer.from(arrayBuffer));
+    } catch (e) {
+      consola.error('Error generating OG image:', e);
+      res.status(500).send('Error generating OG image');
+    }
+  });
+
+  let vite: any;
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
+    vite = await createViteServer({
       server: { 
         middlewareMode: true,
         hmr: {
           server: httpServer,
         },
       },
-      appType: 'spa',
+      appType: 'custom', // We handle the HTML serving
     });
     app.use(vite.middlewares);
   } else {
-    // Serve static files in production
-    app.use(express.static(path.resolve(__dirname, 'dist')));
-
-    // Handle Blog Post OG Tags
-    app.get('/api/og', async (req, res) => {
-      try {
-        const protocol = req.headers['x-forwarded-proto'] || 'https';
-        const host = req.headers['x-forwarded-host'] || req.headers.host;
-        const url = `${protocol}://${host}${req.url}`;
-        
-        const request = new Request(url);
-        const response = await ogHandler(request);
-        
-        response.headers.forEach((value: string, key: string) => {
-          res.setHeader(key, value);
-        });
-        
-        const arrayBuffer = await response.arrayBuffer();
-        res.status(response.status).send(Buffer.from(arrayBuffer));
-      } catch (e) {
-        console.error('Error generating OG image:', e);
-        res.status(500).send('Error generating OG image');
-      }
-    });
-
-    app.get('/blog/:slug', async (req, res) => {
-      try {
-        const { slug } = req.params;
-        const { data: post } = await supabase
-          .from('posts')
-          .select('title, content, created_at')
-          .eq('slug', slug)
-          .single();
-
-        if (!post) {
-          return res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
-        }
-
-        const indexPath = path.resolve(__dirname, 'dist', 'index.html');
-        let html = await fs.promises.readFile(indexPath, 'utf-8');
-
-        // Construct OG Image URL
-        const protocol = req.headers['x-forwarded-proto'] || 'https';
-        const host = req.headers['x-forwarded-host'] || req.headers.host;
-        const baseUrl = `${protocol}://${host}`;
-        
-        const dateStr = new Date(post.created_at).toISOString().split('T')[0];
-        const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(post.title)}&date=${dateStr}`;
-        const description = post.content 
-          ? post.content.slice(0, 160).replace(/[#*`]/g, '').replace(/\n/g, ' ') + '...' 
-          : '';
-
-        // Inject meta tags
-        const metaTags = `
-          <title>${post.title} | Ibragim Ibragimov</title>
-          <meta name="description" content="${description}" />
-          <meta property="og:title" content="${post.title}" />
-          <meta property="og:description" content="${description}" />
-          <meta property="og:image" content="${ogImageUrl}" />
-          <meta property="og:url" content="${baseUrl}/blog/${slug}" />
-          <meta property="og:type" content="article" />
-          <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content="${post.title}" />
-          <meta name="twitter:description" content="${description}" />
-          <meta name="twitter:image" content="${ogImageUrl}" />
-        `;
-        
-        // Replace existing title if possible, otherwise just append to head
-        html = html.replace('<title>Ibragim Ibragimov</title>', ''); 
-        html = html.replace('</head>', `${metaTags}</head>`);
-        
-        res.send(html);
-      } catch (e) {
-        console.error('Error injecting OG tags:', e);
-        // Fallback to standard SPA
-        res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
-      }
-    });
-    
-    // SPA fallback
-    app.get('*', (req, res) => {
-      res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
-    });
+    app.use(express.static(path.resolve(__dirname, 'dist'), { index: false }));
   }
 
+  // Handle Blog Post with OG Tags
+  app.get('/blog/:slug', async (req, res, next) => {
+    try {
+      const { slug } = req.params;
+      const { data: post } = await supabase
+        .from('posts')
+        .select('title, content, created_at')
+        .eq('slug', slug)
+        .single();
+
+      if (!post) {
+        return next();
+      }
+
+      const protocol = req.headers['x-forwarded-proto'] || 'https';
+      const host = req.headers['x-forwarded-host'] || req.headers.host;
+      const baseUrl = `${protocol}://${host}`;
+      
+      const dateStr = new Date(post.created_at).toISOString().split('T')[0];
+      const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(post.title)}&date=${dateStr}`;
+      const description = post.content 
+        ? post.content.slice(0, 160).replace(/[#*`]/g, '').replace(/\n/g, ' ') + '...' 
+        : '';
+
+      // Inject meta tags
+      const metaTags = `
+        <title>${post.title} | Ibragim Ibragimov</title>
+        <meta name="description" content="${description}" />
+        <meta property="og:title" content="${post.title}" />
+        <meta property="og:description" content="${description}" />
+        <meta property="og:image" content="${ogImageUrl}" />
+        <meta property="og:url" content="${baseUrl}/blog/${slug}" />
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="${post.title}" />
+        <meta name="twitter:description" content="${description}" />
+        <meta name="twitter:image" content="${ogImageUrl}" />
+      `;
+      
+      let html = '';
+      if (process.env.NODE_ENV !== 'production') {
+        // Dev: Read index.html from root and transform with Vite
+        const template = await fs.promises.readFile(path.resolve(__dirname, 'index.html'), 'utf-8');
+        html = await vite.transformIndexHtml(req.originalUrl, template);
+      } else {
+        // Prod: Read index.html from dist
+        html = await fs.promises.readFile(path.resolve(__dirname, 'dist', 'index.html'), 'utf-8');
+      }
+      
+      // Replace existing title if possible, otherwise just append to head
+      html = html.replace('<title>Ibragim Ibragimov</title>', ''); 
+      html = html.replace('</head>', `${metaTags}</head>`);
+      
+      res.send(html);
+    } catch (e) {
+      consola.error('Error injecting OG tags:', e);
+      next();
+    }
+  });
+
+  // SPA fallback
+  app.use('*', async (req, res) => {
+    try {
+      const url = req.originalUrl;
+      let html = '';
+      if (process.env.NODE_ENV !== 'production') {
+        const template = await fs.promises.readFile(path.resolve(__dirname, 'index.html'), 'utf-8');
+        html = await vite.transformIndexHtml(url, template);
+      } else {
+        html = await fs.promises.readFile(path.resolve(__dirname, 'dist', 'index.html'), 'utf-8');
+      }
+      res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
+    } catch (e: any) {
+      consola.error(e);
+      res.status(500).end(e.message);
+    }
+  });
+
   httpServer.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    consola.success(`Server running on http://localhost:${PORT}`);
   });
 }
 
