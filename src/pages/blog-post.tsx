@@ -12,6 +12,20 @@ export default function BlogPost() {
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState<'ru' | 'en'>('ru');
+  const [readingProgress, setReadingProgress] = useState(0);
+
+  useEffect(() => {
+    const updateReadingProgress = () => {
+      const currentScroll = window.scrollY;
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollHeight) {
+        setReadingProgress(Number((currentScroll / scrollHeight).toFixed(2)) * 100);
+      }
+    };
+
+    window.addEventListener('scroll', updateReadingProgress);
+    return () => window.removeEventListener('scroll', updateReadingProgress);
+  }, []);
 
   useEffect(() => {
     async function fetchPost() {
@@ -63,6 +77,10 @@ export default function BlogPost() {
 
   return (
     <article className="animate-in fade-in duration-500">
+      <div
+        className="fixed top-0 left-0 h-1 bg-blue-600 z-50 transition-all duration-100 ease-out"
+        style={{ width: `${readingProgress}%` }}
+      />
       <div className="flex items-center justify-between mb-8">
         <Link
           to="/blog"
