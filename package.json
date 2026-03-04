@@ -13,12 +13,16 @@
     "lint:biome": "biome check .",
     "format:biome": "biome check --write ."
   },
+  "trustedDependencies": [
+    "protobufjs"
+  ],
   "dependencies": {
     "@google/genai": "^1.43.0",
     "@supabase/supabase-js": "^2.98.0",
     "@tailwindcss/vite": "^4.1.14",
     "@vercel/analytics": "^1.1.0",
     "@vercel/node": "^5.6.10",
+    "@vercel/og": "^0.11.0",
     "@vercel/speed-insights": "^1.1.0",
     "@vitejs/plugin-react": "^5.0.4",
     "clsx": "^2.1.1",
@@ -37,7 +41,8 @@
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
-    "tailwind-merge": "^3.5.0"
+    "tailwind-merge": "^3.5.0",
+    "turbo": "^2.8.13"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.5",

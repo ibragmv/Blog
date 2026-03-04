@@ -54,13 +54,18 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     <description>Latest updates from Ibragim Ibragimov</description>
     <lastBuildDate>${date}</lastBuildDate>
     <language>en-us</language>
+    <image>
+      <url>${baseUrl}/logo.svg</url>
+      <title>Ibragim Ibragimov</title>
+      <link>${baseUrl}</link>
+    </image>
     <atom:link href="${baseUrl}/feed.xml" rel="self" type="application/rss+xml" />
     ${items}
   </channel>
 </rss>`;
 
     res.setHeader('Content-Type', 'application/xml');
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
+    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate');
     res.statusCode = 200;
     res.end(rss);
   } catch (err) {

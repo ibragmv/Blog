@@ -71,6 +71,11 @@ async function startServer() {
     <description>Latest updates from Ibragim Ibragimov</description>
     <lastBuildDate>${date}</lastBuildDate>
     <language>en-us</language>
+    <image>
+      <url>${baseUrl}/logo.svg</url>
+      <title>Ibragim Ibragimov</title>
+      <link>${baseUrl}</link>
+    </image>
     <atom:link href="${baseUrl}/feed.xml" rel="self" type="application/rss+xml" />
     ${items}
   </channel>

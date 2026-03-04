@@ -2,6 +2,7 @@ import { ArrowLeft, Languages, Loader2, Save } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { MarkdownEditor } from '@/components/markdown-editor';
 import { supabase } from '@/lib/supabase';
 import { testConnection, translatePost } from '@/services/translation';
 
@@ -201,20 +202,14 @@ export default function PostEditor() {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label htmlFor="content" className="block text-sm font-medium text-zinc-400">
-            Content (Russian - Markdown)
-          </label>
-          <textarea
-            id="content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={15}
-            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-700 text-zinc-200 placeholder-zinc-600 font-mono text-sm leading-relaxed"
-            placeholder="# Write your post here..."
-            required
-          />
-        </div>
+        <MarkdownEditor
+          id="content"
+          label="Content (Russian - Markdown)"
+          value={content}
+          onChange={setContent}
+          placeholder="# Write your post here..."
+          rows={15}
+        />
 
         {/* Translation Section */}
         <div className="border-t border-zinc-800 pt-6 mt-6">
@@ -265,19 +260,14 @@ export default function PostEditor() {
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="contentEn" className="block text-sm font-medium text-zinc-400">
-                Content (English - Markdown)
-              </label>
-              <textarea
-                id="contentEn"
-                value={contentEn}
-                onChange={(e) => setContentEn(e.target.value)}
-                rows={15}
-                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-700 text-zinc-200 placeholder-zinc-600 font-mono text-sm leading-relaxed"
-                placeholder="Auto-translated content will appear here..."
-              />
-            </div>
+            <MarkdownEditor
+              id="contentEn"
+              label="Content (English - Markdown)"
+              value={contentEn}
+              onChange={setContentEn}
+              placeholder="Auto-translated content will appear here..."
+              rows={15}
+            />
           </div>
         </div>
 
