@@ -11,9 +11,18 @@ import { consola } from 'consola';
 // @ts-ignore
 import ogHandler from './api/og';
 
-dotenv.config();
-
+// Manually load .env to control logging
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const envPath = path.resolve(__dirname, '.env');
+let envCount = 0;
+
+if (fs.existsSync(envPath)) {
+  const envConfig = dotenv.parse(fs.readFileSync(envPath));
+  for (const k in envConfig) {
+    process.env[k] = envConfig[k];
+    envCount++;
+  }
+}
 
 // Initialize Gemini AI
 const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
@@ -287,6 +296,7 @@ async function startServer() {
 
   httpServer.listen(PORT, '0.0.0.0', () => {
     consola.success(`Server running on http://localhost:${PORT}`);
+    consola.info(`Loaded ${envCount} environment variables from .env`);
   });
 }
 
