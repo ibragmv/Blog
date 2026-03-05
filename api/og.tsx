@@ -19,8 +19,7 @@ export default function handler(req: Request) {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#18181b', // zinc-950
-            color: '#e4e4e7', // zinc-200
+            backgroundColor: '#e4e4e7', // zinc-200 (light gray)
             fontFamily: 'sans-serif',
           }}
         >
@@ -30,36 +29,59 @@ export default function handler(req: Request) {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: '#27272a', // zinc-800
+              backgroundColor: '#18181b', // zinc-950 (dark)
               borderRadius: '24px',
-              padding: '60px 80px',
-              boxShadow: '0 20px 50px -12px rgba(0, 0, 0, 0.5)',
-              maxWidth: '80%',
-              textAlign: 'center',
+              width: '85%',
+              height: '85%',
+              padding: '40px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              position: 'relative',
             }}
           >
-            <span
+            {/* Branding top-left */}
+            <div
               style={{
-                fontSize: 64,
-                fontWeight: 'bold',
-                lineHeight: 1.2,
-                letterSpacing: '-0.02em',
+                position: 'absolute',
+                top: '40px',
+                left: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
               }}
             >
-              {title}
-            </span>
-            {title !== 'Ibragim Ibragimov' && (
+              <div
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  backgroundColor: '#f97316', // orange-500
+                }}
+              />
               <span
                 style={{
-                  fontSize: 24,
-                  marginTop: 24,
+                  fontSize: 20,
                   color: '#a1a1aa', // zinc-400
                   fontWeight: 500,
                 }}
               >
                 ibragmv.vercel.app
               </span>
-            )}
+            </div>
+
+            {/* Title */}
+            <span
+              style={{
+                fontSize: 64,
+                fontWeight: 'bold',
+                color: '#ffffff',
+                lineHeight: 1.1,
+                letterSpacing: '-0.02em',
+                textAlign: 'center',
+                maxWidth: '90%',
+              }}
+            >
+              {title}
+            </span>
           </div>
         </div>
       ),

@@ -5,6 +5,10 @@
       "destination": "/api/feed"
     },
     {
+      "source": "/blog/:slug",
+      "destination": "/api/post-html"
+    },
+    {
       "source": "/api/:path*",
       "destination": "/api/:path*"
     },

@@ -58,10 +58,11 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     <lastBuildDate>${date}</lastBuildDate>
     <language>en-us</language>
     <image>
-      <url>${baseUrl}/logo.svg</url>
+      <url>${baseUrl}/favicon.ico</url>
       <title>Ibragim Ibragimov</title>
       <link>${baseUrl}</link>
     </image>
+    <atom:icon>${baseUrl}/favicon.ico</atom:icon>
     <atom:link href="${baseUrl}/feed.xml" rel="self" type="application/rss+xml" />
     ${items}
   </channel>
