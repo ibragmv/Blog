@@ -7,7 +7,7 @@ export const config = {
 export default function handler(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const title = searchParams.get('title') || 'Ibragim Ibragimov';
+    const title = searchParams.get('title') || 'Can a robot write a symphony?';
 
     return new ImageResponse(
       (
@@ -19,65 +19,56 @@ export default function handler(req: Request) {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#e4e4e7', // zinc-200 (light gray)
-            fontFamily: 'sans-serif',
+            backgroundColor: 'white',
+            position: 'relative',
           }}
         >
+          {/* Top Left Branding */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 60,
+              left: 60,
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <div
+              style={{
+                width: 20,
+                height: 20,
+                backgroundColor: 'black',
+                marginRight: 12,
+              }}
+            />
+            <span
+              style={{
+                fontSize: 24,
+                fontWeight: 600,
+                color: 'black',
+                fontFamily: 'sans-serif',
+              }}
+            >
+              ibragmv.vercel.app
+            </span>
+          </div>
+
+          {/* Main Content Box */}
           <div
             style={{
               display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#18181b', // zinc-950 (dark)
-              borderRadius: '24px',
-              width: '85%',
-              height: '85%',
-              padding: '40px',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-              position: 'relative',
+              backgroundColor: 'black',
+              padding: '40px 60px',
             }}
           >
-            {/* Branding top-left */}
-            <div
-              style={{
-                position: 'absolute',
-                top: '40px',
-                left: '40px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-              }}
-            >
-              <div
-                style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  backgroundColor: '#f97316', // orange-500
-                }}
-              />
-              <span
-                style={{
-                  fontSize: 20,
-                  color: '#a1a1aa', // zinc-400
-                  fontWeight: 500,
-                }}
-              >
-                ibragmv.vercel.app
-              </span>
-            </div>
-
-            {/* Title */}
             <span
               style={{
-                fontSize: 64,
+                fontSize: 60,
                 fontWeight: 'bold',
-                color: '#ffffff',
+                color: 'white',
+                fontFamily: 'sans-serif',
                 lineHeight: 1.1,
                 letterSpacing: '-0.02em',
-                textAlign: 'center',
-                maxWidth: '90%',
               }}
             >
               {title}
