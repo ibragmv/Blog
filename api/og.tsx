@@ -7,7 +7,7 @@ export const config = {
 export default function handler(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const title = searchParams.get('title') || 'Can a robot write a symphony?';
+    const title = searchParams.get('title') || 'Ibragim Ibragimov';
 
     return new ImageResponse(
       (
@@ -19,60 +19,47 @@ export default function handler(req: Request) {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: 'white',
-            position: 'relative',
+            backgroundColor: '#18181b', // zinc-950
+            color: '#e4e4e7', // zinc-200
+            fontFamily: 'sans-serif',
           }}
         >
-          {/* Top Left Branding */}
           <div
             style={{
-              position: 'absolute',
-              top: 60,
-              left: 60,
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-            }}
-          >
-            <div
-              style={{
-                width: 20,
-                height: 20,
-                backgroundColor: 'black',
-                marginRight: 12,
-              }}
-            />
-            <span
-              style={{
-                fontSize: 24,
-                fontWeight: 600,
-                color: 'black',
-                fontFamily: 'sans-serif',
-              }}
-            >
-              github.com/ibragmv
-            </span>
-          </div>
-
-          {/* Main Content Box */}
-          <div
-            style={{
-              display: 'flex',
-              backgroundColor: 'black',
-              padding: '40px 60px',
+              justifyContent: 'center',
+              backgroundColor: '#27272a', // zinc-800
+              borderRadius: '24px',
+              padding: '60px 80px',
+              boxShadow: '0 20px 50px -12px rgba(0, 0, 0, 0.5)',
+              maxWidth: '80%',
+              textAlign: 'center',
             }}
           >
             <span
               style={{
-                fontSize: 60,
+                fontSize: 64,
                 fontWeight: 'bold',
-                color: 'white',
-                fontFamily: 'sans-serif',
-                lineHeight: 1.1,
+                lineHeight: 1.2,
                 letterSpacing: '-0.02em',
               }}
             >
               {title}
             </span>
+            {title !== 'Ibragim Ibragimov' && (
+              <span
+                style={{
+                  fontSize: 24,
+                  marginTop: 24,
+                  color: '#a1a1aa', // zinc-400
+                  fontWeight: 500,
+                }}
+              >
+                ibragmv.vercel.app
+              </span>
+            )}
           </div>
         </div>
       ),

@@ -28,7 +28,9 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
 
     const protocol = req.headers['x-forwarded-proto'] || 'https';
     const host = req.headers['x-forwarded-host'] || req.headers.host;
-    const baseUrl = `${protocol}://${host}`;
+    // Force production domain if on vercel to avoid http/https mismatches
+    const baseUrl = host?.includes('vercel.app') ? `https://${host}` : `${protocol}://${host}`;
+    
     const date = new Date().toUTCString();
 
     const items = posts
@@ -38,10 +40,10 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     <item>
       <title><![CDATA[${post.title}]]></title>
       <link>${link}</link>
-      <guid>${link}</guid>
+      <guid isPermaLink="true">${link}</guid>
       <pubDate>${new Date(post.created_at).toUTCString()}</pubDate>
-      <description><![CDATA[${post.content ? post.content.slice(0, 200) + '...' : ''}]]></description>
-      <author>Ibragim Ibragimov</author>
+      <description><![CDATA[${post.content ? post.content.slice(0, 200).replace(/#/g, '') + '...' : ''}]]></description>
+      <author>ibragimirpost@gmail.com (Ibragim Ibragimov)</author>
     </item>`;
       })
       .join('');

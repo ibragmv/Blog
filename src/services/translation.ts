@@ -1,12 +1,26 @@
 export async function testConnection(): Promise<{ success: boolean; message: string }> {
   try {
-    // Simple health check or just return success since the key is on the server now
+    const response = await fetch('/api/health-ai');
+
+    if (!response.ok) {
+      const data = await response.json();
+      return {
+        success: false,
+        message: data.message || `Server error: ${response.status}`,
+      };
+    }
+
+    const data = await response.json();
     return {
       success: true,
-      message: 'Client configured to use server-side translation API.',
+      message: data.message || 'Successfully connected to server-side AI.',
     };
-  } catch {
-    return { success: false, message: 'Unknown connection error' };
+  } catch (error) {
+    console.error('Connection test failed:', error);
+    return {
+      success: false,
+      message: 'Network error: Could not reach the server.',
+    };
   }
 }
 

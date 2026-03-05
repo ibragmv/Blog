@@ -78,7 +78,7 @@ export default function BlogPost() {
   return (
     <article className="animate-in fade-in duration-500">
       <div
-        className="fixed top-0 left-0 h-1 bg-blue-600 z-50 transition-all duration-100 ease-out"
+        className="fixed top-0 left-0 h-1 bg-zinc-300 dark:bg-zinc-700 z-50 transition-all duration-300 ease-out"
         style={{ width: `${readingProgress}%` }}
       />
       <div className="flex items-center justify-between mb-8">
@@ -89,41 +89,44 @@ export default function BlogPost() {
           <ArrowLeft size={16} className="mr-2" />
           Back to writing
         </Link>
-
-        {hasTranslation && (
-          <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 rounded-lg p-1 border border-zinc-200 dark:border-zinc-800">
-            <button
-              type="button"
-              onClick={() => setLanguage('ru')}
-              className={cn(
-                'px-3 py-1 text-sm font-medium rounded-md transition-all',
-                language === 'ru'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'
-              )}
-            >
-              RU
-            </button>
-            <button
-              type="button"
-              onClick={() => setLanguage('en')}
-              className={cn(
-                'px-3 py-1 text-sm font-medium rounded-md transition-all',
-                language === 'en'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'
-              )}
-            >
-              EN
-            </button>
-          </div>
-        )}
       </div>
 
       <header className="mb-10">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-zinc-900 dark:text-zinc-100 font-display transition-all duration-300">
-          {currentTitle}
-        </h1>
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 font-display transition-all duration-300">
+            {currentTitle}
+          </h1>
+
+          {hasTranslation && (
+            <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 rounded-lg p-1 border border-zinc-200 dark:border-zinc-800 shrink-0 self-start">
+              <button
+                type="button"
+                onClick={() => setLanguage('ru')}
+                className={cn(
+                  'px-3 py-1 text-sm font-medium rounded-md transition-all',
+                  language === 'ru'
+                    ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'
+                )}
+              >
+                RU
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage('en')}
+                className={cn(
+                  'px-3 py-1 text-sm font-medium rounded-md transition-all',
+                  language === 'en'
+                    ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'
+                )}
+              >
+                EN
+              </button>
+            </div>
+          )}
+        </div>
+
         <time className="text-zinc-500 text-sm">
           {format(new Date(post.created_at), 'MMMM d, yyyy')}
         </time>

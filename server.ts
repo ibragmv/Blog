@@ -56,11 +56,26 @@ async function startServer() {
     supabaseKey || 'placeholder'
   );
 
+  // Health Check for AI
+  app.get('/api/health-ai', async (req, res) => {
+    if (!genAI) {
+      return res.status(503).json({ 
+        status: 'error', 
+        message: 'Gemini API key is missing on the server.' 
+      });
+    }
+    // Optional: You could try a lightweight call to the model here to verify the key works
+    return res.json({ 
+      status: 'ok', 
+      message: 'Server is connected to Gemini API.' 
+    });
+  });
+
   // Translation Endpoint
   app.post('/api/translate', async (req, res) => {
     try {
       if (!genAI) {
-        return res.status(500).json({ error: 'Gemini API key not configured on server' });
+        return res.status(503).json({ error: 'Gemini API key not configured on server' });
       }
 
       const result = translateSchema.safeParse(req.body);
@@ -132,7 +147,12 @@ async function startServer() {
         return res.status(500).send('Error generating RSS feed');
       }
 
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      // Determine Base URL
+      const protocol = req.headers['x-forwarded-proto'] || 'https';
+      const host = req.headers['x-forwarded-host'] || req.headers.host;
+      // Force production domain if on vercel to avoid http/https mismatches
+      const baseUrl = host?.includes('vercel.app') ? `https://${host}` : `${protocol}://${host}`;
+      
       const date = new Date().toUTCString();
 
       const items = posts
@@ -142,10 +162,10 @@ async function startServer() {
     <item>
       <title><![CDATA[${post.title}]]></title>
       <link>${link}</link>
-      <guid>${link}</guid>
+      <guid isPermaLink="true">${link}</guid>
       <pubDate>${new Date(post.created_at).toUTCString()}</pubDate>
-      <description><![CDATA[${post.content ? post.content.slice(0, 200) + '...' : ''}]]></description>
-      <author>Ibragim Ibragimov</author>
+      <description><![CDATA[${post.content ? post.content.slice(0, 200).replace(/#/g, '') + '...' : ''}]]></description>
+      <author>ibragimirpost@gmail.com (Ibragim Ibragimov)</author>
     </item>`;
         })
         .join('');
@@ -232,10 +252,11 @@ async function startServer() {
 
       const protocol = req.headers['x-forwarded-proto'] || 'https';
       const host = req.headers['x-forwarded-host'] || req.headers.host;
-      const baseUrl = `${protocol}://${host}`;
+      const baseUrl = host?.includes('vercel.app') ? `https://${host}` : `${protocol}://${host}`;
       
       const dateStr = new Date(post.created_at).toISOString().split('T')[0];
-      const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(post.title)}&date=${dateStr}`;
+      // Pass the title to the OG image API
+      const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(post.title)}`;
       const description = post.content 
         ? post.content.slice(0, 160).replace(/[#*`]/g, '').replace(/\n/g, ' ') + '...' 
         : '';
@@ -281,7 +302,7 @@ async function startServer() {
     try {
       const protocol = req.headers['x-forwarded-proto'] || 'https';
       const host = req.headers['x-forwarded-host'] || req.headers.host;
-      const baseUrl = `${protocol}://${host}`;
+      const baseUrl = host?.includes('vercel.app') ? `https://${host}` : `${protocol}://${host}`;
       
       const ogImageUrl = `${baseUrl}/api/og`; // Uses default title
       const title = 'Ibragim Ibragimov';
