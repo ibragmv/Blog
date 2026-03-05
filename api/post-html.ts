@@ -9,38 +9,6 @@ const supabase = createClient(
   supabaseKey || 'placeholder'
 );
 
-const htmlTemplate = `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-    <link rel="alternate icon" href="/favicon.ico" />
-    <link rel="mask-icon" href="/logo.svg" color="#f97316" />
-    <link rel="alternate" type="application/rss+xml" title="Ibragim Ibragimov" href="/feed.xml" />
-    <meta name="theme-color" content="#f97316" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{TITLE}}</title>
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="article" />
-    <meta property="og:site_name" content="Ibragim Ibragimov" />
-    <meta property="og:title" content="{{TITLE}}" />
-    <meta property="og:description" content="{{DESCRIPTION}}" />
-    <meta property="og:image" content="{{IMAGE}}" />
-    <meta property="og:url" content="{{URL}}" />
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:title" content="{{TITLE}}" />
-    <meta property="twitter:description" content="{{DESCRIPTION}}" />
-    <meta property="twitter:image" content="{{IMAGE}}" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>`;
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { slug } = req.query;
 
@@ -49,6 +17,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+    const baseUrl = host?.includes('vercel.app') ? `https://${host}` : `${protocol}://${host}`;
+
+    // Fetch the actual built index.html from the deployment
+    // We use the baseUrl to fetch the root path, which Vercel serves as index.html
+    const indexResponse = await fetch(`${baseUrl}/index.html`);
+    
+    if (!indexResponse.ok) {
+      console.error(`Failed to fetch index.html: ${indexResponse.status}`);
+      return res.status(500).send('Failed to load application');
+    }
+
+    let html = await indexResponse.text();
+
     const { data: post, error } = await supabase
       .from('posts')
       .select('*')
@@ -56,14 +39,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .single();
 
     if (error || !post) {
-      // Fallback to default index.html if post not found (let client handle 404)
-      return res.redirect('/');
+      // If post not found, we still return the app so it can handle the 404
+      // But we don't inject custom meta tags (or we could inject default ones)
+      res.setHeader('Content-Type', 'text/html');
+      return res.send(html);
     }
 
-    const protocol = req.headers['x-forwarded-proto'] || 'https';
-    const host = req.headers['x-forwarded-host'] || req.headers.host;
-    const baseUrl = host?.includes('vercel.app') ? `https://${host}` : `${protocol}://${host}`;
-    
     const title = `${post.title} | Ibragim Ibragimov`;
     const description = post.content 
       ? post.content.slice(0, 160).replace(/[#*`]/g, '').trim() + '...'
@@ -71,11 +52,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const image = `${baseUrl}/api/og?title=${encodeURIComponent(post.title)}`;
     const url = `${baseUrl}/blog/${slug}`;
 
-    const html = htmlTemplate
-      .replace(/{{TITLE}}/g, title)
-      .replace(/{{DESCRIPTION}}/g, description)
-      .replace(/{{IMAGE}}/g, image)
-      .replace(/{{URL}}/g, url);
+    // Inject meta tags
+    // We replace the default title and add meta tags to the head
+    html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
+    
+    const metaTags = `
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Ibragim Ibragimov" />
+    <meta property="og:title" content="${title}" />
+    <meta property="og:description" content="${description}" />
+    <meta property="og:image" content="${image}" />
+    <meta property="og:url" content="${url}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${title}" />
+    <meta name="twitter:description" content="${description}" />
+    <meta name="twitter:image" content="${image}" />
+    `;
+
+    // Insert meta tags before </head>
+    html = html.replace('</head>', `${metaTags}</head>`);
 
     res.setHeader('Content-Type', 'text/html');
     res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
