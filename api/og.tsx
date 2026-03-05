@@ -49,7 +49,7 @@ export default function handler(req: Request) {
                 fontFamily: 'sans-serif',
               }}
             >
-              ibragmv.vercel.app
+              github.com/ibragmv
             </span>
           </div>
 
