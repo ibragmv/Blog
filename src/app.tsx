@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { FontLoader } from './components/font-loader';
 import { Layout } from './components/layout';
 import { ThemeProvider } from './components/theme-provider';
@@ -9,6 +9,7 @@ import BlogPost from './pages/blog-post';
 import Home from './pages/home';
 import Links from './pages/links';
 import Login from './pages/login';
+import NotFound from './pages/not-found';
 import PostEditor from './pages/post-editor';
 
 export default function App() {
@@ -30,7 +31,7 @@ export default function App() {
             <Route path="/admin/new" element={<PostEditor />} />
             <Route path="/admin/edit/:id" element={<PostEditor />} />
 
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>
       </BrowserRouter>
