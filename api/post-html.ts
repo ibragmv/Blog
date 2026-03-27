@@ -1,13 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
-
-const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseKey || 'placeholder'
-);
+import { api, createConvexHttpClient } from '../src/lib/server/convex';
 
 function getBaseUrl(req: VercelRequest) {
   const forwardedProto = req.headers['x-forwarded-proto'];
@@ -51,14 +43,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    const convex = createConvexHttpClient();
     const baseUrl = getBaseUrl(req);
-
-    const { data: post, error } = await supabase
-      .from('posts')
-      .select('*')
-      .eq('slug', slug)
-      .eq('published', true)
-      .single();
+    const post = await convex.query(api.posts.getPublishedBySlug, { slug });
 
     const indexResponse = await fetch(`${baseUrl}/index.html`);
 
@@ -69,7 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     let html = await indexResponse.text();
 
-    if (error || !post) {
+    if (!post) {
       const notFoundTitle = 'Post not found | Ibragim Ibragimov';
       const notFoundDescription = 'This article is no longer available.';
       const notFoundMeta = `
@@ -98,8 +85,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const image = `${baseUrl}/api/og?title=${encodeURIComponent(post.title)}`;
     const url = `${baseUrl}/blog/${slug}`;
 
-    // Inject meta tags
-    // We replace the default title and add meta tags to the head
     html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
 
     const metaTags = `
@@ -116,7 +101,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     <meta name="twitter:image" content="${escapeHtml(image)}" />
     `;
 
-    // Insert meta tags before </head>
     html = html.replace('</head>', `${metaTags}</head>`);
 
     res.setHeader('Content-Type', 'text/html');

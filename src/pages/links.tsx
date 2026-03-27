@@ -1,8 +1,8 @@
+import { api } from '@convex/_generated/api';
+import { useQuery } from 'convex/react';
 import { Github, Globe, Linkedin, Link as LinkIcon, Mail, Twitter } from 'lucide-react';
 import type React from 'react';
-import { useEffect, useState } from 'react';
 import { PageLoader } from '@/components/page-loader';
-import { type Link as LinkType, supabase } from '@/lib/supabase';
 
 const iconMap: Record<string, React.ReactNode> = {
   github: <Github size={20} />,
@@ -14,30 +14,9 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export default function Links() {
-  const [links, setLinks] = useState<LinkType[]>([]);
-  const [loading, setLoading] = useState(true);
+  const links = useQuery(api.links.listPublic, {});
 
-  useEffect(() => {
-    async function fetchLinks() {
-      try {
-        const { data, error } = await supabase
-          .from('links')
-          .select('*')
-          .order('order', { ascending: true });
-
-        if (error) throw error;
-        setLinks(data || []);
-      } catch (err) {
-        console.error('Error fetching links:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchLinks();
-  }, []);
-
-  if (loading) {
+  if (links === undefined) {
     return <PageLoader className="h-64" />;
   }
 

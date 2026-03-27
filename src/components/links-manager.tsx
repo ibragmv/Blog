@@ -1,3 +1,6 @@
+import { api } from '@convex/_generated/api';
+import type { Id } from '@convex/_generated/dataModel';
+import { useMutation, useQuery } from 'convex/react';
 import {
   Github,
   Globe,
@@ -11,8 +14,9 @@ import {
   Twitter,
 } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useEffect, useState } from 'react';
-import { type Link, supabase } from '@/lib/supabase';
+import { useEffect, useState } from 'react';
+import { useAdminAuth } from '@/components/admin-auth-provider';
+import type { LinkRecord } from '@/lib/content';
 
 const ICON_OPTIONS = [
   { value: 'default', label: 'Default', icon: LinkIcon },
@@ -24,9 +28,12 @@ const ICON_OPTIONS = [
 ];
 
 export function LinksManager() {
-  const [links, setLinks] = useState<Link[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { sessionToken } = useAdminAuth();
+  const links = useQuery(api.links.listAdmin, sessionToken ? { sessionToken } : 'skip');
+  const saveLink = useMutation(api.links.save);
+  const removeLink = useMutation(api.links.remove);
   const [isEditing, setIsEditing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form State
   const [title, setTitle] = useState('');
@@ -35,30 +42,19 @@ export function LinksManager() {
   const [order, setOrder] = useState(0);
   const [editId, setEditId] = useState<string | null>(null);
 
-  const fetchLinks = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('links')
-        .select('*')
-        .order('order', { ascending: true });
-
-      if (error) throw error;
-      setLinks(data || []);
-      // Set next order automatically
-      if (data && data.length > 0) {
-        const maxOrder = Math.max(...data.map((l) => l.order));
-        setOrder(maxOrder + 1);
-      }
-    } catch (err) {
-      console.error('Error fetching links:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchLinks();
-  }, [fetchLinks]);
+    if (isEditing || !links) {
+      return;
+    }
+
+    if (links.length > 0) {
+      const maxOrder = Math.max(...links.map((link) => link.order));
+      setOrder(maxOrder + 1);
+      return;
+    }
+
+    setOrder(0);
+  }, [isEditing, links]);
 
   const resetForm = () => {
     setTitle('');
@@ -66,8 +62,8 @@ export function LinksManager() {
     setIcon('default');
     setEditId(null);
     // Recalculate next order
-    if (links.length > 0) {
-      const maxOrder = Math.max(...links.map((l) => l.order));
+    if (links && links.length > 0) {
+      const maxOrder = Math.max(...links.map((link) => link.order));
       setOrder(maxOrder + 1);
     } else {
       setOrder(0);
@@ -75,7 +71,7 @@ export function LinksManager() {
     setIsEditing(false);
   };
 
-  const handleEdit = (link: Link) => {
+  const handleEdit = (link: LinkRecord) => {
     setTitle(link.title);
     setUrl(link.url);
     setIcon(link.icon);
@@ -85,11 +81,12 @@ export function LinksManager() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Delete this link?')) return;
+    if (!window.confirm('Delete this link?') || !sessionToken) return;
     try {
-      const { error } = await supabase.from('links').delete().eq('id', id);
-      if (error) throw error;
-      setLinks(links.filter((l) => l.id !== id));
+      await removeLink({
+        sessionToken,
+        linkId: id as Id<'links'>,
+      });
     } catch (err) {
       console.error('Error deleting link:', err);
       alert('Failed to delete link');
@@ -98,9 +95,15 @@ export function LinksManager() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    if (!sessionToken) {
+      return;
+    }
+
+    setIsSubmitting(true);
 
     const linkData = {
+      sessionToken,
+      ...(editId ? { linkId: editId as Id<'links'> } : {}),
       title,
       url,
       icon,
@@ -108,25 +111,18 @@ export function LinksManager() {
     };
 
     try {
-      if (editId) {
-        const { error } = await supabase.from('links').update(linkData).eq('id', editId);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('links').insert([linkData]);
-        if (error) throw error;
-      }
-      await fetchLinks();
+      await saveLink(linkData);
       resetForm();
     } catch (err: unknown) {
       console.error('Error saving link:', err);
       const message = err instanceof Error ? err.message : 'Unknown error';
       alert(`Error saving link: ${message}`);
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  if (loading && links.length === 0) {
+  if (links === undefined) {
     return (
       <div className="flex justify-center p-8">
         <Loader2 className="animate-spin text-zinc-600" />
@@ -223,10 +219,10 @@ export function LinksManager() {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={isSubmitting}
               className="flex items-center px-4 py-2 bg-zinc-100 text-zinc-900 rounded-md hover:bg-zinc-200 transition-colors text-sm font-medium"
             >
-              {loading ? (
+              {isSubmitting ? (
                 <Loader2 className="animate-spin mr-2" size={16} />
               ) : (
                 <Save className="mr-2" size={16} />
@@ -282,7 +278,7 @@ export function LinksManager() {
                 </tr>
               );
             })}
-            {links.length === 0 && !loading && (
+            {links.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-6 py-8 text-center text-zinc-500">
                   No links found. Add one above.

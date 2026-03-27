@@ -3,28 +3,37 @@ import { createServer } from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { GoogleGenAI } from '@google/genai';
-import { createClient } from '@supabase/supabase-js';
 import { consola } from 'consola';
 import dotenv from 'dotenv';
-import express from 'express';
+import express, { type Request, type Response } from 'express';
 import type { ViteDevServer } from 'vite';
 import { z } from 'zod';
 import ogHandler from './api/og';
+import {
+  ADMIN_SESSION_COOKIE_NAME,
+  ADMIN_SESSION_MAX_AGE_MS,
+  api,
+  createAdminSessionToken,
+  createConvexHttpClient,
+  hashAdminSessionToken,
+} from './src/lib/server/convex';
 
-// Manually load .env to control logging
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const envPath = path.resolve(__dirname, '.env');
+const envPaths = [path.resolve(__dirname, '.env')];
 let envCount = 0;
 
-if (fs.existsSync(envPath)) {
+for (const envPath of envPaths) {
+  if (!fs.existsSync(envPath)) {
+    continue;
+  }
+
   const envConfig = dotenv.parse(fs.readFileSync(envPath));
-  for (const k in envConfig) {
-    process.env[k] = envConfig[k];
+  for (const key in envConfig) {
+    process.env[key] = envConfig[key];
     envCount++;
   }
 }
 
-// Initialize Gemini AI
 const apiKey = process.env.GEMINI_API_KEY;
 const genAI = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
@@ -33,28 +42,134 @@ const translateSchema = z.object({
   content: z.string().optional(),
 });
 
+const adminLoginSchema = z.object({
+  email: z.string().trim().min(1),
+  password: z.string().min(1),
+});
+
+function getBaseUrl(req: Request) {
+  const forwardedProto = req.headers['x-forwarded-proto'];
+  const forwardedHost = req.headers['x-forwarded-host'];
+  const protocol = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto || 'https';
+  const host = Array.isArray(forwardedHost)
+    ? forwardedHost[0]
+    : forwardedHost || req.headers.host || 'localhost';
+
+  return host.includes('vercel.app') ? `https://${host}` : `${protocol}://${host}`;
+}
+
+function escapeXml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&apos;');
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function buildExcerpt(content: string) {
+  const text = content.replace(/[#*`]/g, '').replace(/\s+/g, ' ').trim();
+
+  if (text.length <= 200) {
+    return text;
+  }
+
+  return `${text.slice(0, 197).trim()}...`;
+}
+
+function buildDescription(content?: string | null) {
+  const text = (content || '').replace(/[#*`]/g, '').replace(/\s+/g, ' ').trim();
+
+  if (!text) {
+    return "Read this article on Ibragim Ibragimov's blog.";
+  }
+
+  if (text.length <= 160) {
+    return text;
+  }
+
+  return `${text.slice(0, 157).trim()}...`;
+}
+
+function parseCookies(cookieHeader?: string) {
+  if (!cookieHeader) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    cookieHeader
+      .split(';')
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .map((part) => {
+        const separatorIndex = part.indexOf('=');
+
+        if (separatorIndex === -1) {
+          return [part, ''];
+        }
+
+        return [part.slice(0, separatorIndex), decodeURIComponent(part.slice(separatorIndex + 1))];
+      })
+  );
+}
+
+function readAdminSessionToken(req: Request) {
+  return parseCookies(req.headers.cookie)[ADMIN_SESSION_COOKIE_NAME] || null;
+}
+
+function setAdminSessionCookie(res: Response, sessionToken: string) {
+  res.cookie(ADMIN_SESSION_COOKIE_NAME, sessionToken, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: ADMIN_SESSION_MAX_AGE_MS,
+  });
+}
+
+function clearAdminSessionCookie(res: Response) {
+  res.clearCookie(ADMIN_SESSION_COOKIE_NAME, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+  });
+}
+
 async function startServer() {
   const app = express();
   const httpServer = createServer(app);
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT || 3000);
 
   app.set('trust proxy', true);
   app.use(express.json());
 
-  // Initialize Supabase client
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+  let convex: ReturnType<typeof createConvexHttpClient> | null = null;
 
-  if (!supabaseUrl || !supabaseKey) {
-    consola.warn('Supabase credentials missing in environment variables');
+  try {
+    convex = createConvexHttpClient();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    consola.warn(`Convex is not configured yet: ${message}`);
   }
 
-  const supabase = createClient(
-    supabaseUrl || 'https://placeholder.supabase.co',
-    supabaseKey || 'placeholder'
-  );
+  const getConvexOrThrow = () => {
+    if (!convex) {
+      throw new Error('Convex is not configured. Set VITE_CONVEX_URL or CONVEX_URL.');
+    }
 
-  // Health Check for AI
+    return convex;
+  };
+
   app.get('/api/health-ai', async (_req, res) => {
     if (!genAI) {
       return res.status(503).json({
@@ -69,7 +184,6 @@ async function startServer() {
     });
   });
 
-  // Translation Endpoint
   app.post('/api/translate', async (req, res) => {
     try {
       if (!genAI) {
@@ -130,78 +244,161 @@ async function startServer() {
     }
   });
 
-  // RSS Feed Endpoint
-  app.get('/feed.xml', async (req, res) => {
+  app.get('/api/admin/session', async (req, res) => {
     try {
-      const { data: posts, error } = await supabase
-        .from('posts')
-        .select('id, slug, title, content, created_at')
-        .eq('published', true)
-        .neq('slug', 'home')
-        .order('created_at', { ascending: false })
-        .limit(20);
+      const sessionToken = readAdminSessionToken(req);
 
-      if (error) {
-        consola.error('Error fetching posts for RSS:', error);
-        return res.status(500).send('Error generating RSS feed');
+      if (!sessionToken) {
+        clearAdminSessionCookie(res);
+        return res.json({
+          authenticated: false,
+          email: null,
+          sessionToken: null,
+        });
       }
 
-      // Determine Base URL
-      const protocol = req.headers['x-forwarded-proto'] || 'https';
-      const host = req.headers['x-forwarded-host'] || req.headers.host;
-      // Force production domain if on vercel to avoid http/https mismatches
-      const baseUrl = host?.includes('vercel.app') ? `https://${host}` : `${protocol}://${host}`;
+      const tokenHash = hashAdminSessionToken(sessionToken);
+      const session = await getConvexOrThrow().query(api.adminSessions.getByTokenHash, {
+        tokenHash,
+      });
 
+      if (!session || session.expiresAt <= Date.now()) {
+        await getConvexOrThrow().mutation(api.adminSessions.removeByTokenHash, { tokenHash });
+        clearAdminSessionCookie(res);
+        return res.json({
+          authenticated: false,
+          email: null,
+          sessionToken: null,
+        });
+      }
+
+      return res.json({
+        authenticated: true,
+        email: session.email,
+        sessionToken,
+      });
+    } catch (error) {
+      consola.error('Failed to restore admin session:', error);
+      clearAdminSessionCookie(res);
+      return res.status(500).json({ error: 'Failed to restore admin session.' });
+    }
+  });
+
+  app.post('/api/admin/session', async (req, res) => {
+    try {
+      const parsed = adminLoginSchema.safeParse(req.body);
+
+      if (!parsed.success) {
+        return res.status(400).json({ error: 'Invalid login payload.' });
+      }
+
+      const adminEmail = process.env.ADMIN_EMAIL;
+      const adminPassword = process.env.ADMIN_PASSWORD;
+
+      if (!adminEmail || !adminPassword) {
+        return res.status(503).json({
+          error: 'ADMIN_EMAIL and ADMIN_PASSWORD must be configured on the server.',
+        });
+      }
+
+      if (parsed.data.email !== adminEmail || parsed.data.password !== adminPassword) {
+        return res.status(401).json({ error: 'Invalid email or password.' });
+      }
+
+      const sessionToken = createAdminSessionToken();
+      const tokenHash = hashAdminSessionToken(sessionToken);
+
+      await getConvexOrThrow().mutation(api.adminSessions.create, {
+        tokenHash,
+        email: adminEmail,
+        expiresAt: Date.now() + ADMIN_SESSION_MAX_AGE_MS,
+      });
+
+      setAdminSessionCookie(res, sessionToken);
+
+      return res.json({
+        authenticated: true,
+        email: adminEmail,
+        sessionToken,
+      });
+    } catch (error) {
+      consola.error('Failed to create admin session:', error);
+      return res.status(500).json({ error: 'Failed to create admin session.' });
+    }
+  });
+
+  app.delete('/api/admin/session', async (req, res) => {
+    try {
+      const sessionToken = readAdminSessionToken(req);
+
+      if (sessionToken) {
+        await getConvexOrThrow().mutation(api.adminSessions.removeByTokenHash, {
+          tokenHash: hashAdminSessionToken(sessionToken),
+        });
+      }
+    } catch (error) {
+      consola.error('Failed to remove admin session:', error);
+    } finally {
+      clearAdminSessionCookie(res);
+    }
+
+    return res.json({
+      authenticated: false,
+      email: null,
+      sessionToken: null,
+    });
+  });
+
+  app.get('/feed.xml', async (req, res) => {
+    try {
+      const posts = await getConvexOrThrow().query(api.posts.listPublished, { limit: 20 });
+      const baseUrl = getBaseUrl(req);
+      const siteIconUrl = `${baseUrl}/favicon.ico`;
       const date = new Date().toUTCString();
 
-      const items = posts
-        ?.map((post) => {
-          const link = `${baseUrl}/blog/${post.slug}`;
-          const description = post.content
-            ? post.content.slice(0, 200).replace(/[#*`]/g, '').replace(/\s+/g, ' ').trim()
-            : '';
+      const items = posts.map((post) => {
+        const link = `${baseUrl}/blog/${post.slug}`;
+        const description = buildExcerpt(post.content || '');
 
-          return `
+        return `
     <item>
       <title><![CDATA[${post.title}]]></title>
-      <link>${link}</link>
-      <guid isPermaLink="true">${link}</guid>
-      <pubDate>${new Date(post.created_at).toUTCString()}</pubDate>
-      <description><![CDATA[${description}${description.length >= 200 ? '...' : ''}]]></description>
-      <author>ibragimirpost@gmail.com (Ibragim Ibragimov)</author>
+      <link>${escapeXml(link)}</link>
+      <guid isPermaLink="true">${escapeXml(link)}</guid>
+      <pubDate>${new Date(post.createdAt).toUTCString()}</pubDate>
+      <description><![CDATA[${description}]]></description>
+      <dc:creator>Ibragim Ibragimov</dc:creator>
     </item>`;
-        })
-        .join('');
+      });
 
       const rss = `<?xml version="1.0" encoding="UTF-8" ?>
 <?xml-stylesheet type="text/xsl" href="/rss.xsl"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>Ibragim Ibragimov</title>
-    <link>${baseUrl}</link>
+    <link>${escapeXml(baseUrl)}</link>
     <description>Latest updates from Ibragim Ibragimov</description>
     <lastBuildDate>${date}</lastBuildDate>
     <language>en-us</language>
     <ttl>15</ttl>
     <image>
-      <url>${baseUrl}/favicon.ico</url>
+      <url>${siteIconUrl}</url>
       <title>Ibragim Ibragimov</title>
-      <link>${baseUrl}</link>
+      <link>${escapeXml(baseUrl)}</link>
     </image>
-    <atom:link href="${baseUrl}/feed.xml" rel="self" type="application/rss+xml" />
-    ${items}
+    <atom:link href="${escapeXml(`${baseUrl}/feed.xml`)}" rel="self" type="application/rss+xml" />
+    ${items.join('')}
   </channel>
 </rss>`;
 
       res.set('Content-Type', 'application/xml');
       res.send(rss);
-    } catch (err) {
-      consola.error('Unexpected error generating RSS feed:', err);
+    } catch (error) {
+      consola.error('Unexpected error generating RSS feed:', error);
       res.status(500).send('Internal Server Error');
     }
   });
 
-  // Handle Blog Post OG Tags - Available in both Dev and Prod
   app.get('/api/og', async (req, res) => {
     try {
       const protocol = req.headers['x-forwarded-proto'] || 'https';
@@ -217,8 +414,8 @@ async function startServer() {
 
       const arrayBuffer = await response.arrayBuffer();
       res.status(response.status).send(Buffer.from(arrayBuffer));
-    } catch (e) {
-      consola.error('Error generating OG image:', e);
+    } catch (error) {
+      consola.error('Error generating OG image:', error);
       res.status(500).send('Error generating OG image');
     }
   });
@@ -240,16 +437,11 @@ async function startServer() {
     app.use(express.static(path.resolve(__dirname, 'dist'), { index: false }));
   }
 
-  // Handle Blog Post with OG Tags
   app.get('/blog/:slug', async (req, res, next) => {
     try {
-      const { slug } = req.params;
-      const { data: post } = await supabase
-        .from('posts')
-        .select('title, content, created_at')
-        .eq('slug', slug)
-        .eq('published', true)
-        .single();
+      const post = await getConvexOrThrow().query(api.posts.getPublishedBySlug, {
+        slug: req.params.slug,
+      });
 
       if (!post) {
         let missingHtml = '';
@@ -278,32 +470,24 @@ async function startServer() {
         return res.status(404).send(missingHtml);
       }
 
-      const protocol = req.headers['x-forwarded-proto'] || 'https';
-      const host = req.headers['x-forwarded-host'] || req.headers.host;
-      const baseUrl = host?.includes('vercel.app') ? `https://${host}` : `${protocol}://${host}`;
-
-      const dateStr = new Date(post.created_at).toISOString().split('T')[0];
+      const baseUrl = getBaseUrl(req);
       const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(post.title)}`;
-      const description = post.content
-        ? `${post.content.slice(0, 160).replace(/[#*`]/g, '').replace(/\n/g, ' ')}...`
-        : '';
+      const description = buildDescription(post.content);
 
-      // Inject meta tags
       const metaTags = `
         <title>${post.title} | Ibragim Ibragimov</title>
-        <meta name="description" content="${description}" />
-        <meta property="og:title" content="${post.title}" />
-        <meta property="og:description" content="${description}" />
-        <meta property="og:image" content="${ogImageUrl}" />
-        <meta property="og:url" content="${baseUrl}/blog/${slug}" />
+        <meta name="description" content="${escapeHtml(description)}" />
+        <meta property="og:title" content="${escapeHtml(post.title)}" />
+        <meta property="og:description" content="${escapeHtml(description)}" />
+        <meta property="og:image" content="${escapeHtml(ogImageUrl)}" />
+        <meta property="og:url" content="${escapeHtml(`${baseUrl}/blog/${post.slug}`)}" />
         <meta property="og:type" content="article" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="${post.title}" />
-        <meta name="twitter:description" content="${description}" />
-        <meta name="twitter:image" content="${ogImageUrl}" />
+        <meta name="twitter:title" content="${escapeHtml(post.title)}" />
+        <meta name="twitter:description" content="${escapeHtml(description)}" />
+        <meta name="twitter:image" content="${escapeHtml(ogImageUrl)}" />
       `;
 
-      void dateStr;
       let html = '';
       if (process.env.NODE_ENV !== 'production') {
         const template = await fs.promises.readFile(path.resolve(__dirname, 'index.html'), 'utf-8');
@@ -316,24 +500,19 @@ async function startServer() {
       html = html.replace('</head>', `${metaTags}</head>`);
 
       res.send(html);
-    } catch (e) {
-      consola.error('Error injecting OG tags:', e);
+    } catch (error) {
+      consola.error('Error injecting OG tags:', error);
       next();
     }
   });
 
-  // Handle Root Route with Default OG Tags
   app.get('/', async (req, res, next) => {
     try {
-      const protocol = req.headers['x-forwarded-proto'] || 'https';
-      const host = req.headers['x-forwarded-host'] || req.headers.host;
-      const baseUrl = host?.includes('vercel.app') ? `https://${host}` : `${protocol}://${host}`;
-
+      const baseUrl = getBaseUrl(req);
       const ogImageUrl = `${baseUrl}/api/og`;
       const title = 'Ibragim Ibragimov';
       const description = 'Can a robot write a symphony?';
 
-      // Inject meta tags
       const metaTags = `
         <title>${title}</title>
         <meta name="description" content="${description}" />
@@ -360,13 +539,12 @@ async function startServer() {
       html = html.replace('</head>', `${metaTags}</head>`);
 
       res.send(html);
-    } catch (e) {
-      consola.error('Error injecting OG tags for root:', e);
+    } catch (error) {
+      consola.error('Error injecting OG tags for root:', error);
       next();
     }
   });
 
-  // SPA fallback
   app.use('*', async (req, res) => {
     try {
       const url = req.originalUrl;

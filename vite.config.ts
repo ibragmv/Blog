@@ -12,8 +12,8 @@ function createManualChunks(id: string) {
     return 'vendor-router';
   }
 
-  if (id.includes('@supabase')) {
-    return 'vendor-supabase';
+  if (id.includes('/convex/')) {
+    return 'vendor-convex';
   }
 
   if (
@@ -71,6 +71,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@convex': fileURLToPath(new URL('./convex', import.meta.url)),
     },
   },
   server: {
@@ -89,7 +90,8 @@ export default defineConfig(({ mode }) => ({
       'react-dom',
       'react-dom/client',
       'react-router-dom',
-      '@supabase/supabase-js',
+      'convex/react',
+      'convex/browser',
       'date-fns',
     ],
   },

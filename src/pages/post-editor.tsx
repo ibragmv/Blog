@@ -1,16 +1,25 @@
+import { api } from '@convex/_generated/api';
+import type { Id } from '@convex/_generated/dataModel';
+import { useMutation, useQuery } from 'convex/react';
 import { ArrowLeft, Languages, Loader2, Save } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useAdminAuth } from '@/components/admin-auth-provider';
 import { MarkdownEditor } from '@/components/markdown-editor';
 import { PageLoader } from '@/components/page-loader';
-import { supabase } from '@/lib/supabase';
 import { testConnection, translatePost } from '@/services/translation';
 
 export default function PostEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = !!id;
+  const { isAuthenticated, isLoading, sessionToken } = useAdminAuth();
+  const savePost = useMutation(api.posts.save);
+  const post = useQuery(
+    api.posts.getAdminById,
+    isEditing && sessionToken && id ? { sessionToken, postId: id as Id<'posts'> } : 'skip'
+  );
 
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
@@ -20,46 +29,35 @@ export default function PostEditor() {
   const [published, setPublished] = useState(true);
   const [loading, setLoading] = useState(false);
   const [translating, setTranslating] = useState(false);
-  const [fetching, setFetching] = useState(isEditing);
   const [translationError, setTranslationError] = useState<string | null>(null);
 
-  const fetchPost = useCallback(async () => {
-    try {
-      if (!id) return;
-      const { data, error } = await supabase.from('posts').select('*').eq('id', id).single();
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
-      if (error) throw error;
-      if (data) {
-        setTitle(data.title);
-        setSlug(data.slug);
-        setContent(data.content);
-        setTitleEn(data.title_en || '');
-        setContentEn(data.content_en || '');
-        setPublished(data.published);
-      } else {
-        navigate('/admin');
-      }
-    } catch (err) {
-      console.error('Error fetching post:', err);
+  useEffect(() => {
+    if (!isEditing) {
+      return;
+    }
+
+    if (post === undefined) {
+      return;
+    }
+
+    if (!post) {
       navigate('/admin');
-    } finally {
-      setFetching(false);
+      return;
     }
-  }, [id, navigate]);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) navigate('/login');
-    });
-  }, [navigate]);
-
-  useEffect(() => {
-    if (isEditing) {
-      fetchPost();
-    } else {
-      setFetching(false);
-    }
-  }, [fetchPost, isEditing]);
+    setTitle(post.title);
+    setSlug(post.slug);
+    setContent(post.content);
+    setTitleEn(post.titleEn || '');
+    setContentEn(post.contentEn || '');
+    setPublished(post.published);
+  }, [isEditing, navigate, post]);
 
   const generateSlug = (text: string) => {
     return text
@@ -120,23 +118,18 @@ export default function PostEditor() {
     }
 
     const postData = {
+      sessionToken: sessionToken || '',
+      ...(isEditing && id ? { postId: id as Id<'posts'> } : {}),
       title,
       slug,
       content,
-      title_en: finalTitleEn,
-      content_en: finalContentEn,
+      titleEn: finalTitleEn,
+      contentEn: finalContentEn,
       published,
-      updated_at: new Date().toISOString(),
     };
 
     try {
-      if (isEditing && id) {
-        const { error } = await supabase.from('posts').update(postData).eq('id', id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('posts').insert([postData]);
-        if (error) throw error;
-      }
+      await savePost(postData);
       navigate('/admin');
     } catch (err: unknown) {
       console.error('Error saving post:', err);
@@ -150,7 +143,7 @@ export default function PostEditor() {
     }
   };
 
-  if (fetching) {
+  if (isLoading || (isEditing && post === undefined)) {
     return <PageLoader className="h-64" />;
   }
 

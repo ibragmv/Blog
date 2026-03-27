@@ -23,13 +23,13 @@
         "vite.config.ts"
       ],
       "outputs": ["dist/**"],
-      "env": ["VITE_SUPABASE_ANON_KEY", "VITE_SUPABASE_URL"]
+      "env": ["CONVEX_DEPLOYMENT", "VITE_CONVEX_URL"]
     },
     "analyze": {
       "dependsOn": ["build"],
       "inputs": ["dist/**", "package.json", "scripts/**", "src/**", "vite.config.ts"],
       "outputs": ["dist/**"],
-      "env": ["VITE_SUPABASE_ANON_KEY", "VITE_SUPABASE_URL"]
+      "env": ["CONVEX_DEPLOYMENT", "VITE_CONVEX_URL"]
     },
     "lint": {
       "dependsOn": ["^lint"],

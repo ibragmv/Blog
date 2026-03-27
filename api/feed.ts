@@ -1,19 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { createClient } from '@supabase/supabase-js';
-import { marked } from 'marked';
-
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
-
-const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseKey || 'placeholder'
-);
-
-const SITE_TITLE = 'Ibragim Ibragimov';
-const SITE_DESCRIPTION = 'Latest updates from Ibragim Ibragimov';
-const SITE_AUTHOR = 'Ibragim Ibragimov';
-const FEED_TTL_MINUTES = 15;
+import { api, createConvexHttpClient } from '../src/lib/server/convex';
 
 function getBaseUrl(req: IncomingMessage) {
   const forwardedProto = req.headers['x-forwarded-proto'];
@@ -35,11 +21,8 @@ function escapeXml(value: string) {
     .replaceAll("'", '&apos;');
 }
 
-function buildExcerpt(html: string) {
-  const text = html
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+function buildExcerpt(content: string) {
+  const text = content.replace(/[#*`]/g, '').replace(/\s+/g, ' ').trim();
 
   if (text.length <= 200) {
     return text;
@@ -50,62 +33,40 @@ function buildExcerpt(html: string) {
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   try {
-    const { data: posts, error } = await supabase
-      .from('posts')
-      .select('id, slug, title, content, created_at')
-      .eq('published', true)
-      .neq('slug', 'home')
-      .order('created_at', { ascending: false })
-      .limit(20);
-
-    if (error) {
-      console.error('Error fetching posts for RSS:', error);
-      res.statusCode = 500;
-      res.end('Error generating RSS feed');
-      return;
-    }
-
+    const convex = createConvexHttpClient();
+    const posts = await convex.query(api.posts.listPublished, { limit: 20 });
     const baseUrl = getBaseUrl(req);
-    const siteIconUrl = `${baseUrl}/favicon.ico`;
     const date = new Date().toUTCString();
 
-    const items = await Promise.all(
-      (posts || []).map(async (post) => {
-        const link = `${baseUrl}/blog/${post.slug}`;
-        const contentHtml = await marked.parse(post.content || '');
-        const description = buildExcerpt(contentHtml);
+    const items = posts.map((post) => {
+      const link = `${baseUrl}/blog/${post.slug}`;
+      const description = buildExcerpt(post.content || '');
 
-        return `
+      return `
     <item>
       <title><![CDATA[${post.title}]]></title>
       <link>${escapeXml(link)}</link>
       <guid isPermaLink="true">${escapeXml(link)}</guid>
-      <pubDate>${new Date(post.created_at).toUTCString()}</pubDate>
+      <pubDate>${new Date(post.createdAt).toUTCString()}</pubDate>
       <description><![CDATA[${description}]]></description>
-      <content:encoded><![CDATA[${contentHtml}]]></content:encoded>
-      <dc:creator>${SITE_AUTHOR}</dc:creator>
     </item>`;
-      })
-    );
+    });
 
     const rss = `<?xml version="1.0" encoding="UTF-8" ?>
 <?xml-stylesheet type="text/xsl" href="/rss.xsl"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:webfeeds="http://webfeeds.org/rss/1.0">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>${SITE_TITLE}</title>
+    <title>Ibragim Ibragimov</title>
     <link>${escapeXml(baseUrl)}</link>
-    <description>${SITE_DESCRIPTION}</description>
+    <description>Latest updates from Ibragim Ibragimov</description>
     <lastBuildDate>${date}</lastBuildDate>
     <language>en-us</language>
-    <ttl>${FEED_TTL_MINUTES}</ttl>
-    <generator>Vercel</generator>
+    <ttl>15</ttl>
     <image>
-      <url>${siteIconUrl}</url>
-      <title>${SITE_TITLE}</title>
+      <url>${baseUrl}/favicon.ico</url>
+      <title>Ibragim Ibragimov</title>
       <link>${escapeXml(baseUrl)}</link>
     </image>
-    <webfeeds:icon>${siteIconUrl}</webfeeds:icon>
-    <webfeeds:accentColor>f97316</webfeeds:accentColor>
     <atom:link href="${escapeXml(`${baseUrl}/feed.xml`)}" rel="self" type="application/rss+xml" />
     ${items.join('')}
   </channel>
@@ -115,8 +76,8 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=300');
     res.statusCode = 200;
     res.end(rss);
-  } catch (err) {
-    console.error('Unexpected error generating RSS feed:', err);
+  } catch (error) {
+    console.error('Unexpected error generating RSS feed:', error);
     res.statusCode = 500;
     res.end('Internal Server Error');
   }

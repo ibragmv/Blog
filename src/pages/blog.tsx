@@ -1,59 +1,24 @@
+import { api } from '@convex/_generated/api';
+import { useQuery } from 'convex/react';
 import { format } from 'date-fns';
 import { Search } from 'lucide-react';
-import { useDeferredValue, useEffect, useState } from 'react';
+import { useDeferredValue, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageLoader } from '@/components/page-loader';
 import { extractContentPreview } from '@/lib/content-preview';
-import { type Post, supabase } from '@/lib/supabase';
 import { preloadBlogPostRoute } from '@/route-components';
 
 export default function Blog() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const deferredSearchQuery = useDeferredValue(searchQuery);
-
-  useEffect(() => {
-    let isActive = true;
-
-    async function fetchPosts() {
-      try {
-        const { data, error } = await supabase
-          .from('posts')
-          .select('*')
-          .eq('published', true)
-          .neq('slug', 'home')
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        if (isActive) {
-          setPosts(data || []);
-        }
-      } catch (err) {
-        if (isActive) {
-          console.error('Error fetching posts:', err);
-        }
-      } finally {
-        if (isActive) {
-          setLoading(false);
-        }
-      }
-    }
-
-    fetchPosts();
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
+  const posts = useQuery(api.posts.listPublished, {});
 
   const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
   const filteredPosts = normalizedQuery
-    ? posts.filter((post) => post.title.toLowerCase().includes(normalizedQuery))
-    : posts;
+    ? (posts ?? []).filter((post) => post.title.toLowerCase().includes(normalizedQuery))
+    : (posts ?? []);
 
-  if (loading) {
+  if (posts === undefined) {
     return <PageLoader className="h-64" />;
   }
 
@@ -92,7 +57,7 @@ export default function Blog() {
                   {post.title}
                 </h2>
                 <div className="text-sm text-zinc-500">
-                  {format(new Date(post.created_at), 'MMMM d, yyyy')}
+                  {format(new Date(post.createdAt), 'MMMM d, yyyy')}
                 </div>
                 <p className="text-zinc-600 dark:text-zinc-400 line-clamp-2 text-sm leading-relaxed">
                   {extractContentPreview(post.content)}

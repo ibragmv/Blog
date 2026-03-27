@@ -1,56 +1,62 @@
 # Personal Blog & Admin Panel
 
-A modern, full-stack personal blog platform featuring a built-in admin dashboard. This project is powered by Supabase for data management and provides native support for Markdown-based content creation.
+React + Vite blog with a Convex backend, Markdown authoring, server-rendered meta tags, and a private admin dashboard.
 
-## Features
+## Stack
 
-- 📝 **Markdown Rendering:** Write your posts using Markdown syntax. The engine automatically transforms your text into beautifully styled HTML content.
-- 🔐 **Admin Dashboard:** A secure, private interface to create, edit, and delete blog posts.
-- ⚡ **Supabase Backend:** Utilizes Supabase (PostgreSQL) for reliable data storage and secure authentication.
-- 🎨 **Instant Styling:** Pre-configured styles for all Markdown elements (headers, code blocks, lists, etc.).
+- React 19 + Vite
+- Convex for posts, links, and admin session storage
+- Express for local dev/server rendering, RSS, OG/meta injection, and Gemini-powered translation endpoints
+- Tailwind CSS 4
 
-## Getting Started
+## Local Setup
 
-### Prerequisites
+1. Install dependencies:
 
-- **Bun** (v1.0.0 or higher recommended)
-- A **Supabase** project and account
+```bash
+bun install
+```
 
-### Local Setup
+2. Start Convex locally and keep it running in a separate terminal:
 
-1. **Install dependencies:**
-   ```bash
-   bun install
-   ```
+```bash
+bun run convex:dev
+```
 
-2. **Configure Environment Variables:**
-   Rename a `.env.example` -> `.env` file in the root directory and add your Supabase credentials:
-   ```env
-   VITE_SUPABASE_URL=your_project_url
-   VITE_SUPABASE_ANON_KEY=your_anon_key
-   GEMINI_API_KEY=your_gemini_api_key
-   ```
+3. Create `.env` from `.env.example` and set:
 
-3. **Run the development server:**
-   ```bash
-   bun run dev
-   ```
+```env
+CONVEX_DEPLOYMENT=dev:your_cloud_dev_deployment
+VITE_CONVEX_URL=https://your_production_deployment.convex.cloud
+GEMINI_API_KEY=your_gemini_api_key
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=change-me
+```
 
-4. **Other common tasks:**
-   ```bash
-   bun run lint
-   bun run build
-   bun run analyze
-   ```
+4. Start the app:
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
+```bash
+bun run dev
+```
 
-## Content Management
+## Common Tasks
 
-The blog uses Markdown for post creation. You can use standard formatting such as:
-- Headers (`#`, `##`)
-- Lists (`-`, `1.`)
-- Code blocks (with syntax highlighting)
-- Images and Links
+```bash
+bun run typecheck
+bun run lint
+bun run build
+bun run analyze
+bun run convex:deploy
+```
 
-All content is rendered dynamically, allowing you to focus on writing while the site handles the styling automatically.
+## Content Model
+
+- `posts`: blog posts and the home page (`slug: "home"`)
+- `links`: public links for the `/links` page
+- `adminSessions`: server-issued admin sessions used by the dashboard
+
+## Admin Access
+
+The admin login uses `ADMIN_EMAIL` and `ADMIN_PASSWORD` from the server environment. Session state is persisted in Convex and mirrored via an HttpOnly cookie plus a short-lived session token returned by `/api/admin/session`.
+
+Only `.env.example` and `.env` are needed for this repo. The `convex:dev` script reads `CONVEX_DEPLOYMENT` from `.env`, and `convex:deploy` publishes backend changes to the production deployment tied to the same Convex project.

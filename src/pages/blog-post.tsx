@@ -1,3 +1,5 @@
+import { api } from '@convex/_generated/api';
+import { useQuery } from 'convex/react';
 import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useEffectEvent, useState } from 'react';
@@ -5,15 +7,13 @@ import { Link, useParams } from 'react-router-dom';
 import { LazyMarkdownRenderer } from '@/components/lazy-markdown';
 import { PageLoader } from '@/components/page-loader';
 import { buildDocumentTitle } from '@/lib/document';
-import { type Post, supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 
 export default function BlogPost() {
   const { slug } = useParams();
-  const [post, setPost] = useState<Post | null>(null);
-  const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState<'ru' | 'en'>('ru');
   const [readingProgress, setReadingProgress] = useState(0);
+  const post = useQuery(api.posts.getPublishedBySlug, slug ? { slug } : 'skip');
 
   const updateReadingProgress = useEffectEvent(() => {
     const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -51,60 +51,30 @@ export default function BlogPost() {
   }, []);
 
   useEffect(() => {
-    let isActive = true;
-
-    setLoading(true);
-
-    async function fetchPost() {
-      if (!slug) {
-        setPost(null);
-        setLoading(false);
-        document.title = buildDocumentTitle('Post not found');
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from('posts')
-          .select('*')
-          .eq('slug', slug)
-          .eq('published', true)
-          .single();
-
-        if (error) throw error;
-
-        if (!isActive) {
-          return;
-        }
-
-        setPost(data);
-        setLanguage('ru');
-        document.title = buildDocumentTitle(data?.title || 'Post not found');
-      } catch (err) {
-        if (isActive) {
-          console.error('Error fetching post:', err);
-          setPost(null);
-          document.title = buildDocumentTitle('Post not found');
-        }
-      } finally {
-        if (isActive) {
-          setLoading(false);
-        }
-      }
+    if (!slug) {
+      document.title = buildDocumentTitle('Post not found');
+      return;
     }
 
-    fetchPost();
+    if (post === undefined) {
+      return;
+    }
 
-    return () => {
-      isActive = false;
-    };
-  }, [slug]);
+    setLanguage('ru');
+    document.title = buildDocumentTitle(post?.title || 'Post not found');
+  }, [post, slug]);
+
+  const loading = !!slug && post === undefined;
 
   if (loading) {
     return <PageLoader className="h-64" />;
   }
 
   if (!post) {
+    if (!slug) {
+      document.title = buildDocumentTitle('Post not found');
+    }
+
     return (
       <div className="text-center py-12">
         <h1 className="text-2xl font-bold mb-4 text-zinc-900 dark:text-zinc-100 font-display">
@@ -117,9 +87,9 @@ export default function BlogPost() {
     );
   }
 
-  const hasTranslation = !!post.title_en && !!post.content_en;
-  const currentTitle = language === 'en' && post.title_en ? post.title_en : post.title;
-  const currentContent = language === 'en' && post.content_en ? post.content_en : post.content;
+  const hasTranslation = !!post.titleEn && !!post.contentEn;
+  const currentTitle = language === 'en' && post.titleEn ? post.titleEn : post.title;
+  const currentContent = language === 'en' && post.contentEn ? post.contentEn : post.content;
 
   return (
     <article className="animate-in fade-in duration-500">
@@ -174,7 +144,7 @@ export default function BlogPost() {
         </div>
 
         <time className="text-zinc-500 text-sm">
-          {format(new Date(post.created_at), 'MMMM d, yyyy')}
+          {format(new Date(post.createdAt), 'MMMM d, yyyy')}
         </time>
       </header>
 

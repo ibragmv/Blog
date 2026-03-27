@@ -17,10 +17,11 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@convex/*": ["./convex/*"]
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["api", "server.ts", "src"]
+  "include": ["api", "convex", "server.ts", "src"]
 }

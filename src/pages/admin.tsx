@@ -1,14 +1,16 @@
-import type { Session } from '@supabase/supabase-js';
+import { api } from '@convex/_generated/api';
+import type { Id } from '@convex/_generated/dataModel';
+import { useMutation, useQuery } from 'convex/react';
 import { format } from 'date-fns';
 import { Edit2, FileText, Link as LinkIcon, Loader2, LogOut, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAdminAuth } from '@/components/admin-auth-provider';
 import { LinksManager } from '@/components/links-manager';
 import { PageLoader } from '@/components/page-loader';
-import { type Post, supabase } from '@/lib/supabase';
 
-function DeleteButton({ id, onDelete }: { id: string; onDelete: (id: string) => void }) {
+function DeleteButton({ id, onDelete }: { id: string; onDelete: (id: string) => Promise<void> }) {
   const [status, setStatus] = useState<'idle' | 'confirm' | 'deleting'>('idle');
   const timeoutRef = useRef<number | null>(null);
 
@@ -33,7 +35,9 @@ function DeleteButton({ id, onDelete }: { id: string; onDelete: (id: string) => 
       }, 3000);
     } else if (status === 'confirm') {
       setStatus('deleting');
-      onDelete(id);
+      void onDelete(id).finally(() => {
+        setStatus('idle');
+      });
     }
   };
 
@@ -72,54 +76,31 @@ function DeleteButton({ id, onDelete }: { id: string; onDelete: (id: string) => 
 }
 
 export default function Admin() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState<Session | null>(null);
   const [activeTab, setActiveTab] = useState<'posts' | 'links'>('posts');
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading, sessionToken, signOut } = useAdminAuth();
+  const posts = useQuery(
+    api.posts.listAdmin,
+    sessionToken && activeTab === 'posts' ? { sessionToken } : 'skip'
+  );
+  const removePost = useMutation(api.posts.remove);
 
-  const fetchPosts = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setPosts(data || []);
-    } catch (err) {
-      console.error('Error fetching posts:', err);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate('/login');
     }
-  }, []);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (!session) navigate('/login');
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (!session) navigate('/login');
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  useEffect(() => {
-    if (session && activeTab === 'posts') fetchPosts();
-  }, [session, activeTab, fetchPosts]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   const handleDelete = async (id: string) => {
+    if (!sessionToken) {
+      return;
+    }
+
     try {
-      const { error } = await supabase.from('posts').delete().eq('id', id);
-      if (error) throw error;
-      setPosts((currentPosts) => currentPosts.filter((p) => p.id !== id));
+      await removePost({
+        sessionToken,
+        postId: id as Id<'posts'>,
+      });
     } catch (err) {
       console.error('Error deleting post:', err);
       alert('Failed to delete post');
@@ -127,11 +108,15 @@ export default function Admin() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await signOut();
     navigate('/login');
   };
 
-  if (!session) {
+  if (isLoading || (isAuthenticated && activeTab === 'posts' && posts === undefined)) {
+    return <PageLoader className="h-64" />;
+  }
+
+  if (!isAuthenticated) {
     return <PageLoader className="h-64" />;
   }
 
@@ -197,64 +182,58 @@ export default function Admin() {
           </div>
 
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
-            {loading ? (
-              <div className="flex justify-center p-12">
-                <Loader2 className="animate-spin text-zinc-600" />
-              </div>
-            ) : (
-              <table className="w-full text-left text-sm">
-                <thead className="bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
-                  <tr>
-                    <th className="px-6 py-4 font-medium text-zinc-500">Title</th>
-                    <th className="px-6 py-4 font-medium text-zinc-500">Slug</th>
-                    <th className="px-6 py-4 font-medium text-zinc-500">Date</th>
-                    <th className="px-6 py-4 font-medium text-zinc-500">Status</th>
-                    <th className="px-6 py-4 font-medium text-zinc-500 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
-                  {posts.map((post) => (
-                    <tr
-                      key={post.id}
-                      className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
-                    >
-                      <td className="px-6 py-4 font-medium text-zinc-900 dark:text-zinc-200">
-                        {post.title}
-                      </td>
-                      <td className="px-6 py-4 text-zinc-500 font-mono text-xs">{post.slug}</td>
-                      <td className="px-6 py-4 text-zinc-500">
-                        {format(new Date(post.created_at), 'MMM d, yyyy')}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            post.published
-                              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                              : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
-                          }`}
+            <table className="w-full text-left text-sm">
+              <thead className="bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
+                <tr>
+                  <th className="px-6 py-4 font-medium text-zinc-500">Title</th>
+                  <th className="px-6 py-4 font-medium text-zinc-500">Slug</th>
+                  <th className="px-6 py-4 font-medium text-zinc-500">Date</th>
+                  <th className="px-6 py-4 font-medium text-zinc-500">Status</th>
+                  <th className="px-6 py-4 font-medium text-zinc-500 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                {(posts ?? []).map((post) => (
+                  <tr
+                    key={post.id}
+                    className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+                  >
+                    <td className="px-6 py-4 font-medium text-zinc-900 dark:text-zinc-200">
+                      {post.title}
+                    </td>
+                    <td className="px-6 py-4 text-zinc-500 font-mono text-xs">{post.slug}</td>
+                    <td className="px-6 py-4 text-zinc-500">
+                      {format(new Date(post.createdAt), 'MMM d, yyyy')}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          post.published
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                            : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+                        }`}
+                      >
+                        {post.published ? 'Published' : 'Draft'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-2 items-center">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/admin/edit/${post.id}`)}
+                          className="p-2 text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                          title="Edit"
                         >
-                          {post.published ? 'Published' : 'Draft'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end gap-2 items-center">
-                          <button
-                            type="button"
-                            onClick={() => navigate(`/admin/edit/${post.id}`)}
-                            className="p-2 text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                            title="Edit"
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <DeleteButton id={post.id} onDelete={handleDelete} />
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-            {!loading && posts.length === 0 && (
+                          <Edit2 size={16} />
+                        </button>
+                        <DeleteButton id={post.id} onDelete={handleDelete} />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {posts && posts.length === 0 && (
               <div className="p-8 text-center text-zinc-500">
                 No posts found. Create your first one!
               </div>
