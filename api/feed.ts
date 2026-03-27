@@ -1,5 +1,12 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { api, createConvexHttpClient } from '../src/lib/server/convex';
+import { queryConvex } from '../src/lib/server/convex-http';
+
+type FeedPost = {
+  title: string;
+  slug: string;
+  content: string;
+  createdAt: number;
+};
 
 function getBaseUrl(req: IncomingMessage) {
   const forwardedProto = req.headers['x-forwarded-proto'];
@@ -33,8 +40,7 @@ function buildExcerpt(content: string) {
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   try {
-    const convex = createConvexHttpClient();
-    const posts = await convex.query(api.posts.listPublished, { limit: 20 });
+    const posts = await queryConvex<FeedPost[]>('posts:listPublished', { limit: 20 });
     const baseUrl = getBaseUrl(req);
     const date = new Date().toUTCString();
 

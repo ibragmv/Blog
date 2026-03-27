@@ -1,5 +1,13 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { api, createConvexHttpClient } from '../src/lib/server/convex';
+import { queryConvex } from '../src/lib/server/convex-http';
+
+type PostHtmlRecord = {
+  title: string;
+  content: string;
+  slug: string;
+} | null;
 
 function getBaseUrl(req: VercelRequest) {
   const forwardedProto = req.headers['x-forwarded-proto'];
@@ -35,6 +43,21 @@ function buildDescription(content?: string | null) {
   return `${text.slice(0, 157).trim()}...`;
 }
 
+async function loadAppHtml() {
+  const candidates = [
+    path.join(process.cwd(), 'dist', 'index.html'),
+    path.join(process.cwd(), 'index.html'),
+  ];
+
+  for (const filePath of candidates) {
+    try {
+      return await fs.readFile(filePath, 'utf-8');
+    } catch {}
+  }
+
+  throw new Error('Unable to load application HTML shell.');
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { slug } = req.query;
 
@@ -43,18 +66,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const convex = createConvexHttpClient();
     const baseUrl = getBaseUrl(req);
-    const post = await convex.query(api.posts.getPublishedBySlug, { slug });
-
-    const indexResponse = await fetch(`${baseUrl}/index.html`);
-
-    if (!indexResponse.ok) {
-      console.error(`Failed to fetch index.html: ${indexResponse.status}`);
-      return res.status(500).send('Failed to load application');
-    }
-
-    let html = await indexResponse.text();
+    const post = await queryConvex<PostHtmlRecord>('posts:getPublishedBySlug', { slug });
+    let html = await loadAppHtml();
 
     if (!post) {
       const notFoundTitle = 'Post not found | Ibragim Ibragimov';
