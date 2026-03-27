@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "bun server.ts",
-    "start": "bun server.ts",
+    "start": "NODE_ENV=production bun server.ts",
     "build": "vite build",
     "build:analyze": "vite build --mode analyze",
     "analyze": "bun run build:analyze && bun scripts/analyze-bundle.mjs",

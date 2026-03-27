@@ -1,4 +1,8 @@
 {
+  "framework": "vite",
+  "buildCommand": "bun run build",
+  "outputDirectory": "dist",
+  "bunVersion": "1.2.21",
   "rewrites": [
     {
       "source": "/feed.xml",
