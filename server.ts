@@ -136,7 +136,7 @@ async function startServer() {
     try {
       const { data: posts, error } = await supabase
         .from('posts')
-        .select('*')
+        .select('id, slug, title, content, created_at')
         .eq('published', true)
         .neq('slug', 'home')
         .order('created_at', { ascending: false })
@@ -158,13 +158,17 @@ async function startServer() {
       const items = posts
         ?.map((post) => {
           const link = `${baseUrl}/blog/${post.slug}`;
+          const description = post.content
+            ? post.content.slice(0, 200).replace(/[#*`]/g, '').replace(/\s+/g, ' ').trim()
+            : '';
+
           return `
     <item>
       <title><![CDATA[${post.title}]]></title>
       <link>${link}</link>
       <guid isPermaLink="true">${link}</guid>
       <pubDate>${new Date(post.created_at).toUTCString()}</pubDate>
-      <description><![CDATA[${post.content ? post.content.slice(0, 200).replace(/#/g, '') + '...' : ''}]]></description>
+      <description><![CDATA[${description}${description.length >= 200 ? '...' : ''}]]></description>
       <author>ibragimirpost@gmail.com (Ibragim Ibragimov)</author>
     </item>`;
         })
@@ -179,8 +183,9 @@ async function startServer() {
     <description>Latest updates from Ibragim Ibragimov</description>
     <lastBuildDate>${date}</lastBuildDate>
     <language>en-us</language>
+    <ttl>15</ttl>
     <image>
-      <url>${baseUrl}/logo.svg</url>
+      <url>${baseUrl}/favicon.ico</url>
       <title>Ibragim Ibragimov</title>
       <link>${baseUrl}</link>
     </image>
@@ -244,10 +249,31 @@ async function startServer() {
         .from('posts')
         .select('title, content, created_at')
         .eq('slug', slug)
+        .eq('published', true)
         .single();
 
       if (!post) {
-        return next();
+        let missingHtml = '';
+        if (process.env.NODE_ENV !== 'production') {
+          const template = await fs.promises.readFile(path.resolve(__dirname, 'index.html'), 'utf-8');
+          missingHtml = await vite.transformIndexHtml(req.originalUrl, template);
+        } else {
+          missingHtml = await fs.promises.readFile(
+            path.resolve(__dirname, 'dist', 'index.html'),
+            'utf-8'
+          );
+        }
+
+        const missingMeta = `
+        <title>Post not found | Ibragim Ibragimov</title>
+        <meta name="description" content="This article is no longer available." />
+        <meta name="robots" content="noindex" />
+        `;
+
+        missingHtml = missingHtml.replace('<title>Ibragim Ibragimov</title>', '');
+        missingHtml = missingHtml.replace('</head>', `${missingMeta}</head>`);
+
+        return res.status(404).send(missingHtml);
       }
 
       const protocol = req.headers['x-forwarded-proto'] || 'https';

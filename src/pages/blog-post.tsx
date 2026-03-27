@@ -32,16 +32,25 @@ export default function BlogPost() {
       if (!slug) return;
 
       try {
-        const { data, error } = await supabase.from('posts').select('*').eq('slug', slug).single();
+        const { data, error } = await supabase
+          .from('posts')
+          .select('*')
+          .eq('slug', slug)
+          .eq('published', true)
+          .single();
 
         if (error) throw error;
         setPost(data);
         // Update document title for the post
         if (data) {
           document.title = `${data.title} ${SITE_CONFIG.titleSeparator} ${SITE_CONFIG.title}`;
+        } else {
+          document.title = `Post not found ${SITE_CONFIG.titleSeparator} ${SITE_CONFIG.title}`;
         }
       } catch (err) {
         console.error('Error fetching post:', err);
+        setPost(null);
+        document.title = `Post not found ${SITE_CONFIG.titleSeparator} ${SITE_CONFIG.title}`;
       } finally {
         setLoading(false);
       }

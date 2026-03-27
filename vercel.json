@@ -6,7 +6,7 @@
     },
     {
       "source": "/blog/:slug",
-      "destination": "/api/post-html"
+      "destination": "/api/post-html?slug=:slug"
     },
     {
       "source": "/api/:path*",

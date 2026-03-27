@@ -9,22 +9,59 @@ const supabase = createClient(
   supabaseKey || 'placeholder'
 );
 
+function getBaseUrl(req: VercelRequest) {
+  const forwardedProto = req.headers['x-forwarded-proto'];
+  const forwardedHost = req.headers['x-forwarded-host'];
+  const protocol = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto || 'https';
+  const host = Array.isArray(forwardedHost)
+    ? forwardedHost[0]
+    : forwardedHost || req.headers.host || 'localhost';
+
+  return host.includes('vercel.app') ? `https://${host}` : `${protocol}://${host}`;
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function buildDescription(content?: string | null) {
+  const text = (content || '').replace(/[#*`]/g, '').replace(/\s+/g, ' ').trim();
+
+  if (!text) {
+    return "Read this article on Ibragim Ibragimov's blog.";
+  }
+
+  if (text.length <= 160) {
+    return text;
+  }
+
+  return `${text.slice(0, 157).trim()}...`;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { slug } = req.query;
 
   if (!slug || typeof slug !== 'string') {
-    return res.status(400).send('Missing slug');
+    return res.status(404).send('Post not found');
   }
 
   try {
-    const protocol = req.headers['x-forwarded-proto'] || 'https';
-    const host = req.headers['x-forwarded-host'] || req.headers.host;
-    const baseUrl = host?.includes('vercel.app') ? `https://${host}` : `${protocol}://${host}`;
+    const baseUrl = getBaseUrl(req);
 
-    // Fetch the actual built index.html from the deployment
-    // We use the baseUrl to fetch the root path, which Vercel serves as index.html
+    const { data: post, error } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('slug', slug)
+      .eq('published', true)
+      .single();
+
     const indexResponse = await fetch(`${baseUrl}/index.html`);
-    
+
     if (!indexResponse.ok) {
       console.error(`Failed to fetch index.html: ${indexResponse.status}`);
       return res.status(500).send('Failed to load application');
@@ -32,23 +69,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     let html = await indexResponse.text();
 
-    const { data: post, error } = await supabase
-      .from('posts')
-      .select('*')
-      .eq('slug', slug)
-      .single();
-
     if (error || !post) {
-      // If post not found, we still return the app so it can handle the 404
-      // But we don't inject custom meta tags (or we could inject default ones)
+      const notFoundTitle = 'Post not found | Ibragim Ibragimov';
+      const notFoundDescription = 'This article is no longer available.';
+      const notFoundMeta = `
+    <title>${notFoundTitle}</title>
+    <meta name="description" content="${notFoundDescription}" />
+    <meta name="robots" content="noindex" />
+    <meta property="og:title" content="${notFoundTitle}" />
+    <meta property="og:description" content="${notFoundDescription}" />
+    <meta property="og:url" content="${escapeHtml(`${baseUrl}/blog/${slug}`)}" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="${notFoundTitle}" />
+    <meta name="twitter:description" content="${notFoundDescription}" />
+    `;
+
+      html = html.replace(/<title>.*?<\/title>/, '');
+      html = html.replace('</head>', `${notFoundMeta}</head>`);
+
       res.setHeader('Content-Type', 'text/html');
-      return res.send(html);
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(404).send(html);
     }
 
     const title = `${post.title} | Ibragim Ibragimov`;
-    const description = post.content 
-      ? post.content.slice(0, 160).replace(/[#*`]/g, '').trim() + '...'
-      : 'Read this article on Ibragim Ibragimov\'s blog.';
+    const description = buildDescription(post.content);
     const image = `${baseUrl}/api/og?title=${encodeURIComponent(post.title)}`;
     const url = `${baseUrl}/blog/${slug}`;
 
@@ -57,16 +103,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
     
     const metaTags = `
+    <meta name="description" content="${escapeHtml(description)}" />
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="Ibragim Ibragimov" />
-    <meta property="og:title" content="${title}" />
-    <meta property="og:description" content="${description}" />
-    <meta property="og:image" content="${image}" />
-    <meta property="og:url" content="${url}" />
+    <meta property="og:title" content="${escapeHtml(title)}" />
+    <meta property="og:description" content="${escapeHtml(description)}" />
+    <meta property="og:image" content="${escapeHtml(image)}" />
+    <meta property="og:url" content="${escapeHtml(url)}" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="${title}" />
-    <meta name="twitter:description" content="${description}" />
-    <meta name="twitter:image" content="${image}" />
+    <meta name="twitter:title" content="${escapeHtml(title)}" />
+    <meta name="twitter:description" content="${escapeHtml(description)}" />
+    <meta name="twitter:image" content="${escapeHtml(image)}" />
     `;
 
     // Insert meta tags before </head>
