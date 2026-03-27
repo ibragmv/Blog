@@ -1,6 +1,6 @@
 import { getConvexUrl } from '@/lib/server/convex';
 
-type NextFetchOptions = {
+export type NextFetchOptions = {
   cache?: RequestCache;
   next?: {
     revalidate?: number | false;

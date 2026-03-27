@@ -1,23 +1,27 @@
 import { NextResponse } from 'next/server';
-import { absoluteUrl, buildDescription } from '@/lib/seo';
+import { buildFeedTitle, escapeXml, RSS_ICON_PATH, RSS_REVALIDATE_SECONDS } from '@/lib/rss';
+import { buildDescription } from '@/lib/seo';
 import { getHomePagePost, getPublishedPosts } from '@/lib/server/data';
-import { SITE_CONFIG } from '@/lib/site';
 
-function escapeXml(value: string) {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&apos;');
+export const revalidate = 300;
+
+function absoluteUrl(path: string, origin: string) {
+  return new URL(path, origin).toString();
 }
 
-export async function GET() {
-  const [homePost, posts] = await Promise.all([getHomePagePost(), getPublishedPosts(20)]);
-  const date = new Date().toUTCString();
+export async function GET(request: Request) {
+  const [homePost, posts] = await Promise.all([
+    getHomePagePost({ next: { revalidate: RSS_REVALIDATE_SECONDS } }),
+    getPublishedPosts(20, { next: { revalidate: RSS_REVALIDATE_SECONDS } }),
+  ]);
+  const origin = new URL(request.url).origin;
+  const lastBuildDate =
+    posts.length > 0
+      ? new Date(Math.max(...posts.map((post) => post.updatedAt || post.createdAt))).toUTCString()
+      : new Date().toUTCString();
 
   const items = posts.map((post) => {
-    const link = absoluteUrl(`/blog/${post.slug}`);
+    const link = absoluteUrl(`/blog/${post.slug}`, origin);
     const description = buildDescription(post.summary, post.content, '');
 
     return `
@@ -34,18 +38,18 @@ export async function GET() {
 <?xml-stylesheet type="text/xsl" href="/rss.xsl"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>${SITE_CONFIG.siteName}</title>
-    <link>${escapeXml(absoluteUrl('/'))}</link>
+    <title>${buildFeedTitle()}</title>
+    <link>${escapeXml(absoluteUrl('/', origin))}</link>
     <description>${escapeXml(buildDescription(homePost?.summary, homePost?.content))}</description>
-    <lastBuildDate>${date}</lastBuildDate>
+    <lastBuildDate>${lastBuildDate}</lastBuildDate>
     <language>en-us</language>
     <ttl>15</ttl>
     <image>
-      <url>${absoluteUrl('/favicon.ico')}</url>
-      <title>${SITE_CONFIG.siteName}</title>
-      <link>${escapeXml(absoluteUrl('/'))}</link>
+      <url>${escapeXml(absoluteUrl(RSS_ICON_PATH, origin))}</url>
+      <title>${buildFeedTitle()}</title>
+      <link>${escapeXml(absoluteUrl('/', origin))}</link>
     </image>
-    <atom:link href="${escapeXml(absoluteUrl('/feed.xml'))}" rel="self" type="application/rss+xml" />
+    <atom:link href="${escapeXml(absoluteUrl('/feed.xml', origin))}" rel="self" type="application/rss+xml" />
     ${items.join('')}
   </channel>
 </rss>`;

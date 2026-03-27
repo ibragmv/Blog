@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import { Layout } from '@/components/layout';
 import { ThemeProvider } from '@/components/theme-provider';
+import { RSS_ICON_PATH } from '@/lib/rss';
 import { absoluteUrl } from '@/lib/seo';
 import { getSiteUrl, SITE_CONFIG } from '@/lib/site';
 import './globals.css';
@@ -66,11 +67,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/favicon.ico', type: 'image/png' },
+      { url: RSS_ICON_PATH, type: 'image/png' },
       { url: '/icon', type: 'image/png' },
       { url: '/vercel.svg', type: 'image/svg+xml' },
     ],
-    shortcut: '/favicon.ico',
+    shortcut: RSS_ICON_PATH,
     apple: '/icon',
   },
 };
