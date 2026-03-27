@@ -66,10 +66,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: '/favicon.ico', type: 'image/png' },
       { url: '/icon', type: 'image/png' },
       { url: '/vercel.svg', type: 'image/svg+xml' },
     ],
-    shortcut: '/icon',
+    shortcut: '/favicon.ico',
     apple: '/icon',
   },
 };
