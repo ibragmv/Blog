@@ -41,7 +41,7 @@ export async function GET() {
     <language>en-us</language>
     <ttl>15</ttl>
     <image>
-      <url>${absoluteUrl('/favicon.ico')}</url>
+      <url>${absoluteUrl('/icon')}</url>
       <title>${SITE_CONFIG.siteName}</title>
       <link>${escapeXml(absoluteUrl('/'))}</link>
     </image>

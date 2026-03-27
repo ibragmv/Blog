@@ -9,7 +9,7 @@
         <title><xsl:value-of select="/rss/channel/title"/> - RSS Feed</title>
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/vercel.svg" />
         <style type="text/css">
           body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
