@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 import { buildDescription } from '@/lib/seo';
 import { getPublishedPostBySlug } from '@/lib/server/data';
-import { SITE_CONFIG } from '@/lib/site';
+import { getSiteHost, SITE_CONFIG } from '@/lib/site';
 
 export const alt = SITE_CONFIG.siteName;
 export const size = {
@@ -20,6 +20,8 @@ export default async function Image({ params }: Props) {
 
   const title = post?.title || 'Post not found';
   const description = buildDescription(post?.content);
+  const siteHost = getSiteHost();
+  const slugLabel = `/blog/${slug}`;
 
   return new ImageResponse(
     <div
@@ -79,8 +81,8 @@ export default async function Image({ params }: Props) {
           color: '#94a3b8',
         }}
       >
-        <div>/blog/{slug}</div>
-        <div>ibragimov.dev</div>
+        <div style={{ display: 'flex' }}>{slugLabel}</div>
+        <div style={{ display: 'flex' }}>{siteHost}</div>
       </div>
     </div>,
     size

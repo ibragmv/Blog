@@ -19,3 +19,7 @@ export function getSiteUrl() {
 
   return candidate.startsWith('http') ? candidate : `https://${candidate}`;
 }
+
+export function getSiteHost() {
+  return new URL(getSiteUrl()).host;
+}
