@@ -8,10 +8,10 @@
  * @module
  */
 
-import type * as adminSessions from "../adminSessions.js";
 import type * as auth from "../auth.js";
 import type * as links from "../links.js";
 import type * as posts from "../posts.js";
+import type * as sessions from "../sessions.js";
 
 import type {
   ApiFromModules,
@@ -20,10 +20,10 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  adminSessions: typeof adminSessions;
   auth: typeof auth;
   links: typeof links;
   posts: typeof posts;
+  sessions: typeof sessions;
 }>;
 
 /**

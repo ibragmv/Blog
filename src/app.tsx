@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/layout';
 import { PageLoader } from './components/page-loader';
 import { ThemeProvider } from './components/theme-provider';
@@ -26,6 +26,7 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
+              <Route path="/404" element={<NotFound />} />
               <Route path="/links" element={<Links />} />
               <Route path="/login" element={<Login />} />
 
@@ -34,7 +35,7 @@ export default function App() {
               <Route path="/admin/new" element={<PostEditor />} />
               <Route path="/admin/edit/:id" element={<PostEditor />} />
 
-              <Route path="*" element={<NotFound />} />
+              <Route path="*" element={<Navigate to="/404" replace />} />
             </Routes>
           </Suspense>
         </Layout>

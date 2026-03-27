@@ -3,7 +3,7 @@ import { useQuery } from 'convex/react';
 import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useEffectEvent, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { LazyMarkdownRenderer } from '@/components/lazy-markdown';
 import { PageLoader } from '@/components/page-loader';
 import { buildDocumentTitle } from '@/lib/document';
@@ -71,20 +71,7 @@ export default function BlogPost() {
   }
 
   if (!post) {
-    if (!slug) {
-      document.title = buildDocumentTitle('Post not found');
-    }
-
-    return (
-      <div className="text-center py-12">
-        <h1 className="text-2xl font-bold mb-4 text-zinc-900 dark:text-zinc-100 font-display">
-          Post not found
-        </h1>
-        <Link to="/blog" className="text-blue-600 dark:text-blue-400 hover:underline">
-          Back to blog
-        </Link>
-      </div>
-    );
+    return <Navigate to="/404" replace />;
   }
 
   const hasTranslation = !!post.titleEn && !!post.contentEn;

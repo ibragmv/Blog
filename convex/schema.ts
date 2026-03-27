@@ -25,7 +25,7 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_order", ["order"]),
 
-  adminSessions: defineTable({
+  sessions: defineTable({
     email: v.string(),
     tokenHash: v.string(),
     expiresAt: v.number(),

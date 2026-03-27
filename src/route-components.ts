@@ -25,6 +25,7 @@ export const NotFound = lazyWithPreload(() => import('./pages/not-found'));
 const routePreloaders: Record<string, (() => Promise<unknown>) | undefined> = {
   '/': () => Promise.all([Home.preload(), Promise.resolve(preloadMarkdownRenderer())]),
   '/blog': Blog.preload,
+  '/404': NotFound.preload,
   '/links': Links.preload,
   '/login': Login.preload,
   '/admin': Admin.preload,

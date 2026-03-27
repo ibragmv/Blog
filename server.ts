@@ -258,12 +258,12 @@ async function startServer() {
       }
 
       const tokenHash = hashAdminSessionToken(sessionToken);
-      const session = await getConvexOrThrow().query(api.adminSessions.getByTokenHash, {
+      const session = await getConvexOrThrow().query(api.sessions.getByTokenHash, {
         tokenHash,
       });
 
       if (!session || session.expiresAt <= Date.now()) {
-        await getConvexOrThrow().mutation(api.adminSessions.removeByTokenHash, { tokenHash });
+        await getConvexOrThrow().mutation(api.sessions.removeByTokenHash, { tokenHash });
         clearAdminSessionCookie(res);
         return res.json({
           authenticated: false,
@@ -308,7 +308,7 @@ async function startServer() {
       const sessionToken = createAdminSessionToken();
       const tokenHash = hashAdminSessionToken(sessionToken);
 
-      await getConvexOrThrow().mutation(api.adminSessions.create, {
+      await getConvexOrThrow().mutation(api.sessions.create, {
         tokenHash,
         email: adminEmail,
         expiresAt: Date.now() + ADMIN_SESSION_MAX_AGE_MS,
@@ -332,7 +332,7 @@ async function startServer() {
       const sessionToken = readAdminSessionToken(req);
 
       if (sessionToken) {
-        await getConvexOrThrow().mutation(api.adminSessions.removeByTokenHash, {
+        await getConvexOrThrow().mutation(api.sessions.removeByTokenHash, {
           tokenHash: hashAdminSessionToken(sessionToken),
         });
       }

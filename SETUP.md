@@ -37,7 +37,7 @@ Tables:
 
 - `posts`
 - `links`
-- `adminSessions`
+- `sessions`
 
 ## 4. Seed or Migrate Content
 

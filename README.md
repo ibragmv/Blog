@@ -5,7 +5,7 @@ React + Vite blog with a Convex backend, Markdown authoring, server-rendered met
 ## Stack
 
 - React 19 + Vite
-- Convex for posts, links, and admin session storage
+- Convex for posts, links, and session storage
 - Express for local dev/server rendering, RSS, OG/meta injection, and Gemini-powered translation endpoints
 - Tailwind CSS 4
 
@@ -53,7 +53,7 @@ bun run convex:deploy
 
 - `posts`: blog posts and the home page (`slug: "home"`)
 - `links`: public links for the `/links` page
-- `adminSessions`: server-issued admin sessions used by the dashboard
+- `sessions`: server-issued admin sessions used by the dashboard
 
 ## Admin Access
 

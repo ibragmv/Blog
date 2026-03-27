@@ -3,13 +3,13 @@ import type { Doc } from "./_generated/dataModel";
 import { v } from "convex/values";
 
 const sessionValidator = v.object({
-  id: v.id("adminSessions"),
+  id: v.id("sessions"),
   email: v.string(),
   expiresAt: v.number(),
   createdAt: v.number(),
 });
 
-function serializeSession(session: Doc<"adminSessions">) {
+function serializeSession(session: Doc<"sessions">) {
   return {
     id: session._id,
     email: session.email,
@@ -24,9 +24,9 @@ export const create = mutation({
     email: v.string(),
     expiresAt: v.number(),
   },
-  returns: v.id("adminSessions"),
+  returns: v.id("sessions"),
   handler: async (ctx, args) => {
-    return await ctx.db.insert("adminSessions", {
+    return await ctx.db.insert("sessions", {
       email: args.email,
       tokenHash: args.tokenHash,
       expiresAt: args.expiresAt,
@@ -42,7 +42,7 @@ export const getByTokenHash = query({
   returns: v.union(sessionValidator, v.null()),
   handler: async (ctx, args) => {
     const session = await ctx.db
-      .query("adminSessions")
+      .query("sessions")
       .withIndex("by_tokenHash", (query) => query.eq("tokenHash", args.tokenHash))
       .first();
 
@@ -57,13 +57,11 @@ export const removeByTokenHash = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const sessions = await ctx.db
-      .query("adminSessions")
+      .query("sessions")
       .withIndex("by_tokenHash", (query) => query.eq("tokenHash", args.tokenHash))
       .collect();
 
-    await Promise.all(
-      sessions.map((session) => ctx.db.delete("adminSessions", session._id)),
-    );
+    await Promise.all(sessions.map((session) => ctx.db.delete("sessions", session._id)));
 
     return null;
   },

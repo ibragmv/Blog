@@ -18,7 +18,7 @@ export async function hashSessionToken(sessionToken: string) {
 export async function requireAdminSession(ctx: AuthCtx, sessionToken: string) {
   const tokenHash = await hashSessionToken(sessionToken);
   const session = await ctx.db
-    .query("adminSessions")
+    .query("sessions")
     .withIndex("by_tokenHash", (query) => query.eq("tokenHash", tokenHash))
     .first();
 
