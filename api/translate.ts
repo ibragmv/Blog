@@ -1,12 +1,10 @@
 import { GoogleGenAI } from '@google/genai';
-import { z } from 'zod';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { z } from 'zod';
 
 // Initialize Gemini AI
 const apiKey = process.env.GEMINI_API_KEY;
-const genAI = apiKey
-  ? new GoogleGenAI({ apiKey })
-  : null;
+const genAI = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 const translateSchema = z.object({
   title: z.string().optional(),
@@ -46,7 +44,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         contents: titlePrompt,
       });
       if (response.text) {
-           title_en = response.text.trim().replace(/^"|"$/g, '');
+        title_en = response.text.trim().replace(/^"|"$/g, '');
       }
     }
 
@@ -65,13 +63,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         contents: contentPrompt,
       });
       if (response.text) {
-          content_en = response.text;
+        content_en = response.text;
       }
     }
 
     return res.json({ title_en, content_en });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Translation error:', error);
-    return res.status(500).json({ error: 'Translation failed', message: error.message });
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return res.status(500).json({ error: 'Translation failed', message });
   }
 }

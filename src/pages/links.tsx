@@ -1,6 +1,7 @@
-import { Github, Globe, Linkedin, Link as LinkIcon, Loader2, Mail, Twitter } from 'lucide-react';
+import { Github, Globe, Linkedin, Link as LinkIcon, Mail, Twitter } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
+import { PageLoader } from '@/components/page-loader';
 import { type Link as LinkType, supabase } from '@/lib/supabase';
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -37,11 +38,7 @@ export default function Links() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="animate-spin text-zinc-600" />
-      </div>
-    );
+    return <PageLoader className="h-64" />;
   }
 
   return (

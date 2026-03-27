@@ -1,4 +1,5 @@
 import Markdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import {
   MarkdownContainer,
@@ -6,12 +7,14 @@ import {
   markdownComponents,
 } from './markdown-shared';
 
-export type { MarkdownRendererProps } from './markdown-shared';
-
-export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
+export function MarkdownRendererRaw({ content, className }: MarkdownRendererProps) {
   return (
     <MarkdownContainer className={className}>
-      <Markdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+      <Markdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw]}
+        components={markdownComponents}
+      >
         {content}
       </Markdown>
     </MarkdownContainer>

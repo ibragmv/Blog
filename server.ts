@@ -1,14 +1,14 @@
-import express from 'express';
-import { createServer } from 'http';
-import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { z } from 'zod';
+import fs from 'node:fs';
+import { createServer } from 'node:http';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { GoogleGenAI } from '@google/genai';
+import { createClient } from '@supabase/supabase-js';
 import { consola } from 'consola';
-// @ts-ignore
+import dotenv from 'dotenv';
+import express from 'express';
+import type { ViteDevServer } from 'vite';
+import { z } from 'zod';
 import ogHandler from './api/og';
 
 // Manually load .env to control logging
@@ -26,9 +26,7 @@ if (fs.existsSync(envPath)) {
 
 // Initialize Gemini AI
 const apiKey = process.env.GEMINI_API_KEY;
-const genAI = apiKey
-  ? new GoogleGenAI({ apiKey })
-  : null;
+const genAI = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 const translateSchema = z.object({
   title: z.string().optional(),
@@ -39,7 +37,7 @@ async function startServer() {
   const app = express();
   const httpServer = createServer(app);
   const PORT = 3000;
-  
+
   app.set('trust proxy', true);
   app.use(express.json());
 
@@ -57,17 +55,17 @@ async function startServer() {
   );
 
   // Health Check for AI
-  app.get('/api/health-ai', async (req, res) => {
+  app.get('/api/health-ai', async (_req, res) => {
     if (!genAI) {
-      return res.status(503).json({ 
-        status: 'error', 
-        message: 'Gemini API key is missing on the server.' 
+      return res.status(503).json({
+        status: 'error',
+        message: 'Gemini API key is missing on the server.',
       });
     }
-    // Optional: You could try a lightweight call to the model here to verify the key works
-    return res.json({ 
-      status: 'ok', 
-      message: 'Server is connected to Gemini API.' 
+
+    return res.json({
+      status: 'ok',
+      message: 'Server is connected to Gemini API.',
     });
   });
 
@@ -101,7 +99,7 @@ async function startServer() {
           contents: titlePrompt,
         });
         if (response.text) {
-             title_en = response.text.trim().replace(/^"|"$/g, '');
+          title_en = response.text.trim().replace(/^"|"$/g, '');
         }
       }
 
@@ -120,14 +118,15 @@ async function startServer() {
           contents: contentPrompt,
         });
         if (response.text) {
-            content_en = response.text;
+          content_en = response.text;
         }
       }
 
       res.json({ title_en, content_en });
-    } catch (error: any) {
+    } catch (error: unknown) {
       consola.error('Translation error:', error);
-      res.status(500).json({ error: 'Translation failed', message: error.message });
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: 'Translation failed', message });
     }
   });
 
@@ -152,7 +151,7 @@ async function startServer() {
       const host = req.headers['x-forwarded-host'] || req.headers.host;
       // Force production domain if on vercel to avoid http/https mismatches
       const baseUrl = host?.includes('vercel.app') ? `https://${host}` : `${protocol}://${host}`;
-      
+
       const date = new Date().toUTCString();
 
       const items = posts
@@ -208,14 +207,14 @@ async function startServer() {
       const protocol = req.headers['x-forwarded-proto'] || 'https';
       const host = req.headers['x-forwarded-host'] || req.headers.host;
       const url = `${protocol}://${host}${req.url}`;
-      
+
       const request = new Request(url);
       const response = await ogHandler(request);
-      
+
       response.headers.forEach((value: string, key: string) => {
         res.setHeader(key, value);
       });
-      
+
       const arrayBuffer = await response.arrayBuffer();
       res.status(response.status).send(Buffer.from(arrayBuffer));
     } catch (e) {
@@ -224,17 +223,17 @@ async function startServer() {
     }
   });
 
-  let vite: any;
+  let vite: ViteDevServer | undefined;
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
     vite = await createViteServer({
-      server: { 
+      server: {
         middlewareMode: true,
         hmr: {
           server: httpServer,
         },
       },
-      appType: 'custom', // We handle the HTML serving
+      appType: 'custom',
     });
     app.use(vite.middlewares);
   } else {
@@ -255,7 +254,10 @@ async function startServer() {
       if (!post) {
         let missingHtml = '';
         if (process.env.NODE_ENV !== 'production') {
-          const template = await fs.promises.readFile(path.resolve(__dirname, 'index.html'), 'utf-8');
+          const template = await fs.promises.readFile(
+            path.resolve(__dirname, 'index.html'),
+            'utf-8'
+          );
           missingHtml = await vite.transformIndexHtml(req.originalUrl, template);
         } else {
           missingHtml = await fs.promises.readFile(
@@ -279,12 +281,11 @@ async function startServer() {
       const protocol = req.headers['x-forwarded-proto'] || 'https';
       const host = req.headers['x-forwarded-host'] || req.headers.host;
       const baseUrl = host?.includes('vercel.app') ? `https://${host}` : `${protocol}://${host}`;
-      
+
       const dateStr = new Date(post.created_at).toISOString().split('T')[0];
-      // Pass the title to the OG image API
       const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(post.title)}`;
-      const description = post.content 
-        ? post.content.slice(0, 160).replace(/[#*`]/g, '').replace(/\n/g, ' ') + '...' 
+      const description = post.content
+        ? `${post.content.slice(0, 160).replace(/[#*`]/g, '').replace(/\n/g, ' ')}...`
         : '';
 
       // Inject meta tags
@@ -301,21 +302,19 @@ async function startServer() {
         <meta name="twitter:description" content="${description}" />
         <meta name="twitter:image" content="${ogImageUrl}" />
       `;
-      
+
+      void dateStr;
       let html = '';
       if (process.env.NODE_ENV !== 'production') {
-        // Dev: Read index.html from root and transform with Vite
         const template = await fs.promises.readFile(path.resolve(__dirname, 'index.html'), 'utf-8');
-        html = await vite.transformIndexHtml(req.originalUrl, template);
+        html = (await vite?.transformIndexHtml(req.originalUrl, template)) ?? template;
       } else {
-        // Prod: Read index.html from dist
         html = await fs.promises.readFile(path.resolve(__dirname, 'dist', 'index.html'), 'utf-8');
       }
-      
-      // Replace existing title if possible, otherwise just append to head
-      html = html.replace('<title>Ibragim Ibragimov</title>', ''); 
+
+      html = html.replace('<title>Ibragim Ibragimov</title>', '');
       html = html.replace('</head>', `${metaTags}</head>`);
-      
+
       res.send(html);
     } catch (e) {
       consola.error('Error injecting OG tags:', e);
@@ -329,8 +328,8 @@ async function startServer() {
       const protocol = req.headers['x-forwarded-proto'] || 'https';
       const host = req.headers['x-forwarded-host'] || req.headers.host;
       const baseUrl = host?.includes('vercel.app') ? `https://${host}` : `${protocol}://${host}`;
-      
-      const ogImageUrl = `${baseUrl}/api/og`; // Uses default title
+
+      const ogImageUrl = `${baseUrl}/api/og`;
       const title = 'Ibragim Ibragimov';
       const description = 'Can a robot write a symphony?';
 
@@ -348,19 +347,18 @@ async function startServer() {
         <meta name="twitter:description" content="${description}" />
         <meta name="twitter:image" content="${ogImageUrl}" />
       `;
-      
+
       let html = '';
       if (process.env.NODE_ENV !== 'production') {
         const template = await fs.promises.readFile(path.resolve(__dirname, 'index.html'), 'utf-8');
-        html = await vite.transformIndexHtml(req.originalUrl, template);
+        html = (await vite?.transformIndexHtml(req.originalUrl, template)) ?? template;
       } else {
         html = await fs.promises.readFile(path.resolve(__dirname, 'dist', 'index.html'), 'utf-8');
       }
-      
-      // Replace existing title if possible, otherwise just append to head
-      html = html.replace('<title>Ibragim Ibragimov</title>', ''); 
+
+      html = html.replace('<title>Ibragim Ibragimov</title>', '');
       html = html.replace('</head>', `${metaTags}</head>`);
-      
+
       res.send(html);
     } catch (e) {
       consola.error('Error injecting OG tags for root:', e);
@@ -380,9 +378,10 @@ async function startServer() {
         html = await fs.promises.readFile(path.resolve(__dirname, 'dist', 'index.html'), 'utf-8');
       }
       res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
-    } catch (e: any) {
-      consola.error(e);
-      res.status(500).end(e.message);
+    } catch (error: unknown) {
+      consola.error(error);
+      const message = error instanceof Error ? error.message : 'Internal Server Error';
+      res.status(500).end(message);
     }
   });
 

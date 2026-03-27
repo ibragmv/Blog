@@ -3,6 +3,7 @@ import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { MarkdownEditor } from '@/components/markdown-editor';
+import { PageLoader } from '@/components/page-loader';
 import { supabase } from '@/lib/supabase';
 import { testConnection, translatePost } from '@/services/translation';
 
@@ -150,11 +151,7 @@ export default function PostEditor() {
   };
 
   if (fetching) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="animate-spin text-zinc-600" />
-      </div>
-    );
+    return <PageLoader className="h-64" />;
   }
 
   return (

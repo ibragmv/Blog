@@ -6,19 +6,24 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignoreUnknown": false,
+    "ignoreUnknown": true,
     "includes": [
+      "api/**/*.ts",
+      "api/**/*.tsx",
+      "scripts/**/*.mjs",
+      "server.ts",
       "src/**/*.ts",
       "src/**/*.tsx",
       "src/**/*.js",
       "src/**/*.jsx",
       "src/**/*.json",
+      ".gitignore",
       "vite.config.ts",
       "biome.json",
       "package.json",
+      "turbo.json",
       "tsconfig.json",
-      "tsconfig.app.json",
-      "tsconfig.node.json"
+      "vercel.json"
     ]
   },
   "formatter": {
@@ -38,6 +43,9 @@
       "quoteStyle": "single",
       "trailingCommas": "es5",
       "semicolons": "always"
+    },
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
     }
   }
 }

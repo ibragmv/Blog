@@ -1,24 +1,29 @@
 import { Menu, Rss, Shield, X } from 'lucide-react';
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { SITE_CONFIG } from '@/config';
 import { cn } from '@/lib/utils';
 import { prefetchRoute } from '@/route-components';
 import { ThemeToggle } from './theme-toggle';
 
+const NAV_ITEMS = [
+  { name: 'Home', path: '/' },
+  { name: 'Blog', path: '/blog' },
+  { name: 'Links', path: '/links' },
+];
+
+const TITLE_WORDS = SITE_CONFIG.title.split(' ');
+const IS_MULTI_WORD_TITLE = TITLE_WORDS.length > 1;
+
 export function Layout({ children }: { children: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const location = useLocation();
 
-  const navItems = [
-    { name: 'Home', path: '/' },
-    { name: 'Blog', path: '/blog' },
-    { name: 'Links', path: '/links' },
-  ];
-
-  // Split title into words for stacking if needed, or just display as is
-  // For the specific "Ibragim Ibragimov" stacked look, we can try to split by space
-  const titleWords = SITE_CONFIG.title.split(' ');
-  const isMultiWord = titleWords.length > 1;
+  React.useEffect(() => {
+    if (location.key) {
+      setIsMenuOpen(false);
+    }
+  }, [location.key]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-300 font-sans selection:bg-zinc-200 dark:selection:bg-zinc-800 selection:text-zinc-900 dark:selection:text-zinc-100 transition-colors duration-300">
@@ -39,10 +44,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
               className="w-8 h-8"
             />
             <div className="flex flex-col">
-              {isMultiWord ? (
+              {IS_MULTI_WORD_TITLE ? (
                 <>
-                  <span className="text-xl">{titleWords[0]}</span>
-                  <span className="text-xl">{titleWords.slice(1).join(' ')}</span>
+                  <span className="text-xl">{TITLE_WORDS[0]}</span>
+                  <span className="text-xl">{TITLE_WORDS.slice(1).join(' ')}</span>
                 </>
               ) : (
                 <span className="text-2xl">{SITE_CONFIG.title}</span>
@@ -51,9 +56,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </NavLink>
 
           <div className="flex items-center gap-4">
-            {/* Desktop Nav */}
             <nav className="hidden md:flex gap-8">
-              {navItems.map((item) => (
+              {NAV_ITEMS.map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}
@@ -88,16 +92,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
               type="button"
               className="md:hidden p-2 -mr-2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-navigation"
+              aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
             >
               {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Nav */}
         {isMenuOpen && (
-          <nav className="md:hidden border-t border-zinc-200 dark:border-zinc-900 bg-white dark:bg-zinc-950 p-4 flex flex-col gap-4">
-            {navItems.map((item) => (
+          <nav
+            id="mobile-navigation"
+            className="md:hidden border-t border-zinc-200 dark:border-zinc-900 bg-white dark:bg-zinc-950 p-4 flex flex-col gap-4"
+          >
+            {NAV_ITEMS.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}

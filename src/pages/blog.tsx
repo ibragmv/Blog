@@ -1,7 +1,9 @@
 import { format } from 'date-fns';
-import { Loader2, Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Search } from 'lucide-react';
+import { useDeferredValue, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { PageLoader } from '@/components/page-loader';
+import { extractContentPreview } from '@/lib/content-preview';
 import { type Post, supabase } from '@/lib/supabase';
 import { preloadBlogPostRoute } from '@/route-components';
 
@@ -9,8 +11,11 @@ export default function Blog() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   useEffect(() => {
+    let isActive = true;
+
     async function fetchPosts() {
       try {
         const { data, error } = await supabase
@@ -21,27 +26,35 @@ export default function Blog() {
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setPosts(data || []);
+
+        if (isActive) {
+          setPosts(data || []);
+        }
       } catch (err) {
-        console.error('Error fetching posts:', err);
+        if (isActive) {
+          console.error('Error fetching posts:', err);
+        }
       } finally {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
       }
     }
 
     fetchPosts();
+
+    return () => {
+      isActive = false;
+    };
   }, []);
 
-  const filteredPosts = posts.filter((post) =>
-    post.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
+  const filteredPosts = normalizedQuery
+    ? posts.filter((post) => post.title.toLowerCase().includes(normalizedQuery))
+    : posts;
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="animate-spin text-zinc-600" />
-      </div>
-    );
+    return <PageLoader className="h-64" />;
   }
 
   return (
@@ -53,7 +66,7 @@ export default function Blog() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
           <input
-            type="text"
+            type="search"
             placeholder="Search posts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -82,8 +95,7 @@ export default function Blog() {
                   {format(new Date(post.created_at), 'MMMM d, yyyy')}
                 </div>
                 <p className="text-zinc-600 dark:text-zinc-400 line-clamp-2 text-sm leading-relaxed">
-                  {/* Simple strip markdown for preview - naive approach */}
-                  {post.content.replace(/[#*`]/g, '').slice(0, 150)}...
+                  {extractContentPreview(post.content)}
                 </p>
               </article>
             </Link>

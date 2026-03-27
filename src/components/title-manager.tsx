@@ -2,8 +2,10 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTheme } from '@/components/theme-provider';
 import { SITE_CONFIG } from '@/config';
+import { buildDocumentTitle } from '@/lib/document';
+import { resolveTheme } from '@/lib/theme';
 
-const ROUTES_TITLES: Record<string, string> = {
+const ROUTE_TITLES: Record<string, string> = {
   '/': 'Home',
   '/blog': 'Blog',
   '/links': 'Links',
@@ -12,87 +14,72 @@ const ROUTES_TITLES: Record<string, string> = {
   '/admin/new': 'New Post',
 };
 
+const faviconCache = new Map<'dark' | 'light', string>();
+
+async function getFaviconHref(theme: 'dark' | 'light', signal: AbortSignal) {
+  const cached = faviconCache.get(theme);
+  if (cached) {
+    return cached;
+  }
+
+  const response = await fetch(SITE_CONFIG.logo, { signal });
+  const originalSvg = await response.text();
+  const color = theme === 'dark' ? '#f4f4f5' : '#18181b';
+  const svg = originalSvg.includes('currentColor')
+    ? originalSvg.replace(/currentColor/g, color)
+    : originalSvg.replace('<svg', `<svg style="fill: ${color}; stroke: ${color};"`);
+  const href = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+
+  faviconCache.set(theme, href);
+  return href;
+}
+
 export function TitleManager() {
   const location = useLocation();
   const { theme } = useTheme();
 
   useEffect(() => {
-    const updateFavicon = async () => {
-      const linkId = 'dynamic-favicon';
-      let link = document.getElementById(linkId) as HTMLLinkElement;
+    const controller = new AbortController();
+    const linkId = 'dynamic-favicon';
+    let link = document.getElementById(linkId) as HTMLLinkElement | null;
 
-      if (!link) {
-        link = document.createElement('link');
-        link.id = linkId;
-        link.rel = 'icon';
-        document.head.appendChild(link);
-      }
+    if (!link) {
+      link = document.createElement('link');
+      link.id = linkId;
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
 
-      if (SITE_CONFIG.logo) {
-        try {
-          // Fetch the SVG content
-          const response = await fetch(SITE_CONFIG.logo);
-          let svgContent = await response.text();
+    if (!SITE_CONFIG.logo) {
+      return () => controller.abort();
+    }
 
-          // Determine color based on theme
-          // Note: 'system' theme resolution is handled by the ThemeProvider,
-          // but here we might need to check system preference if theme is 'system'
-          let color = '#18181b'; // zinc-900 (dark)
-
-          const isDark =
-            theme === 'dark' ||
-            (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-          if (isDark) {
-            color = '#f4f4f5'; // zinc-100 (light)
-          }
-
-          // Replace currentColor or stroke/fill with the calculated color
-          // This is a simple replacement; for complex SVGs this might need refinement
-          if (svgContent.includes('currentColor')) {
-            svgContent = svgContent.replace(/currentColor/g, color);
-          } else {
-            // If no currentColor, try to inject fill/stroke style
-            // This assumes a simple icon
-            svgContent = svgContent.replace(
-              '<svg',
-              `<svg style="fill: ${color}; stroke: ${color};"`
-            );
-          }
-
-          // Encode as data URI
-          const encodedSvg = encodeURIComponent(svgContent);
-          link.href = `data:image/svg+xml,${encodedSvg}`;
-          link.type = 'image/svg+xml';
-        } catch (e) {
-          console.error('Failed to load or process logo SVG:', e);
-          // Fallback to direct link
+    void (async () => {
+      try {
+        link.href = await getFaviconHref(resolveTheme(theme), controller.signal);
+        link.type = 'image/svg+xml';
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error('Failed to load or process logo SVG:', error);
           link.href = SITE_CONFIG.logo;
         }
       }
-    };
+    })();
 
-    updateFavicon();
+    return () => controller.abort();
   }, [theme]);
 
   useEffect(() => {
-    // Set the Page Title
-    let pageTitle = ROUTES_TITLES[location.pathname];
-
-    if (!pageTitle) {
-      if (location.pathname.startsWith('/blog/')) {
-        return;
-      } else if (location.pathname.startsWith('/admin/edit/')) {
-        pageTitle = 'Edit Post';
-      }
+    if (location.pathname.startsWith('/blog/')) {
+      return;
     }
 
-    if (pageTitle) {
-      document.title = `${pageTitle} ${SITE_CONFIG.titleSeparator} ${SITE_CONFIG.title}`;
-    } else if (location.pathname === '/') {
-      document.title = SITE_CONFIG.title;
-    }
-  }, [location]);
+    const pageTitle =
+      ROUTE_TITLES[location.pathname] ||
+      (location.pathname.startsWith('/admin/edit/') ? 'Edit Post' : undefined);
+
+    document.title = buildDocumentTitle(pageTitle);
+  }, [location.pathname]);
 
   return null;
 }

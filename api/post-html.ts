@@ -101,7 +101,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Inject meta tags
     // We replace the default title and add meta tags to the head
     html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
-    
+
     const metaTags = `
     <meta name="description" content="${escapeHtml(description)}" />
     <meta property="og:type" content="article" />

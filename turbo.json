@@ -1,14 +1,67 @@
 {
-    "$schema": "https://turbo.build/schema.json",
-    "tasks": {
-      "build": {
-        "outputs": ["dist/**"]
-      },
-      "lint": {},
-      "dev": {
-        "cache": false,
-        "persistent": true
-      }
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    ".env*",
+    "biome.json",
+    "package.json",
+    "tsconfig.json",
+    "turbo.json",
+    "vite.config.ts"
+  ],
+  "globalEnv": ["CI", "NODE_ENV"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "api/**",
+        "index.html",
+        "package.json",
+        "public/**",
+        "server.ts",
+        "src/**",
+        "tsconfig.json",
+        "vite.config.ts"
+      ],
+      "outputs": ["dist/**"],
+      "env": ["VITE_SUPABASE_ANON_KEY", "VITE_SUPABASE_URL"]
+    },
+    "analyze": {
+      "dependsOn": ["build"],
+      "inputs": ["dist/**", "package.json", "scripts/**", "src/**", "vite.config.ts"],
+      "outputs": ["dist/**"],
+      "env": ["VITE_SUPABASE_ANON_KEY", "VITE_SUPABASE_URL"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"],
+      "inputs": [
+        "api/**",
+        "biome.json",
+        "package.json",
+        "server.ts",
+        "src/**",
+        "tsconfig.json",
+        "vite.config.ts"
+      ],
+      "outputs": []
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "inputs": [
+        "api/**",
+        "package.json",
+        "server.ts",
+        "src/**",
+        "tsconfig.json",
+        "vite.config.ts"
+      ],
+      "outputs": []
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "clean": {
+      "cache": false
     }
   }
-  
+}

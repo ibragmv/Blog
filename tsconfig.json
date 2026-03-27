@@ -12,6 +12,9 @@
     "moduleDetection": "force",
     "allowJs": true,
     "jsx": "react-jsx",
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
@@ -19,5 +22,5 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["src", "api"]
+  "include": ["api", "server.ts", "src"]
 }

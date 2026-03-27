@@ -1,9 +1,10 @@
 import { format } from 'date-fns';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
+import { useEffect, useEffectEvent, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { MarkdownRenderer } from '@/components/markdown-renderer';
-import { SITE_CONFIG } from '@/config';
+import { LazyMarkdownRenderer } from '@/components/lazy-markdown';
+import { PageLoader } from '@/components/page-loader';
+import { buildDocumentTitle } from '@/lib/document';
 import { type Post, supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 
@@ -14,22 +15,53 @@ export default function BlogPost() {
   const [language, setLanguage] = useState<'ru' | 'en'>('ru');
   const [readingProgress, setReadingProgress] = useState(0);
 
+  const updateReadingProgress = useEffectEvent(() => {
+    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const nextProgress =
+      scrollHeight > 0 ? Number(((window.scrollY / scrollHeight) * 100).toFixed(2)) : 0;
+
+    setReadingProgress(nextProgress);
+  });
+
   useEffect(() => {
-    const updateReadingProgress = () => {
-      const currentScroll = window.scrollY;
-      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-      if (scrollHeight) {
-        setReadingProgress(Number((currentScroll / scrollHeight).toFixed(2)) * 100);
+    let frameId = 0;
+
+    const scheduleReadingProgress = () => {
+      if (frameId !== 0) {
+        return;
       }
+
+      frameId = window.requestAnimationFrame(() => {
+        frameId = 0;
+        updateReadingProgress();
+      });
     };
 
-    window.addEventListener('scroll', updateReadingProgress);
-    return () => window.removeEventListener('scroll', updateReadingProgress);
+    scheduleReadingProgress();
+    window.addEventListener('scroll', scheduleReadingProgress, { passive: true });
+    window.addEventListener('resize', scheduleReadingProgress);
+
+    return () => {
+      if (frameId !== 0) {
+        window.cancelAnimationFrame(frameId);
+      }
+      window.removeEventListener('scroll', scheduleReadingProgress);
+      window.removeEventListener('resize', scheduleReadingProgress);
+    };
   }, []);
 
   useEffect(() => {
+    let isActive = true;
+
+    setLoading(true);
+
     async function fetchPost() {
-      if (!slug) return;
+      if (!slug) {
+        setPost(null);
+        setLoading(false);
+        document.title = buildDocumentTitle('Post not found');
+        return;
+      }
 
       try {
         const { data, error } = await supabase
@@ -40,31 +72,36 @@ export default function BlogPost() {
           .single();
 
         if (error) throw error;
-        setPost(data);
-        // Update document title for the post
-        if (data) {
-          document.title = `${data.title} ${SITE_CONFIG.titleSeparator} ${SITE_CONFIG.title}`;
-        } else {
-          document.title = `Post not found ${SITE_CONFIG.titleSeparator} ${SITE_CONFIG.title}`;
+
+        if (!isActive) {
+          return;
         }
+
+        setPost(data);
+        setLanguage('ru');
+        document.title = buildDocumentTitle(data?.title || 'Post not found');
       } catch (err) {
-        console.error('Error fetching post:', err);
-        setPost(null);
-        document.title = `Post not found ${SITE_CONFIG.titleSeparator} ${SITE_CONFIG.title}`;
+        if (isActive) {
+          console.error('Error fetching post:', err);
+          setPost(null);
+          document.title = buildDocumentTitle('Post not found');
+        }
       } finally {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
       }
     }
 
     fetchPost();
+
+    return () => {
+      isActive = false;
+    };
   }, [slug]);
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="animate-spin text-zinc-600" />
-      </div>
-    );
+    return <PageLoader className="h-64" />;
   }
 
   if (!post) {
@@ -142,7 +179,7 @@ export default function BlogPost() {
       </header>
 
       <div className="transition-opacity duration-300">
-        <MarkdownRenderer content={currentContent} />
+        <LazyMarkdownRenderer content={currentContent} preload />
       </div>
     </article>
   );

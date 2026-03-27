@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/layout';
+import { PageLoader } from './components/page-loader';
 import { ThemeProvider } from './components/theme-provider';
 import { TitleManager } from './components/title-manager';
 import {
@@ -13,14 +14,6 @@ import {
   NotFound,
   PostEditor,
 } from './route-components';
-
-function PageLoader() {
-  return (
-    <div className="flex min-h-[40vh] items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-900 dark:border-zinc-700 dark:border-t-zinc-100" />
-    </div>
-  );
-}
 
 export default function App() {
   return (

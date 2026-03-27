@@ -4,16 +4,26 @@
   "version": "0.0.0",
   "type": "module",
   "packageManager": "bun@1.2.21",
+  "engines": {
+    "bun": ">=1.2.21"
+  },
   "scripts": {
     "dev": "bun server.ts",
     "start": "bun server.ts",
     "build": "vite build",
-    "analyze": "vite build && bun scripts/analyze-bundle.mjs",
-    "preview": "vite preview",
-    "clean": "rm -rf dist",
-    "lint": "tsc --noEmit && biome check .",
-    "lint:biome": "biome check .",
-    "format:biome": "biome check --write ."
+    "build:analyze": "vite build --mode analyze",
+    "analyze": "bun run build:analyze && bun scripts/analyze-bundle.mjs",
+    "preview": "vite preview --host 0.0.0.0 --port 4173",
+    "clean": "rm -rf dist .turbo",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "check": "turbo run lint typecheck build --continue",
+    "turbo:dev": "turbo run dev --parallel --continue",
+    "turbo:build": "turbo run build --env-mode=strict --summarize",
+    "turbo:lint": "turbo run lint typecheck --env-mode=strict --continue",
+    "turbo:analyze": "turbo run analyze --env-mode=strict --summarize"
   },
   "trustedDependencies": [
     "protobufjs"
@@ -21,12 +31,10 @@
   "dependencies": {
     "@google/genai": "^1.43.0",
     "@supabase/supabase-js": "^2.98.0",
-    "@tailwindcss/vite": "^4.1.14",
     "@vercel/analytics": "^1.1.0",
     "@vercel/node": "^5.6.10",
     "@vercel/og": "^0.11.0",
     "@vercel/speed-insights": "^1.1.0",
-    "@vitejs/plugin-react": "^5.0.4",
     "clsx": "^2.1.1",
     "consola": "^3.4.2",
     "date-fns": "^4.1.0",
@@ -46,15 +54,17 @@
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "tailwind-merge": "^3.5.0",
-    "turbo": "^2.8.13",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.6",
+    "@tailwindcss/vite": "^4.1.14",
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.4",
     "autoprefixer": "^10.4.21",
     "tailwindcss": "^4.1.14",
+    "turbo": "^2.8.13",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

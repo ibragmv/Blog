@@ -1,4 +1,5 @@
 import { type ComponentType, type LazyExoticComponent, lazy } from 'react';
+import { preloadMarkdownRenderer } from '@/components/lazy-markdown';
 
 type ComponentModule<T> = Promise<{ default: T }>;
 
@@ -22,7 +23,7 @@ export const PostEditor = lazyWithPreload(() => import('./pages/post-editor'));
 export const NotFound = lazyWithPreload(() => import('./pages/not-found'));
 
 const routePreloaders: Record<string, (() => Promise<unknown>) | undefined> = {
-  '/': Home.preload,
+  '/': () => Promise.all([Home.preload(), Promise.resolve(preloadMarkdownRenderer())]),
   '/blog': Blog.preload,
   '/links': Links.preload,
   '/login': Login.preload,
@@ -32,6 +33,7 @@ const routePreloaders: Record<string, (() => Promise<unknown>) | undefined> = {
 
 export function prefetchRoute(path: string) {
   if (path.startsWith('/blog/')) {
+    preloadMarkdownRenderer();
     return BlogPost.preload();
   }
 
@@ -43,5 +45,6 @@ export function prefetchRoute(path: string) {
 }
 
 export function preloadBlogPostRoute() {
+  preloadMarkdownRenderer();
   return BlogPost.preload();
 }

@@ -1,20 +1,36 @@
+import type { Session } from '@supabase/supabase-js';
 import { format } from 'date-fns';
 import { Edit2, FileText, Link as LinkIcon, Loader2, LogOut, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LinksManager } from '@/components/links-manager';
+import { PageLoader } from '@/components/page-loader';
 import { type Post, supabase } from '@/lib/supabase';
 
 function DeleteButton({ id, onDelete }: { id: string; onDelete: (id: string) => void }) {
   const [status, setStatus] = useState<'idle' | 'confirm' | 'deleting'>('idle');
+  const timeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (status === 'idle') {
       setStatus('confirm');
-      // Reset after 3 seconds if not confirmed
-      setTimeout(() => setStatus((prev) => (prev === 'confirm' ? 'idle' : prev)), 3000);
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = window.setTimeout(() => {
+        setStatus((prev) => (prev === 'confirm' ? 'idle' : prev));
+        timeoutRef.current = null;
+      }, 3000);
     } else if (status === 'confirm') {
       setStatus('deleting');
       onDelete(id);
@@ -58,7 +74,7 @@ function DeleteButton({ id, onDelete }: { id: string; onDelete: (id: string) => 
 export default function Admin() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState<unknown>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [activeTab, setActiveTab] = useState<'posts' | 'links'>('posts');
   const navigate = useNavigate();
 
@@ -116,11 +132,7 @@ export default function Admin() {
   };
 
   if (!session) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="animate-spin text-zinc-600" />
-      </div>
-    );
+    return <PageLoader className="h-64" />;
   }
 
   return (

@@ -1,6 +1,6 @@
 import { Eye, LayoutTemplate, PenLine } from 'lucide-react';
 import { useState } from 'react';
-import { MarkdownRenderer } from './markdown-renderer';
+import { LazyMarkdownRenderer, preloadMarkdownRenderer } from './lazy-markdown';
 
 interface MarkdownEditorProps {
   value: string;
@@ -33,6 +33,7 @@ export function MarkdownEditor({
           <button
             type="button"
             onClick={() => setViewMode('write')}
+            aria-pressed={viewMode === 'write'}
             className={`p-1.5 rounded-md transition-colors ${
               viewMode === 'write'
                 ? 'bg-zinc-800 text-zinc-200 shadow-sm'
@@ -45,6 +46,9 @@ export function MarkdownEditor({
           <button
             type="button"
             onClick={() => setViewMode('split')}
+            onMouseEnter={() => preloadMarkdownRenderer(value)}
+            onFocus={() => preloadMarkdownRenderer(value)}
+            aria-pressed={viewMode === 'split'}
             className={`p-1.5 rounded-md transition-colors ${
               viewMode === 'split'
                 ? 'bg-zinc-800 text-zinc-200 shadow-sm'
@@ -57,6 +61,9 @@ export function MarkdownEditor({
           <button
             type="button"
             onClick={() => setViewMode('preview')}
+            onMouseEnter={() => preloadMarkdownRenderer(value)}
+            onFocus={() => preloadMarkdownRenderer(value)}
+            aria-pressed={viewMode === 'preview'}
             className={`p-1.5 rounded-md transition-colors ${
               viewMode === 'preview'
                 ? 'bg-zinc-800 text-zinc-200 shadow-sm'
@@ -95,7 +102,7 @@ export function MarkdownEditor({
         >
           <div className="prose prose-invert prose-sm max-w-none">
             {value ? (
-              <MarkdownRenderer content={value} />
+              <LazyMarkdownRenderer content={value} preload={viewMode !== 'write'} />
             ) : (
               <p className="text-zinc-600 italic">Nothing to preview</p>
             )}

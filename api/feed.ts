@@ -1,5 +1,5 @@
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import { createClient } from '@supabase/supabase-js';
-import type { IncomingMessage, ServerResponse } from 'http';
 import { marked } from 'marked';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -36,7 +36,10 @@ function escapeXml(value: string) {
 }
 
 function buildExcerpt(html: string) {
-  const text = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  const text = html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
   if (text.length <= 200) {
     return text;
@@ -66,12 +69,13 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     const siteIconUrl = `${baseUrl}/favicon.ico`;
     const date = new Date().toUTCString();
 
-    const items = await Promise.all((posts || []).map(async (post) => {
-      const link = `${baseUrl}/blog/${post.slug}`;
-      const contentHtml = await marked.parse(post.content || '');
-      const description = buildExcerpt(contentHtml);
+    const items = await Promise.all(
+      (posts || []).map(async (post) => {
+        const link = `${baseUrl}/blog/${post.slug}`;
+        const contentHtml = await marked.parse(post.content || '');
+        const description = buildExcerpt(contentHtml);
 
-      return `
+        return `
     <item>
       <title><![CDATA[${post.title}]]></title>
       <link>${escapeXml(link)}</link>
@@ -81,7 +85,8 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       <content:encoded><![CDATA[${contentHtml}]]></content:encoded>
       <dc:creator>${SITE_AUTHOR}</dc:creator>
     </item>`;
-    }));
+      })
+    );
 
     const rss = `<?xml version="1.0" encoding="UTF-8" ?>
 <?xml-stylesheet type="text/xsl" href="/rss.xsl"?>
