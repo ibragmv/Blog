@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/components/admin-auth-provider';
 import { MarkdownEditor } from '@/components/markdown-editor';
 import { PageLoader } from '@/components/page-loader';
+import { generatePostSummary } from '@/services/summary';
 import { testConnection, translatePost } from '@/services/translation';
 
 type PostEditorFormProps = { mode: 'create'; postId?: never } | { mode: 'edit'; postId: string };
@@ -101,19 +102,43 @@ export function PostEditorForm(props: PostEditorFormProps) {
 
     let finalTitleEn = titleEn;
     let finalContentEn = contentEn;
+    let finalSummary = post?.summary || '';
+    const shouldRegenerateSummary =
+      !post ||
+      !post.summary ||
+      post.title !== title ||
+      post.slug !== slug ||
+      post.content !== content;
 
-    if ((!finalTitleEn || !finalContentEn) && (title || content)) {
-      try {
-        const translated = await translatePost(title, content);
-        if (!finalTitleEn) {
-          finalTitleEn = translated.title_en;
-        }
-        if (!finalContentEn) {
-          finalContentEn = translated.content_en;
-        }
-      } catch (translationFailure) {
-        console.error('Auto-translation failed', translationFailure);
+    const translationPromise =
+      (!finalTitleEn || !finalContentEn) && (title || content)
+        ? translatePost(title, content).catch((translationFailure) => {
+            console.error('Auto-translation failed', translationFailure);
+            return null;
+          })
+        : Promise.resolve(null);
+
+    const summaryPromise =
+      shouldRegenerateSummary && title.trim() && content.trim()
+        ? generatePostSummary({ title, content, slug }).catch((summaryFailure) => {
+            console.error('Summary generation failed', summaryFailure);
+            return null;
+          })
+        : Promise.resolve(null);
+
+    const [translated, generatedSummary] = await Promise.all([translationPromise, summaryPromise]);
+
+    if (translated) {
+      if (!finalTitleEn) {
+        finalTitleEn = translated.title_en;
       }
+      if (!finalContentEn) {
+        finalContentEn = translated.content_en;
+      }
+    }
+
+    if (generatedSummary) {
+      finalSummary = generatedSummary;
     }
 
     try {
@@ -123,6 +148,7 @@ export function PostEditorForm(props: PostEditorFormProps) {
         title,
         slug,
         content,
+        summary: finalSummary || undefined,
         titleEn: finalTitleEn,
         contentEn: finalContentEn,
         published,

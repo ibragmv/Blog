@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { absoluteUrl } from '@/lib/seo';
-import { getPublishedPosts } from '@/lib/server/data';
+import { absoluteUrl, buildDescription } from '@/lib/seo';
+import { getHomePagePost, getPublishedPosts } from '@/lib/server/data';
 import { SITE_CONFIG } from '@/lib/site';
 
 function escapeXml(value: string) {
@@ -13,12 +13,12 @@ function escapeXml(value: string) {
 }
 
 export async function GET() {
-  const posts = await getPublishedPosts(20);
+  const [homePost, posts] = await Promise.all([getHomePagePost(), getPublishedPosts(20)]);
   const date = new Date().toUTCString();
 
   const items = posts.map((post) => {
     const link = absoluteUrl(`/blog/${post.slug}`);
-    const description = post.content.replace(/[#*`]/g, '').replace(/\s+/g, ' ').trim();
+    const description = buildDescription(post.summary, post.content, '');
 
     return `
     <item>
@@ -36,7 +36,7 @@ export async function GET() {
   <channel>
     <title>${SITE_CONFIG.siteName}</title>
     <link>${escapeXml(absoluteUrl('/'))}</link>
-    <description>${SITE_CONFIG.description}</description>
+    <description>${escapeXml(buildDescription(homePost?.summary, homePost?.content))}</description>
     <lastBuildDate>${date}</lastBuildDate>
     <language>en-us</language>
     <ttl>15</ttl>

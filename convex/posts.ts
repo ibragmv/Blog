@@ -8,6 +8,7 @@ const postValidator = v.object({
   title: v.string(),
   titleEn: v.optional(v.string()),
   slug: v.string(),
+  summary: v.optional(v.string()),
   content: v.string(),
   contentEn: v.optional(v.string()),
   createdAt: v.number(),
@@ -27,6 +28,7 @@ function serializePost(post: Doc<"posts">) {
     title: post.title,
     ...(post.titleEn !== undefined ? { titleEn: post.titleEn } : {}),
     slug: post.slug,
+    ...(post.summary !== undefined ? { summary: post.summary } : {}),
     content: post.content,
     ...(post.contentEn !== undefined ? { contentEn: post.contentEn } : {}),
     createdAt: post.createdAt,
@@ -39,19 +41,22 @@ function serializePost(post: Doc<"posts">) {
 function buildPostDocument(args: {
   title: string;
   slug: string;
+  summary?: string;
   content: string;
   titleEn?: string;
   contentEn?: string;
   published: boolean;
   isPage?: boolean;
-}, createdAt: number, updatedAt: number) {
+}, createdAt: number, updatedAt: number, existingPost?: Doc<"posts">) {
   const normalizedSlug = args.slug.trim().toLowerCase();
   const titleEn = normalizeOptionalString(args.titleEn);
+  const summary = normalizeOptionalString(args.summary) ?? existingPost?.summary;
   const contentEn = normalizeOptionalString(args.contentEn);
 
   return {
     title: args.title.trim(),
     slug: normalizedSlug,
+    ...(summary !== undefined ? { summary } : {}),
     content: args.content,
     createdAt,
     updatedAt,
@@ -148,6 +153,7 @@ export const save = mutation({
     postId: v.optional(v.id("posts")),
     title: v.string(),
     slug: v.string(),
+    summary: v.optional(v.string()),
     content: v.string(),
     titleEn: v.optional(v.string()),
     contentEn: v.optional(v.string()),
@@ -193,7 +199,7 @@ export const save = mutation({
       await ctx.db.replace(
         "posts",
         args.postId,
-        buildPostDocument(args, existingPost.createdAt, Date.now()),
+        buildPostDocument(args, existingPost.createdAt, Date.now(), existingPost),
       );
 
       return args.postId;

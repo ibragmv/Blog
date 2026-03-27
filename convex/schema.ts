@@ -6,6 +6,7 @@ export default defineSchema({
     title: v.string(),
     titleEn: v.optional(v.string()),
     slug: v.string(),
+    summary: v.optional(v.string()),
     content: v.string(),
     contentEn: v.optional(v.string()),
     createdAt: v.number(),

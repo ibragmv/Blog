@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const title = post.title;
-  const description = buildDescription(post.content);
+  const description = buildDescription(post.summary, post.content);
   const ogImage = `/blog/${post.slug}/opengraph-image`;
 
   return {

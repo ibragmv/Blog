@@ -7,13 +7,22 @@ export function buildPageTitle(pageTitle?: string) {
     : SITE_CONFIG.title;
 }
 
-export function buildDescription(content?: string | null) {
+export function buildDescription(
+  summary?: string | null,
+  content?: string | null,
+  fallback: string = SITE_CONFIG.description
+) {
+  const normalizedSummary = summary?.trim();
+  if (normalizedSummary) {
+    return normalizedSummary;
+  }
+
   if (!content) {
-    return SITE_CONFIG.description;
+    return fallback;
   }
 
   const preview = extractContentPreview(content, 160);
-  return preview || SITE_CONFIG.description;
+  return preview || fallback;
 }
 
 export function absoluteUrl(path = '/') {

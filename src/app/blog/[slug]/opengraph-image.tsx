@@ -19,7 +19,7 @@ export default async function Image({ params }: Props) {
   const post = await getPublishedPostBySlug(slug);
 
   const title = post?.title || 'Post not found';
-  const description = buildDescription(post?.content);
+  const description = buildDescription(post?.summary, post?.content);
   const siteHost = getSiteHost();
   const slugLabel = `/blog/${slug}`;
 

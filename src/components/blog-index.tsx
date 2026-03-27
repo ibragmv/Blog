@@ -4,8 +4,8 @@ import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { useDeferredValue, useState } from 'react';
 import type { PostRecord } from '@/lib/content';
-import { extractContentPreview } from '@/lib/content-preview';
 import { formatLongUtcDate } from '@/lib/dates';
+import { buildDescription } from '@/lib/seo';
 
 export function BlogIndex({ posts }: { posts: PostRecord[] }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -46,7 +46,7 @@ export function BlogIndex({ posts }: { posts: PostRecord[] }) {
                 </h2>
                 <div className="text-sm text-zinc-500">{formatLongUtcDate(post.createdAt)}</div>
                 <p className="text-zinc-600 dark:text-zinc-400 line-clamp-2 text-sm leading-relaxed">
-                  {extractContentPreview(post.content)}
+                  {buildDescription(post.summary, post.content, '')}
                 </p>
               </article>
             </Link>
