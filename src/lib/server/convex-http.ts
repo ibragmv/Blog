@@ -1,3 +1,5 @@
+import { getConvexUrl } from '@/lib/server/convex';
+
 type NextFetchOptions = {
   cache?: RequestCache;
   next?: {
@@ -15,16 +17,6 @@ type ConvexQueryError = {
   status: 'error';
   errorMessage?: string;
 };
-
-function getConvexUrl() {
-  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-
-  if (!convexUrl) {
-    throw new Error('Missing NEXT_PUBLIC_CONVEX_URL.');
-  }
-
-  return convexUrl;
-}
 
 export async function queryConvex<T>(
   path: string,

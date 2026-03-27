@@ -26,12 +26,6 @@
       "outputs": [".next/**"],
       "env": ["CONVEX_DEPLOYMENT", "NEXT_PUBLIC_CONVEX_URL"]
     },
-    "analyze": {
-      "dependsOn": ["build"],
-      "inputs": [".next/**", "package.json", "scripts/**", "src/**"],
-      "outputs": [".next/**"],
-      "env": ["CONVEX_DEPLOYMENT", "NEXT_PUBLIC_CONVEX_URL"]
-    },
     "lint": {
       "dependsOn": ["^lint"],
       "inputs": ["biome.json", "next.config.ts", "package.json", "src/**", "tsconfig.json"],

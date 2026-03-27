@@ -15,15 +15,14 @@
     "build": "next build --webpack",
     "preview": "next start",
     "clean": "rm -rf .next .turbo",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "check": "turbo run lint typecheck build --continue",
     "turbo:dev": "turbo run dev --parallel --continue",
     "turbo:build": "turbo run build --env-mode=strict --summarize",
-    "turbo:lint": "turbo run lint typecheck --env-mode=strict --continue",
-    "turbo:analyze": "turbo run analyze --env-mode=strict --summarize"
+    "turbo:lint": "turbo run lint typecheck --env-mode=strict --continue"
   },
   "trustedDependencies": [
     "protobufjs"
@@ -33,14 +32,9 @@
     "@vercel/analytics": "^1.1.0",
     "@vercel/speed-insights": "^1.1.0",
     "clsx": "^2.1.1",
-    "consola": "^3.4.2",
     "convex": "^1.34.1",
-    "date-fns": "^4.1.0",
-    "dotenv": "^17.2.3",
     "katex": "^0.16.33",
     "lucide-react": "^0.546.0",
-    "marked": "^17.0.4",
-    "motion": "^12.23.24",
     "next": "^16.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -57,7 +51,6 @@
     "@tailwindcss/postcss": "^4.1.14",
     "@biomejs/biome": "^2.4.6",
     "@types/node": "^22.14.0",
-    "autoprefixer": "^10.4.21",
     "tailwindcss": "^4.1.14",
     "turbo": "^2.8.13",
     "typescript": "~5.8.2"
