@@ -1,3 +1,11 @@
+type NextFetchOptions = {
+  cache?: RequestCache;
+  next?: {
+    revalidate?: number | false;
+    tags?: string[];
+  };
+};
+
 type ConvexQuerySuccess<T> = {
   status: 'success';
   value: T;
@@ -9,22 +17,27 @@ type ConvexQueryError = {
 };
 
 function getConvexUrl() {
-  const convexUrl = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL;
+  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
 
   if (!convexUrl) {
-    throw new Error('Missing CONVEX_URL or VITE_CONVEX_URL.');
+    throw new Error('Missing NEXT_PUBLIC_CONVEX_URL.');
   }
 
   return convexUrl;
 }
 
-export async function queryConvex<T>(path: string, args: Record<string, unknown> = {}) {
+export async function queryConvex<T>(
+  path: string,
+  args: Record<string, unknown> = {},
+  options: NextFetchOptions = { cache: 'no-store' }
+) {
   const response = await fetch(`${getConvexUrl()}/api/query`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Convex-Client': 'blog-serverless',
     },
+    ...options,
     body: JSON.stringify({
       path,
       format: 'convex_encoded_json',

@@ -1,12 +1,12 @@
 # Personal Blog & Admin Panel
 
-React + Vite blog with a Convex backend, Markdown authoring, server-rendered meta tags, and a private admin dashboard.
+Next.js App Router blog with a Convex backend, Markdown authoring, dynamic Open Graph images, RSS, and a private admin dashboard.
 
 ## Stack
 
-- React 19 + Vite
+- Next.js App Router + React 19
 - Convex for posts, links, and session storage
-- Express for local dev/server rendering, RSS, OG/meta injection, and Gemini-powered translation endpoints
+- Next route handlers for RSS, admin session management, and Gemini-powered translation endpoints
 - Tailwind CSS 4
 
 ## Local Setup
@@ -27,7 +27,7 @@ bun run convex:dev
 
 ```env
 CONVEX_DEPLOYMENT=dev:your_cloud_dev_deployment
-VITE_CONVEX_URL=https://your_production_deployment.convex.cloud
+NEXT_PUBLIC_CONVEX_URL=https://your_production_deployment.convex.cloud
 GEMINI_API_KEY=your_gemini_api_key
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=change-me

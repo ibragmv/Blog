@@ -1,3 +1,5 @@
+'use client';
+
 import type React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { resolveTheme, SYSTEM_THEME_QUERY, type Theme } from '@/lib/theme';
@@ -24,21 +26,20 @@ function isTheme(value: string | null): value is Theme {
   return value === 'dark' || value === 'light' || value === 'system';
 }
 
-function getInitialTheme(storageKey: string, defaultTheme: Theme) {
-  if (typeof window === 'undefined') {
-    return defaultTheme;
-  }
-
-  const storedTheme = window.localStorage.getItem(storageKey);
-  return isTheme(storedTheme) ? storedTheme : defaultTheme;
-}
-
 export function ThemeProvider({
   children,
   defaultTheme = 'system',
-  storageKey = 'vite-ui-theme',
+  storageKey = 'blog-theme',
 }: ThemeProviderProps) {
-  const [theme, setThemeState] = useState<Theme>(() => getInitialTheme(storageKey, defaultTheme));
+  const [theme, setThemeState] = useState<Theme>(defaultTheme);
+
+  useEffect(() => {
+    const storedTheme = window.localStorage.getItem(storageKey);
+
+    if (isTheme(storedTheme)) {
+      setThemeState(storedTheme);
+    }
+  }, [storageKey]);
 
   useEffect(() => {
     const root = window.document.documentElement;

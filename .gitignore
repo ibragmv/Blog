@@ -10,7 +10,9 @@
 node_modules/
 build/
 dist/
+.next/
 .turbo/
+*.tsbuildinfo
 
 ###############################################################################
 # Logs, System & Testing

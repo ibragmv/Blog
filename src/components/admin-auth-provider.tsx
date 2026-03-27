@@ -1,12 +1,8 @@
-import {
-  createContext,
-  type ReactNode,
-  useContext,
-  useEffect,
-  useEffectEvent,
-  useState,
-} from 'react';
+'use client';
+
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { getAdminSession, signInAdmin, signOutAdmin } from '@/lib/admin-session';
+import type { AdminSession } from '@/lib/content';
 
 type AdminAuthContextValue = {
   email: string | null;
@@ -20,19 +16,33 @@ type AdminAuthContextValue = {
 
 const AdminAuthContext = createContext<AdminAuthContextValue | null>(null);
 
-export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  const [email, setEmail] = useState<string | null>(null);
-  const [sessionToken, setSessionToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+function normalizeSession(session: AdminSession) {
+  return {
+    email: session.authenticated ? session.email : null,
+    sessionToken: session.authenticated ? session.sessionToken : null,
+  };
+}
 
-  const applySession = useEffectEvent(
-    (session: { authenticated: boolean; email: string | null; sessionToken: string | null }) => {
-      setEmail(session.authenticated ? session.email : null);
-      setSessionToken(session.authenticated ? session.sessionToken : null);
-    }
+export function AdminAuthProvider({
+  children,
+  initialSession,
+}: {
+  children: ReactNode;
+  initialSession: AdminSession;
+}) {
+  const [email, setEmail] = useState<string | null>(normalizeSession(initialSession).email);
+  const [sessionToken, setSessionToken] = useState<string | null>(
+    normalizeSession(initialSession).sessionToken
   );
+  const [isLoading, setIsLoading] = useState(false);
 
-  const refreshSession = useEffectEvent(async () => {
+  const applySession = useCallback((session: AdminSession) => {
+    const normalized = normalizeSession(session);
+    setEmail(normalized.email);
+    setSessionToken(normalized.sessionToken);
+  }, []);
+
+  const refreshSession = async () => {
     setIsLoading(true);
 
     try {
@@ -47,11 +57,26 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  });
+  };
 
   useEffect(() => {
-    void refreshSession();
-  }, []);
+    void (async () => {
+      setIsLoading(true);
+
+      try {
+        const session = await getAdminSession();
+        applySession(session);
+      } catch {
+        applySession({
+          authenticated: false,
+          email: null,
+          sessionToken: null,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [applySession]);
 
   const signIn = async (nextEmail: string, password: string) => {
     setIsLoading(true);

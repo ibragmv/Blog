@@ -1,24 +1,6 @@
 {
-  "framework": "vite",
+  "framework": "nextjs",
   "buildCommand": "bun run build",
-  "outputDirectory": "dist",
-  "bunVersion": "1.2.21",
-  "rewrites": [
-    {
-      "source": "/feed.xml",
-      "destination": "/api/feed"
-    },
-    {
-      "source": "/blog/:slug",
-      "destination": "/api/post-html?slug=:slug"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+  "installCommand": "bun install",
+  "bunVersion": "1.2.21"
 }

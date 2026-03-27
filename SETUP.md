@@ -14,10 +14,10 @@ Put the generated or existing Convex deployment values directly into `.env`:
 
 ```env
 CONVEX_DEPLOYMENT=dev:your_cloud_dev_deployment
-VITE_CONVEX_URL=https://your_production_deployment.convex.cloud
+NEXT_PUBLIC_CONVEX_URL=https://your_production_deployment.convex.cloud
 ```
 
-Use the dev deployment for `convex:dev`, and keep `VITE_CONVEX_URL` pointed at the production deployment you want the app to talk to.
+Use the dev deployment for `convex:dev`, and keep `NEXT_PUBLIC_CONVEX_URL` pointed at the deployment the app should talk to.
 
 ## 2. Configure Server Environment
 

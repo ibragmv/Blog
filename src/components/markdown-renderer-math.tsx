@@ -8,8 +8,6 @@ import {
   markdownComponents,
 } from './markdown-shared';
 
-import 'katex/dist/katex.min.css';
-
 export function MarkdownRendererMath({ content, className }: MarkdownRendererProps) {
   return (
     <MarkdownContainer className={className}>

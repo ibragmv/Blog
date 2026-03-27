@@ -3,57 +3,43 @@
   "globalDependencies": [
     ".env*",
     "biome.json",
+    "next.config.ts",
     "package.json",
+    "postcss.config.mjs",
     "tsconfig.json",
-    "turbo.json",
-    "vite.config.ts"
+    "turbo.json"
   ],
   "globalEnv": ["CI", "NODE_ENV"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": [
-        "api/**",
-        "index.html",
+        "convex/**",
+        "next-env.d.ts",
+        "next.config.ts",
         "package.json",
+        "postcss.config.mjs",
         "public/**",
-        "server.ts",
         "src/**",
-        "tsconfig.json",
-        "vite.config.ts"
+        "tsconfig.json"
       ],
-      "outputs": ["dist/**"],
-      "env": ["CONVEX_DEPLOYMENT", "VITE_CONVEX_URL"]
+      "outputs": [".next/**"],
+      "env": ["CONVEX_DEPLOYMENT", "NEXT_PUBLIC_CONVEX_URL"]
     },
     "analyze": {
       "dependsOn": ["build"],
-      "inputs": ["dist/**", "package.json", "scripts/**", "src/**", "vite.config.ts"],
-      "outputs": ["dist/**"],
-      "env": ["CONVEX_DEPLOYMENT", "VITE_CONVEX_URL"]
+      "inputs": [".next/**", "package.json", "scripts/**", "src/**"],
+      "outputs": [".next/**"],
+      "env": ["CONVEX_DEPLOYMENT", "NEXT_PUBLIC_CONVEX_URL"]
     },
     "lint": {
       "dependsOn": ["^lint"],
-      "inputs": [
-        "api/**",
-        "biome.json",
-        "package.json",
-        "server.ts",
-        "src/**",
-        "tsconfig.json",
-        "vite.config.ts"
-      ],
+      "inputs": ["biome.json", "next.config.ts", "package.json", "src/**", "tsconfig.json"],
       "outputs": []
     },
     "typecheck": {
       "dependsOn": ["^typecheck"],
-      "inputs": [
-        "api/**",
-        "package.json",
-        "server.ts",
-        "src/**",
-        "tsconfig.json",
-        "vite.config.ts"
-      ],
+      "inputs": ["next-env.d.ts", "next.config.ts", "package.json", "src/**", "tsconfig.json"],
       "outputs": []
     },
     "dev": {

@@ -1,3 +1,5 @@
+'use client';
+
 import { type JSX, type LazyExoticComponent, lazy, Suspense, useEffect } from 'react';
 import { getMarkdownFeatures } from '@/lib/markdown-features';
 import type { MarkdownRendererProps } from './markdown-renderer';

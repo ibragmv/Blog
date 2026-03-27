@@ -7,8 +7,6 @@ import {
   markdownComponents,
 } from './markdown-shared';
 
-import 'highlight.js/styles/github-dark.css';
-
 export function MarkdownRendererCode({ content, className }: MarkdownRendererProps) {
   return (
     <MarkdownContainer className={className}>

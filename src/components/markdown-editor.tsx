@@ -1,3 +1,5 @@
+'use client';
+
 import { Eye, LayoutTemplate, PenLine } from 'lucide-react';
 import { useState } from 'react';
 import { LazyMarkdownRenderer, preloadMarkdownRenderer } from './lazy-markdown';

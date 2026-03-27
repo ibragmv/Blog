@@ -10,9 +10,6 @@ import {
   markdownComponents,
 } from './markdown-shared';
 
-import 'highlight.js/styles/github-dark.css';
-import 'katex/dist/katex.min.css';
-
 export function MarkdownRendererRich({ content, className }: MarkdownRendererProps) {
   return (
     <MarkdownContainer className={className}>
