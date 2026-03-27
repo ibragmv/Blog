@@ -3,10 +3,10 @@
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { LanguageToggle } from '@/components/language-toggle';
 import { LazyMarkdownRenderer } from '@/components/lazy-markdown';
 import type { PostRecord } from '@/lib/content';
 import { formatLongUtcDate } from '@/lib/dates';
-import { cn } from '@/lib/utils';
 
 export function BlogPostView({ post }: { post: PostRecord }) {
   const [language, setLanguage] = useState<'ru' | 'en'>('ru');
@@ -82,34 +82,7 @@ export function BlogPostView({ post }: { post: PostRecord }) {
             {currentTitle}
           </h1>
 
-          {hasTranslation && (
-            <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 rounded-lg p-1 border border-zinc-200 dark:border-zinc-800 shrink-0 self-start">
-              <button
-                type="button"
-                onClick={() => setLanguage('ru')}
-                className={cn(
-                  'px-3 py-1 text-sm font-medium rounded-md transition-all',
-                  language === 'ru'
-                    ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'
-                )}
-              >
-                RU
-              </button>
-              <button
-                type="button"
-                onClick={() => setLanguage('en')}
-                className={cn(
-                  'px-3 py-1 text-sm font-medium rounded-md transition-all',
-                  language === 'en'
-                    ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'
-                )}
-              >
-                EN
-              </button>
-            </div>
-          )}
+          {hasTranslation && <LanguageToggle value={language} onChange={setLanguage} />}
         </div>
 
         <time className="text-zinc-500 text-sm">{formatLongUtcDate(post.createdAt)}</time>

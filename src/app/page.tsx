@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { LazyMarkdownRenderer } from '@/components/lazy-markdown';
+import { HomePageView } from '@/components/home-page-view';
 import { absoluteUrl, buildDescription } from '@/lib/seo';
 import { getHomePagePost } from '@/lib/server/data';
 import { SITE_CONFIG } from '@/lib/site';
@@ -46,10 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function HomePage() {
   const homePost = await getHomePagePost();
   const content = homePost?.content || HOME_FALLBACK_CONTENT;
+  const contentEn = homePost?.contentEn;
 
-  return (
-    <div className="animate-in fade-in duration-500">
-      <LazyMarkdownRenderer content={content} preload />
-    </div>
-  );
+  return <HomePageView content={content} contentEn={contentEn} />;
 }
