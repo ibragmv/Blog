@@ -3,6 +3,7 @@ import { Loader2, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { type Post, supabase } from '@/lib/supabase';
+import { preloadBlogPostRoute } from '@/route-components';
 
 export default function Blog() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -66,7 +67,13 @@ export default function Blog() {
       ) : (
         <div className="grid gap-8">
           {filteredPosts.map((post) => (
-            <Link key={post.id} to={`/blog/${post.slug}`} className="group block">
+            <Link
+              key={post.id}
+              to={`/blog/${post.slug}`}
+              onMouseEnter={preloadBlogPostRoute}
+              onFocus={preloadBlogPostRoute}
+              className="group block"
+            >
               <article className="space-y-2">
                 <h2 className="text-xl font-medium text-zinc-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors font-display">
                   {post.title}

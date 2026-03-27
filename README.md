@@ -26,13 +26,21 @@ A modern, full-stack personal blog platform featuring a built-in admin dashboard
 2. **Configure Environment Variables:**
    Rename a `.env.example` -> `.env` file in the root directory and add your Supabase credentials:
    ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_project_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+   VITE_SUPABASE_URL=your_project_url
+   VITE_SUPABASE_ANON_KEY=your_anon_key
+   GEMINI_API_KEY=your_gemini_api_key
    ```
 
-3. **Run for web debugging:**
+3. **Run the development server:**
    ```bash
    bun run dev
+   ```
+
+4. **Other common tasks:**
+   ```bash
+   bun run lint
+   bun run build
+   bun run analyze
    ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.

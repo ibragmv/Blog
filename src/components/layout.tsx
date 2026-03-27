@@ -3,6 +3,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { SITE_CONFIG } from '@/config';
 import { cn } from '@/lib/utils';
+import { prefetchRoute } from '@/route-components';
 import { ThemeToggle } from './theme-toggle';
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -25,9 +26,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
           <NavLink
             to="/"
+            onMouseEnter={() => prefetchRoute('/')}
+            onFocus={() => prefetchRoute('/')}
             className="flex items-center gap-3 leading-none font-bold tracking-tight text-zinc-900 dark:text-zinc-100 hover:opacity-70 transition-opacity font-display uppercase"
           >
-            <img src={SITE_CONFIG.logo} alt="Logo" className="w-8 h-8" />
+            <img
+              src={SITE_CONFIG.logo}
+              alt="Logo"
+              width={32}
+              height={32}
+              decoding="async"
+              className="w-8 h-8"
+            />
             <div className="flex flex-col">
               {isMultiWord ? (
                 <>
@@ -47,6 +57,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <NavLink
                   key={item.path}
                   to={item.path}
+                  onMouseEnter={() => prefetchRoute(item.path)}
+                  onFocus={() => prefetchRoute(item.path)}
                   className={({ isActive }) =>
                     cn(
                       'text-sm font-medium transition-colors hover:text-zinc-900 dark:hover:text-zinc-100',
@@ -63,6 +75,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
             <NavLink
               to="/admin"
+              onMouseEnter={() => prefetchRoute('/admin')}
+              onFocus={() => prefetchRoute('/admin')}
               className="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors p-2"
               title="Admin Panel"
             >
@@ -88,6 +102,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 key={item.path}
                 to={item.path}
                 onClick={() => setIsMenuOpen(false)}
+                onMouseEnter={() => prefetchRoute(item.path)}
+                onFocus={() => prefetchRoute(item.path)}
                 className={({ isActive }) =>
                   cn(
                     'text-sm font-medium transition-colors hover:text-zinc-900 dark:hover:text-zinc-100 block py-2',

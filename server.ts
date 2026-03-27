@@ -25,7 +25,7 @@ if (fs.existsSync(envPath)) {
 }
 
 // Initialize Gemini AI
-const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+const apiKey = process.env.GEMINI_API_KEY;
 const genAI = apiKey
   ? new GoogleGenAI({ apiKey })
   : null;
