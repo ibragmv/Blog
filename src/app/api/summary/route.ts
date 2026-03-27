@@ -39,7 +39,11 @@ Requirements:
 - Return one short paragraph suitable for meta description and social preview text.
 - Target 140-180 characters, and never exceed 220 characters.
 - Do not use quotes, markdown, emojis, labels, or introductory phrases.
-- Focus on what the page is about, not on the implementation details of the site.
+- Write from the author's perspective, as if the author personally wrote this short description.
+- Prefer first-person voice when it sounds natural in the source language.
+- Do not describe the author in third person.
+- Do not write phrases like "this blog is about", "the author writes about", or "Ibragim explains".
+- Focus on the substance of the page, not on the implementation details of the site.
 
 Page slug: ${slug || 'post'}
 Title: ${title}
