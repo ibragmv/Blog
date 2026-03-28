@@ -17,5 +17,5 @@ export default async function Image({ params }: Props) {
 
   const title = post?.title || 'Post not found';
 
-  return new ImageResponse(renderOgPreview({ title, path: `/blog/${slug}` }), size);
+  return new ImageResponse(renderOgPreview({ title }), size);
 }

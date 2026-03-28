@@ -11,5 +11,5 @@ export default async function Image() {
   const homePost = await getHomePagePost();
   const title = homePost?.title?.trim() || SITE_CONFIG.siteName;
 
-  return new ImageResponse(renderOgPreview({ title, path: '/' }), size);
+  return new ImageResponse(renderOgPreview({ title }), size);
 }
