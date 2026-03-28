@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { cache } from 'react';
 import { BlogPostView } from '@/components/blog-post-view';
 import { buildDescription } from '@/lib/seo';
 import { getPublishedPostBySlug } from '@/lib/server/data';
@@ -8,9 +9,11 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
+const getCachedPublishedPostBySlug = cache((slug: string) => getPublishedPostBySlug(slug));
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPublishedPostBySlug(slug);
+  const post = await getCachedPublishedPostBySlug(slug);
 
   if (!post) {
     return {
@@ -24,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const title = post.title;
-  const description = buildDescription(post.summary, post.content);
+  const description = buildDescription(post.content);
   const ogImage = `/blog/${post.slug}/opengraph-image`;
 
   return {
@@ -60,7 +63,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
-  const post = await getPublishedPostBySlug(slug);
+  const post = await getCachedPublishedPostBySlug(slug);
 
   if (!post) {
     notFound();

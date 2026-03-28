@@ -10,7 +10,6 @@ import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/components/admin-auth-provider';
 import { MarkdownEditor } from '@/components/markdown-editor';
 import { PageLoader } from '@/components/page-loader';
-import { generatePostSummary } from '@/services/summary';
 import { testConnection, translatePost } from '@/services/translation';
 
 type PostEditorFormProps = { mode: 'create'; postId?: never } | { mode: 'edit'; postId: string };
@@ -102,13 +101,6 @@ export function PostEditorForm(props: PostEditorFormProps) {
 
     let finalTitleEn = titleEn;
     let finalContentEn = contentEn;
-    let finalSummary = post?.summary || '';
-    const shouldRegenerateSummary =
-      !post ||
-      !post.summary ||
-      post.title !== title ||
-      post.slug !== slug ||
-      post.content !== content;
 
     const translationPromise =
       (!finalTitleEn || !finalContentEn) && (title || content)
@@ -118,15 +110,7 @@ export function PostEditorForm(props: PostEditorFormProps) {
           })
         : Promise.resolve(null);
 
-    const summaryPromise =
-      shouldRegenerateSummary && title.trim() && content.trim()
-        ? generatePostSummary({ title, content, slug }).catch((summaryFailure) => {
-            console.error('Summary generation failed', summaryFailure);
-            return null;
-          })
-        : Promise.resolve(null);
-
-    const [translated, generatedSummary] = await Promise.all([translationPromise, summaryPromise]);
+    const translated = await translationPromise;
 
     if (translated) {
       if (!finalTitleEn) {
@@ -137,10 +121,6 @@ export function PostEditorForm(props: PostEditorFormProps) {
       }
     }
 
-    if (generatedSummary) {
-      finalSummary = generatedSummary;
-    }
-
     try {
       await savePost({
         sessionToken,
@@ -148,7 +128,6 @@ export function PostEditorForm(props: PostEditorFormProps) {
         title,
         slug,
         content,
-        summary: finalSummary || undefined,
         titleEn: finalTitleEn,
         contentEn: finalContentEn,
         published,

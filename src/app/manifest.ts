@@ -1,5 +1,4 @@
 import type { MetadataRoute } from 'next';
-import { RSS_ICON_PATH } from '@/lib/rss';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -11,11 +10,6 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: '#09090b',
     theme_color: '#09090b',
     icons: [
-      {
-        src: RSS_ICON_PATH,
-        sizes: '512x512',
-        type: 'image/png',
-      },
       {
         src: '/icon',
         sizes: '512x512',

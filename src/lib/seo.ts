@@ -8,15 +8,9 @@ export function buildPageTitle(pageTitle?: string) {
 }
 
 export function buildDescription(
-  summary?: string | null,
   content?: string | null,
   fallback: string = SITE_CONFIG.description
 ) {
-  const normalizedSummary = summary?.trim();
-  if (normalizedSummary) {
-    return normalizedSummary;
-  }
-
   if (!content) {
     return fallback;
   }

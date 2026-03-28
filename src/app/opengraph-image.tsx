@@ -1,52 +1,15 @@
 import { ImageResponse } from 'next/og';
-import { buildDescription } from '@/lib/seo';
+import { OG_IMAGE_SIZE, renderOgPreview } from '@/lib/og-preview';
 import { getHomePagePost } from '@/lib/server/data';
-import { getSiteHost, SITE_CONFIG } from '@/lib/site';
+import { SITE_CONFIG } from '@/lib/site';
 
 export const alt = SITE_CONFIG.siteName;
-export const size = {
-  width: 1200,
-  height: 630,
-};
+export const size = OG_IMAGE_SIZE;
 export const contentType = 'image/png';
 
 export default async function Image() {
   const homePost = await getHomePagePost();
-  const description = buildDescription(homePost?.summary, homePost?.content);
-  const siteHost = getSiteHost();
+  const title = homePost?.title?.trim() || SITE_CONFIG.siteName;
 
-  return new ImageResponse(
-    <div
-      style={{
-        display: 'flex',
-        width: '100%',
-        height: '100%',
-        background: 'linear-gradient(135deg, #020617 0%, #111827 48%, #0f172a 100%)',
-        color: '#f8fafc',
-        padding: '58px 64px',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 24,
-          maxWidth: '86%',
-        }}
-      >
-        <div
-          style={{ fontSize: 26, letterSpacing: 3, textTransform: 'uppercase', color: '#7dd3fc' }}
-        >
-          Personal blog
-        </div>
-        <div style={{ fontSize: 84, lineHeight: 1, fontWeight: 700 }}>{SITE_CONFIG.siteName}</div>
-        <div style={{ fontSize: 32, lineHeight: 1.35, color: '#cbd5e1' }}>{description}</div>
-      </div>
-
-      <div style={{ display: 'flex', fontSize: 24, color: '#94a3b8' }}>{siteHost}</div>
-    </div>,
-    size
-  );
+  return new ImageResponse(renderOgPreview({ title, path: '/' }), size);
 }

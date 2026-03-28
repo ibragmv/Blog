@@ -1,12 +1,12 @@
 # Personal Blog & Admin Panel
 
-Next.js App Router blog with a Convex backend, Markdown authoring, dynamic Open Graph images, RSS, and a private admin dashboard.
+Next.js App Router blog with a Convex backend, Markdown authoring, dynamic Open Graph images, and a private admin dashboard.
 
 ## Stack
 
 - Next.js App Router + React 19
 - Convex for posts, links, and session storage
-- Next route handlers for RSS, admin session management, and Gemini-powered translation endpoints
+- Next route handlers for admin session management and Gemini-powered translation endpoints
 - Tailwind CSS 4
 
 ## Local Setup

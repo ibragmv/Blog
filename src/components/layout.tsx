@@ -1,6 +1,6 @@
 'use client';
 
-import { Menu, Rss, Shield, X } from 'lucide-react';
+import { Menu, Shield, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -130,17 +130,6 @@ export function Layout({
           </div>
 
           <div className="flex items-center gap-6">
-            <a
-              href="/feed.xml"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30 transition-all text-xs font-medium border border-zinc-200 dark:border-zinc-800"
-              title="RSS Feed"
-            >
-              <Rss size={14} />
-              <span>RSS</span>
-            </a>
-
             <ThemeToggle />
           </div>
         </div>

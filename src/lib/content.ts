@@ -3,7 +3,6 @@ export type PostRecord = {
   title: string;
   titleEn?: string;
   slug: string;
-  summary?: string;
   content: string;
   contentEn?: string;
   createdAt: number;

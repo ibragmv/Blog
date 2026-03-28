@@ -46,7 +46,7 @@ export function BlogIndex({ posts }: { posts: PostRecord[] }) {
                 </h2>
                 <div className="text-sm text-zinc-500">{formatLongUtcDate(post.createdAt)}</div>
                 <p className="text-zinc-600 dark:text-zinc-400 line-clamp-2 text-sm leading-relaxed">
-                  {buildDescription(post.summary, post.content, '')}
+                  {buildDescription(post.content, '')}
                 </p>
               </article>
             </Link>

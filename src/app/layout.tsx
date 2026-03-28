@@ -4,7 +4,6 @@ import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import { Layout } from '@/components/layout';
 import { ThemeProvider } from '@/components/theme-provider';
-import { RSS_ICON_PATH } from '@/lib/rss';
 import { absoluteUrl } from '@/lib/seo';
 import { getSiteUrl, SITE_CONFIG } from '@/lib/site';
 import './globals.css';
@@ -38,9 +37,6 @@ export const metadata: Metadata = {
   authors: [{ name: SITE_CONFIG.author }],
   alternates: {
     canonical: absoluteUrl('/'),
-    types: {
-      'application/rss+xml': absoluteUrl('/feed.xml'),
-    },
   },
   openGraph: {
     type: 'website',
@@ -67,11 +63,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: RSS_ICON_PATH, type: 'image/png' },
       { url: '/icon', type: 'image/png' },
       { url: '/vercel.svg', type: 'image/svg+xml' },
     ],
-    shortcut: RSS_ICON_PATH,
+    shortcut: '/icon',
     apple: '/icon',
   },
 };
