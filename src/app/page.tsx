@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { cache } from 'react';
 import { HomePageView } from '@/components/home-page-view';
+import { getPreferredPostContent } from '@/lib/content';
 import { absoluteUrl, buildDescription } from '@/lib/seo';
 import { getHomePagePost } from '@/lib/server/data';
 import { SITE_CONFIG } from '@/lib/site';
@@ -12,7 +13,7 @@ const getCachedHomePagePost = cache(getHomePagePost);
 
 export async function generateMetadata(): Promise<Metadata> {
   const homePost = await getCachedHomePagePost();
-  const description = buildDescription(homePost?.content);
+  const description = buildDescription(homePost ? getPreferredPostContent(homePost) : undefined);
   const ogImage = absoluteUrl('/opengraph-image');
 
   return {

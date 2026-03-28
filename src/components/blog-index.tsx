@@ -3,7 +3,7 @@
 import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { useDeferredValue, useState } from 'react';
-import type { PostRecord } from '@/lib/content';
+import { getPreferredPostContent, getPreferredPostTitle, type PostRecord } from '@/lib/content';
 import { formatLongUtcDate } from '@/lib/dates';
 import { buildDescription } from '@/lib/seo';
 
@@ -13,7 +13,7 @@ export function BlogIndex({ posts }: { posts: PostRecord[] }) {
   const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
 
   const filteredPosts = normalizedQuery
-    ? posts.filter((post) => post.title.toLowerCase().includes(normalizedQuery))
+    ? posts.filter((post) => getPreferredPostTitle(post).toLowerCase().includes(normalizedQuery))
     : posts;
 
   return (
@@ -42,11 +42,11 @@ export function BlogIndex({ posts }: { posts: PostRecord[] }) {
             <Link key={post.id} href={`/blog/${post.slug}`} className="group block">
               <article className="space-y-2">
                 <h2 className="text-xl font-medium text-zinc-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors font-display">
-                  {post.title}
+                  {getPreferredPostTitle(post)}
                 </h2>
                 <div className="text-sm text-zinc-500">{formatLongUtcDate(post.createdAt)}</div>
                 <p className="text-zinc-600 dark:text-zinc-400 line-clamp-2 text-sm leading-relaxed">
-                  {buildDescription(post.content, '')}
+                  {buildDescription(getPreferredPostContent(post), '')}
                 </p>
               </article>
             </Link>

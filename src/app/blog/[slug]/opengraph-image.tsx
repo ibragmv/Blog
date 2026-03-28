@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { getPreferredPostTitle } from '@/lib/content';
 import { OG_IMAGE_SIZE, renderOgPreview } from '@/lib/og-preview';
 import { getPublishedPostBySlug } from '@/lib/server/data';
 import { SITE_CONFIG } from '@/lib/site';
@@ -15,7 +16,7 @@ export default async function Image({ params }: Props) {
   const { slug } = await params;
   const post = await getPublishedPostBySlug(slug);
 
-  const title = post?.title || 'Post not found';
+  const title = post ? getPreferredPostTitle(post) : 'Post not found';
 
   return new ImageResponse(renderOgPreview({ title }), size);
 }

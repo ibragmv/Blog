@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { cache } from 'react';
 import { BlogPostView } from '@/components/blog-post-view';
+import { getPreferredPostContent, getPreferredPostTitle } from '@/lib/content';
 import { buildDescription } from '@/lib/seo';
 import { getPublishedPostBySlug } from '@/lib/server/data';
 
@@ -26,8 +27,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const title = post.title;
-  const description = buildDescription(post.content);
+  const title = getPreferredPostTitle(post);
+  const description = buildDescription(getPreferredPostContent(post));
   const ogImage = `/blog/${post.slug}/opengraph-image`;
 
   return {

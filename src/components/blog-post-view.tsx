@@ -9,7 +9,9 @@ import type { PostRecord } from '@/lib/content';
 import { formatLongUtcDate } from '@/lib/dates';
 
 export function BlogPostView({ post }: { post: PostRecord }) {
-  const [language, setLanguage] = useState<'ru' | 'en'>('ru');
+  const [language, setLanguage] = useState<'ru' | 'en'>(
+    post.titleEn && post.contentEn ? 'en' : 'ru'
+  );
   const [readingProgress, setReadingProgress] = useState(0);
   const postId = post.id;
 
@@ -51,9 +53,9 @@ export function BlogPostView({ post }: { post: PostRecord }) {
 
   useEffect(() => {
     if (postId) {
-      setLanguage('ru');
+      setLanguage(post.titleEn && post.contentEn ? 'en' : 'ru');
     }
-  }, [postId]);
+  }, [postId, post.titleEn, post.contentEn]);
 
   const hasTranslation = !!post.titleEn && !!post.contentEn;
   const currentTitle = language === 'en' && post.titleEn ? post.titleEn : post.title;

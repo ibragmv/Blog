@@ -11,6 +11,14 @@ export type PostRecord = {
   isPage: boolean;
 };
 
+export function getPreferredPostTitle(post: Pick<PostRecord, 'title' | 'titleEn'>) {
+  return post.titleEn || post.title;
+}
+
+export function getPreferredPostContent(post: Pick<PostRecord, 'content' | 'contentEn'>) {
+  return post.contentEn || post.content;
+}
+
 export type LinkRecord = {
   id: string;
   title: string;

@@ -10,7 +10,7 @@ type HomePageViewProps = {
 };
 
 export function HomePageView({ content, contentEn }: HomePageViewProps) {
-  const [language, setLanguage] = useState<'ru' | 'en'>('ru');
+  const [language, setLanguage] = useState<'ru' | 'en'>(contentEn ? 'en' : 'ru');
   const hasTranslation = !!contentEn;
   const currentContent = language === 'en' && contentEn ? contentEn : content;
 
