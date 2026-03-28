@@ -1,8 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export function createSiteIconResponse(size: { width: number; height: number }) {
-  const strokeWidth = Math.max(10, Math.round(size.width * 0.06));
-  const logoSize = Math.round(size.width * 0.54);
+  const logoSize = Math.round(size.width * 0.62);
 
   return new ImageResponse(
     <div
@@ -12,7 +11,7 @@ export function createSiteIconResponse(size: { width: number; height: number }) 
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(180deg, #18181b 0%, #09090b 100%)',
+        background: '#09090b',
       }}
     >
       <svg
@@ -26,7 +25,7 @@ export function createSiteIconResponse(size: { width: number; height: number }) 
         <path
           d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
           stroke="#f97316"
-          strokeWidth={strokeWidth}
+          strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
