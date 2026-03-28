@@ -4,7 +4,6 @@ export const SITE_CONFIG = {
   description:
     'Personal blog, essays, and notes by Ibragim Ibragimov with a private admin panel powered by Convex.',
   titleSeparator: '|',
-  logo: '/logo.svg',
   author: 'Ibragim Ibragimov',
   locale: 'en_US',
   socialHandle: '@ibragmv',

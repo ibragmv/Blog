@@ -23,7 +23,7 @@ export function Layout({
             className="flex items-center gap-3 leading-none font-bold tracking-tight text-zinc-900 dark:text-zinc-100 hover:opacity-70 transition-opacity font-display uppercase"
           >
             <Image
-              src={SITE_CONFIG.logo}
+              src="/favicon.svg"
               alt={`${SITE_CONFIG.siteName} logo`}
               width={32}
               height={32}
