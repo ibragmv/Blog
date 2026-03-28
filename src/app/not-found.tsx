@@ -13,7 +13,7 @@ export default function NotFound() {
           Oops! The page you&apos;re looking for doesn&apos;t exist.
         </p>
         <p className="text-sm text-zinc-500 dark:text-zinc-500 mb-8">
-          But while you&apos;re here, why not set a new high score?
+          But while you&apos;re here, why not set a new high score from any device?
         </p>
       </div>
 

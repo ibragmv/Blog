@@ -45,6 +45,7 @@ const SPRITE_SHEET_URL =
 
 export function DinoGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [gameState, setGameState] = useState<GameState>({
     isPlaying: false,
     gameOver: false,
@@ -335,52 +336,84 @@ export function DinoGame() {
     }
   }, []);
 
+  const handleAction = useCallback(() => {
+    if (!isPlayingRef.current || isGameOverRef.current) {
+      startGame();
+      return;
+    }
+
+    jump();
+  }, [jump, startGame]);
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.code === 'Space' || e.code === 'ArrowUp') {
+      if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
         e.preventDefault();
-        if (!isPlayingRef.current && !isGameOverRef.current) {
-          startGame();
-        } else if (isGameOverRef.current) {
-          startGame();
-        } else {
-          jump();
-        }
+        handleAction();
       }
     },
-    [startGame, jump]
+    [handleAction]
   );
 
-  const handleTouch = (_e: React.TouchEvent | React.MouseEvent) => {
-    if (!isPlayingRef.current && !isGameOverRef.current) {
-      startGame();
-    } else if (isGameOverRef.current) {
-      startGame();
-    } else {
-      jump();
-    }
-  };
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      handleAction();
+    },
+    [handleAction]
+  );
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      handleAction();
+    },
+    [handleAction]
+  );
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  useEffect(() => {
+    return () => {
+      if (requestRef.current !== null) cancelAnimationFrame(requestRef.current);
+    };
+  }, []);
+
   // Resize canvas
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (canvas) {
-      const parent = canvas.parentElement;
-      if (parent) {
-        canvas.width = Math.min(parent.clientWidth, 600);
-        canvas.height = 150;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+
+    const resizeCanvas = () => {
+      canvas.width = Math.min(container.clientWidth, 600);
+      canvas.height = 150;
+
+      if (!isPlayingRef.current && !isGameOverRef.current && spriteSheetRef.current) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) drawGame(ctx, canvas, spriteSheetRef.current);
       }
-    }
-  }, []);
+    };
+
+    resizeCanvas();
+
+    const observer = new ResizeObserver(resizeCanvas);
+    observer.observe(container);
+
+    return () => observer.disconnect();
+  }, [drawGame]);
 
   return (
     <div className="w-full flex flex-col items-center gap-4">
-      <div className="relative w-full max-w-[600px] border-b border-zinc-200 dark:border-zinc-800 overflow-hidden bg-transparent">
+      <div
+        ref={containerRef}
+        className="relative w-full max-w-[600px] overflow-hidden rounded-2xl border border-zinc-200 bg-transparent outline-none select-none touch-none dark:border-zinc-800"
+        onPointerDown={handlePointerDown}
+        onTouchStart={handleTouchStart}
+      >
         {!assetsLoaded && (
           <div className="absolute inset-0 flex items-center justify-center text-zinc-400 text-xs">
             Loading assets...
@@ -389,8 +422,7 @@ export function DinoGame() {
 
         <canvas
           ref={canvasRef}
-          className="block w-full h-[150px] touch-none cursor-pointer"
-          onClick={handleTouch}
+          className="block h-[150px] w-full cursor-pointer touch-none"
           style={{ imageRendering: 'pixelated' }}
         />
 
@@ -404,7 +436,7 @@ export function DinoGame() {
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
               <p className="text-zinc-500 dark:text-zinc-400 mb-2 font-mono text-xs">
-                Press Space to Start
+                Tap, click, or press Space to start
               </p>
             </div>
           </div>
@@ -416,6 +448,9 @@ export function DinoGame() {
               <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1">GAME OVER</h3>
               <button
                 type="button"
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   startGame();
@@ -429,6 +464,10 @@ export function DinoGame() {
           </div>
         )}
       </div>
+
+      <p className="text-center font-mono text-[11px] text-zinc-500 dark:text-zinc-400">
+        Controls: tap, click, Space, Enter, W, or Up Arrow
+      </p>
     </div>
   );
 }
