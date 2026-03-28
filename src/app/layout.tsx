@@ -62,10 +62,7 @@ export const metadata: Metadata = {
     images: [absoluteUrl('/opengraph-image')],
   },
   icons: {
-    icon: [
-      { url: '/icon', type: 'image/png' },
-      { url: '/vercel.svg', type: 'image/svg+xml' },
-    ],
+    icon: [{ url: '/icon', type: 'image/png' }],
     shortcut: '/icon',
     apple: '/icon',
   },

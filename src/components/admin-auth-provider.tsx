@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, type ReactNode, useCallback, useContext, useState } from 'react';
 import { getAdminSession, signInAdmin, signOutAdmin } from '@/lib/admin-session';
 import type { AdminSession } from '@/lib/content';
 
@@ -58,25 +58,6 @@ export function AdminAuthProvider({
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    void (async () => {
-      setIsLoading(true);
-
-      try {
-        const session = await getAdminSession();
-        applySession(session);
-      } catch {
-        applySession({
-          authenticated: false,
-          email: null,
-          sessionToken: null,
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-  }, [applySession]);
 
   const signIn = async (nextEmail: string, password: string) => {
     setIsLoading(true);

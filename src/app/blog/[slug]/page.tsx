@@ -4,13 +4,18 @@ import { cache } from 'react';
 import { BlogPostView } from '@/components/blog-post-view';
 import { getPreferredPostContent, getPreferredPostTitle } from '@/lib/content';
 import { buildDescription } from '@/lib/seo';
-import { getPublishedPostBySlug } from '@/lib/server/data';
+import { getPublishedPostBySlug, getPublishedPosts } from '@/lib/server/data';
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
 const getCachedPublishedPostBySlug = cache((slug: string) => getPublishedPostBySlug(slug));
+
+export async function generateStaticParams() {
+  const posts = await getPublishedPosts();
+  return posts.map((post) => ({ slug: post.slug }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

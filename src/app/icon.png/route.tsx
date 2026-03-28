@@ -1,4 +1,4 @@
-import { createVercelIconResponse } from '@/lib/vercel-icon';
+import { createSiteIconResponse } from '@/lib/site-icon';
 
 const size = {
   width: 512,
@@ -6,5 +6,5 @@ const size = {
 };
 
 export function GET() {
-  return createVercelIconResponse(size);
+  return createSiteIconResponse(size);
 }

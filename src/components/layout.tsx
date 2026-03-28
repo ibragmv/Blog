@@ -1,19 +1,8 @@
-'use client';
-
-import { Menu, Shield, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import React from 'react';
 import { SITE_CONFIG } from '@/lib/site';
-import { cn } from '@/lib/utils';
+import { SiteNavigation } from './site-navigation';
 import { ThemeToggle } from './theme-toggle';
-
-const NAV_ITEMS = [
-  { name: 'Home', path: '/' },
-  { name: 'Blog', path: '/blog' },
-  { name: 'Links', path: '/links' },
-];
 
 const TITLE_WORDS = SITE_CONFIG.title.split(' ');
 const IS_MULTI_WORD_TITLE = TITLE_WORDS.length > 1;
@@ -25,15 +14,6 @@ export function Layout({
   children: React.ReactNode;
   currentYear: number;
 }) {
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  const pathname = usePathname();
-
-  React.useEffect(() => {
-    if (pathname) {
-      setIsMenuOpen(false);
-    }
-  }, [pathname]);
-
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-300 font-sans selection:bg-zinc-200 dark:selection:bg-zinc-800 selection:text-zinc-900 dark:selection:text-zinc-100 transition-colors duration-300">
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-sm border-b border-zinc-200 dark:border-zinc-900 transition-colors duration-300">
@@ -42,7 +22,15 @@ export function Layout({
             href="/"
             className="flex items-center gap-3 leading-none font-bold tracking-tight text-zinc-900 dark:text-zinc-100 hover:opacity-70 transition-opacity font-display uppercase"
           >
-            <Image src={SITE_CONFIG.logo} alt="Logo" width={32} height={32} className="w-8 h-8" />
+            <Image
+              src={SITE_CONFIG.logo}
+              alt={`${SITE_CONFIG.siteName} logo`}
+              width={32}
+              height={32}
+              sizes="32px"
+              priority
+              className="w-8 h-8"
+            />
             <div className="flex flex-col">
               {IS_MULTI_WORD_TITLE ? (
                 <>
@@ -55,68 +43,8 @@ export function Layout({
             </div>
           </Link>
 
-          <div className="flex items-center gap-4">
-            <nav className="hidden md:flex gap-8">
-              {NAV_ITEMS.map((item) => (
-                <Link
-                  key={item.path}
-                  href={item.path}
-                  className={cn(
-                    'text-sm font-medium transition-colors hover:text-zinc-900 dark:hover:text-zinc-100',
-                    pathname === item.path
-                      ? 'text-zinc-900 dark:text-zinc-100'
-                      : 'text-zinc-500 dark:text-zinc-500'
-                  )}
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </nav>
-
-            <Link
-              href="/admin"
-              className="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors p-2"
-              title="Admin Panel"
-            >
-              <Shield size={20} />
-            </Link>
-
-            {/* Mobile Menu Toggle */}
-            <button
-              type="button"
-              className="md:hidden p-2 -mr-2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-expanded={isMenuOpen}
-              aria-controls="mobile-navigation"
-              aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-            >
-              {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-          </div>
+          <SiteNavigation />
         </div>
-
-        {isMenuOpen && (
-          <nav
-            id="mobile-navigation"
-            className="md:hidden border-t border-zinc-200 dark:border-zinc-900 bg-white dark:bg-zinc-950 p-4 flex flex-col gap-4"
-          >
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.path}
-                href={item.path}
-                onClick={() => setIsMenuOpen(false)}
-                className={cn(
-                  'text-sm font-medium transition-colors hover:text-zinc-900 dark:hover:text-zinc-100 block py-2',
-                  pathname === item.path
-                    ? 'text-zinc-900 dark:text-zinc-100'
-                    : 'text-zinc-500 dark:text-zinc-500'
-                )}
-              >
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-        )}
       </header>
 
       <main className="pt-24 pb-16 px-6 max-w-3xl mx-auto min-h-[calc(100vh-4rem)]">

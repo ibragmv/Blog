@@ -4,6 +4,7 @@ import { api } from '@convex/_generated/api';
 import type { Id } from '@convex/_generated/dataModel';
 import { useMutation, useQuery } from 'convex/react';
 import {
+  Edit2,
   Github,
   Globe,
   Linkedin,
@@ -89,9 +90,9 @@ export function LinksManager() {
         sessionToken,
         linkId: id as Id<'links'>,
       });
-    } catch (err) {
-      console.error('Error deleting link:', err);
-      alert('Failed to delete link');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to delete link';
+      alert(message);
     }
   };
 
@@ -205,7 +206,7 @@ export function LinksManager() {
                 id="link-order"
                 type="number"
                 value={order}
-                onChange={(e) => setOrder(parseInt(e.target.value, 10))}
+                onChange={(e) => setOrder(Number.parseInt(e.target.value, 10) || 0)}
                 className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-700 text-zinc-200"
               />
             </div>
@@ -265,8 +266,7 @@ export function LinksManager() {
                         onClick={() => handleEdit(link)}
                         className="p-2 text-zinc-500 hover:text-blue-400 transition-colors"
                       >
-                        <Save size={16} className="rotate-0" />{' '}
-                        {/* Reusing Save icon as Edit for now, or import Edit2 */}
+                        <Edit2 size={16} />
                       </button>
                       <button
                         type="button"

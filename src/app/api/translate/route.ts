@@ -24,30 +24,25 @@ export async function POST(request: Request) {
     const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
     const client = new GoogleGenAI({ apiKey });
     const { title, content } = payload.data;
-
-    let title_en = title;
-    let content_en = content;
-
-    if (title) {
-      const response = await client.models.generateContent({
-        model,
-        contents: `
+    const [title_en, content_en] = await Promise.all([
+      title
+        ? client.models
+            .generateContent({
+              model,
+              contents: `
 Translate the following blog post title from Russian to English.
 Do not add any conversational text. Just the translation.
 
 Title: "${title}"
-        `,
-      });
-
-      if (response.text) {
-        title_en = response.text.trim().replace(/^"|"$/g, '');
-      }
-    }
-
-    if (content) {
-      const response = await client.models.generateContent({
-        model,
-        contents: `
+              `,
+            })
+            .then((response) => response.text?.trim().replace(/^"|"$/g, '') || title)
+        : Promise.resolve(title),
+      content
+        ? client.models
+            .generateContent({
+              model,
+              contents: `
 Translate the following blog post content from Russian to English.
 Strictly preserve the Markdown formatting.
 Do not translate code inside code blocks.
@@ -55,13 +50,11 @@ Do not add notes or explanations. Return translation only.
 
 Content:
 ${content}
-        `,
-      });
-
-      if (response.text) {
-        content_en = response.text;
-      }
-    }
+              `,
+            })
+            .then((response) => response.text || content)
+        : Promise.resolve(content),
+    ]);
 
     return NextResponse.json({ title_en, content_en });
   } catch (error) {

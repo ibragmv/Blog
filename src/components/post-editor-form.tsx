@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/components/admin-auth-provider';
 import { MarkdownEditor } from '@/components/markdown-editor';
 import { PageLoader } from '@/components/page-loader';
-import { testConnection, translatePost } from '@/services/translation';
+import { translatePost } from '@/services/translation';
 
 type PostEditorFormProps = { mode: 'create'; postId?: never } | { mode: 'edit'; postId: string };
 
@@ -64,11 +64,6 @@ export function PostEditorForm(props: PostEditorFormProps) {
     if (!isEditing) {
       setSlug(generateSlug(event.target.value));
     }
-  };
-
-  const handleTestConnection = async () => {
-    const result = await testConnection();
-    window.alert(result.message);
   };
 
   const handleTranslate = async () => {
@@ -201,13 +196,6 @@ export function PostEditorForm(props: PostEditorFormProps) {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-zinc-200">English Translation</h3>
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleTestConnection}
-                className="px-3 py-1.5 text-xs bg-zinc-900 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-800 transition-colors"
-              >
-                Debug Connection
-              </button>
               <button
                 type="button"
                 onClick={handleTranslate}
