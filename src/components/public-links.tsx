@@ -60,7 +60,7 @@ export function PublicLinks({
             </p>
           </div>
         ) : (
-          links.map((link, index) => {
+          links.map((link) => {
             const Icon =
               iconMap[link.icon.toLowerCase() as keyof typeof iconMap] || iconMap.default;
 
@@ -85,7 +85,7 @@ export function PublicLinks({
                 </div>
                 <div className="flex items-center justify-between gap-3 md:justify-end">
                   <span className="nd-label text-[var(--text-disabled)]">
-                    {index.toString().padStart(2, '0')}
+                    {link.order.toString().padStart(2, '0')}
                   </span>
                   <span className="text-sm font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
                     [ Open ]
