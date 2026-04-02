@@ -23,14 +23,14 @@ export function SiteNavigation() {
   }, [pathname]);
 
   return (
-    <div className="flex items-center gap-2 md:gap-5">
-      <nav className="hidden items-center gap-4 lg:flex">
+    <div className="flex items-center gap-2.5 md:gap-5">
+      <nav className="hidden items-center gap-6 lg:flex">
         {NAV_ITEMS.map((item) => (
           <Link
             key={item.path}
             href={item.path}
             className={cn(
-              'nd-label border-b border-transparent pb-2 transition-colors',
+              'border-b border-transparent pb-2 text-[0.9rem] font-medium uppercase tracking-[0.14em] transition-colors',
               pathname === item.path
                 ? 'border-[var(--text-display)] text-[var(--text-display)]'
                 : 'text-[var(--text-disabled)] hover:text-[var(--text-primary)]'
@@ -43,22 +43,22 @@ export function SiteNavigation() {
 
       <Link
         href="/admin"
-        className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:border-[var(--border-visible)] hover:text-[var(--text-display)]"
+        className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:border-[var(--border-visible)] hover:text-[var(--text-display)]"
         title="Admin Panel"
         aria-label="Admin panel"
       >
-        <Shield size={18} aria-hidden="true" />
+        <Shield size={19} aria-hidden="true" />
       </Link>
 
       <button
         type="button"
-        className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:border-[var(--border-visible)] hover:text-[var(--text-display)] lg:hidden"
+        className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:border-[var(--border-visible)] hover:text-[var(--text-display)] lg:hidden"
         onClick={() => setIsMenuOpen((open) => !open)}
         aria-expanded={isMenuOpen}
         aria-controls="mobile-navigation"
         aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
       >
-        {isMenuOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
+        {isMenuOpen ? <X size={19} aria-hidden="true" /> : <Menu size={19} aria-hidden="true" />}
       </button>
 
       {isMenuOpen ? (
@@ -79,8 +79,10 @@ export function SiteNavigation() {
                     : 'text-[var(--text-secondary)]'
                 )}
               >
-                <span className="nd-label">{item.name.toUpperCase()}</span>
-                <span className="font-mono text-xs uppercase tracking-[0.12em]">
+                <span className="text-[0.95rem] font-medium uppercase tracking-[0.14em]">
+                  {item.name.toUpperCase()}
+                </span>
+                <span className="text-sm font-medium uppercase tracking-[0.14em]">
                   {pathname === item.path ? '[ LIVE ]' : '[ OPEN ]'}
                 </span>
               </Link>

@@ -26,8 +26,8 @@ export function Layout({
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text-display)] sm:h-11 sm:w-11">
               <BrandMark className="h-7 w-7 sm:h-8 sm:w-8" />
             </span>
-            <div className="flex min-w-0 flex-col justify-center gap-1">
-              <span className="truncate text-base font-medium leading-none tracking-[-0.04em] text-[var(--text-display)] sm:text-[1.1rem] md:text-[1.35rem]">
+            <div className="flex min-w-0 flex-col justify-center gap-1.5">
+              <span className="truncate text-[1.02rem] font-medium leading-none tracking-[-0.04em] text-[var(--text-display)] sm:text-[1.16rem] md:text-[1.35rem]">
                 {SITE_CONFIG.title}
               </span>
               <span className="nd-label truncate text-[var(--text-secondary)] max-[359px]:hidden">

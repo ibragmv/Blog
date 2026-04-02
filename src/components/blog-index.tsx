@@ -43,7 +43,7 @@ export function BlogIndex({ posts }: { posts: PostRecord[] }) {
             </div>
             <div className="flex items-center justify-between gap-4 border-t border-[var(--border)] pt-3">
               <span className="nd-label text-[var(--text-disabled)]">Latest Year</span>
-              <span className="font-mono text-sm uppercase tracking-[0.1em] text-[var(--text-primary)]">
+              <span className="text-base font-medium uppercase tracking-[0.12em] text-[var(--text-primary)]">
                 {latestYear ?? 'N/A'}
               </span>
             </div>
@@ -60,7 +60,7 @@ export function BlogIndex({ posts }: { posts: PostRecord[] }) {
                 placeholder="Find post title…"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                className="w-full min-w-0 bg-transparent text-sm text-[var(--text-display)] placeholder:text-[var(--text-disabled)] outline-none"
+                className="w-full min-w-0 bg-transparent text-base text-[var(--text-display)] placeholder:text-[var(--text-disabled)] outline-none"
               />
             </div>
           </label>
@@ -70,14 +70,14 @@ export function BlogIndex({ posts }: { posts: PostRecord[] }) {
       <section className="grid gap-6">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-3">
           <span className="nd-label text-[var(--text-secondary)]">Archive Feed</span>
-          <span className="font-mono text-xs uppercase tracking-[0.12em] text-[var(--text-disabled)]">
+          <span className="text-sm font-medium uppercase tracking-[0.14em] text-[var(--text-disabled)]">
             [{filteredPosts.length.toString().padStart(2, '0')} Rows]
           </span>
         </div>
 
         {filteredPosts.length === 0 ? (
           <div className="flex min-h-44 items-center justify-center border-y border-[var(--border)] px-6 py-10 text-center sm:min-h-56 sm:py-12">
-            <p className="max-w-sm text-sm uppercase tracking-[0.12em] text-[var(--text-secondary)]">
+            <p className="max-w-sm text-base uppercase tracking-[0.12em] text-[var(--text-secondary)]">
               [ No posts match this signal ]
             </p>
           </div>
@@ -88,7 +88,7 @@ export function BlogIndex({ posts }: { posts: PostRecord[] }) {
                 <article className="grid gap-4 border-b border-[var(--border)] py-5 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:gap-x-6 sm:gap-y-4 sm:py-6 lg:grid-cols-[8.5rem_minmax(0,1fr)_6.5rem] lg:items-start lg:gap-8">
                   <div className="grid gap-1 sm:self-start">
                     <span className="nd-label text-[var(--text-secondary)]">Date</span>
-                    <time className="font-mono text-sm uppercase tracking-[0.08em] text-[var(--text-primary)]">
+                    <time className="text-[0.95rem] font-medium uppercase tracking-[0.12em] text-[var(--text-primary)]">
                       {formatLongUtcDate(post.createdAt)}
                     </time>
                   </div>
@@ -106,7 +106,7 @@ export function BlogIndex({ posts }: { posts: PostRecord[] }) {
                     <span className="nd-label text-[var(--text-disabled)]">
                       {index.toString().padStart(2, '0')}
                     </span>
-                    <span className="font-mono text-xs uppercase tracking-[0.12em] text-[var(--accent)]">
+                    <span className="text-sm font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
                       [ Open ]
                     </span>
                   </div>

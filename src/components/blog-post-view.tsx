@@ -84,12 +84,12 @@ export function BlogPostView({ post }: { post: PostRecord }) {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link
             href="/blog"
-            className="inline-flex min-h-11 items-center gap-2 text-sm uppercase tracking-[0.12em] text-[var(--text-secondary)] hover:text-[var(--text-display)]"
+            className="inline-flex min-h-11 items-center gap-2 text-base font-medium uppercase tracking-[0.12em] text-[var(--text-secondary)] hover:text-[var(--text-display)]"
           >
             <ArrowLeft size={16} aria-hidden="true" />
             Back to writing
           </Link>
-          <span className="font-mono text-xs uppercase tracking-[0.12em] text-[var(--accent)]">
+          <span className="text-sm font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
             [{Math.round(readingProgress)}% Read]
           </span>
         </div>
@@ -117,7 +117,7 @@ export function BlogPostView({ post }: { post: PostRecord }) {
         <aside className="grid h-fit gap-4 border-t border-[var(--border)] pt-5 sm:grid-cols-3 sm:gap-6 lg:grid-cols-1 lg:gap-6 lg:border-t-0 lg:pt-0 lg:sticky lg:top-[calc(var(--header-height)+6rem)]">
           <div className="grid gap-2">
             <span className="nd-label text-[var(--text-secondary)]">Published</span>
-            <time className="font-mono text-sm uppercase tracking-[0.08em] text-[var(--text-display)]">
+            <time className="text-[0.95rem] font-medium uppercase tracking-[0.12em] text-[var(--text-display)]">
               {formatLongUtcDate(post.createdAt)}
             </time>
           </div>
@@ -126,14 +126,14 @@ export function BlogPostView({ post }: { post: PostRecord }) {
             {hasTranslation ? (
               <LanguageToggle value={language} onChange={setLanguage} />
             ) : (
-              <span className="font-mono text-sm uppercase tracking-[0.08em] text-[var(--text-primary)]">
+              <span className="text-[0.95rem] font-medium uppercase tracking-[0.12em] text-[var(--text-primary)]">
                 [ Single ]
               </span>
             )}
           </div>
           <div className="grid gap-2 border-t border-[var(--border)] pt-4">
             <span className="nd-label text-[var(--text-secondary)]">Progress</span>
-            <span className="font-mono text-sm uppercase tracking-[0.08em] text-[var(--accent)]">
+            <span className="text-[0.95rem] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
               [{Math.round(readingProgress)}% Read]
             </span>
           </div>

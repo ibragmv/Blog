@@ -35,7 +35,7 @@ export function PublicLinks({ links }: { links: LinkRecord[] }) {
           </div>
           <div className="flex items-baseline justify-between gap-4 border-t border-[var(--border)] pt-3">
             <span className="nd-label text-[var(--text-disabled)]">State</span>
-            <span className="font-mono text-sm uppercase tracking-[0.1em] text-[var(--accent)]">
+            <span className="text-base font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
               [ Public ]
             </span>
           </div>
@@ -45,7 +45,7 @@ export function PublicLinks({ links }: { links: LinkRecord[] }) {
       <section className="grid gap-4">
         {links.length === 0 ? (
           <div className="flex min-h-56 items-center justify-center border-y border-[var(--border)] px-6 py-12 text-center">
-            <p className="max-w-sm text-sm uppercase tracking-[0.12em] text-[var(--text-secondary)]">
+            <p className="max-w-sm text-base uppercase tracking-[0.12em] text-[var(--text-secondary)]">
               [ No external channels configured ]
             </p>
           </div>
@@ -69,7 +69,7 @@ export function PublicLinks({ links }: { links: LinkRecord[] }) {
                   <span className="text-xl tracking-[-0.03em] text-[var(--text-display)] transition-colors group-hover:text-[var(--interactive)] md:text-[1.7rem]">
                     {link.title}
                   </span>
-                  <span className="break-all font-mono text-xs uppercase tracking-[0.12em] text-[var(--text-secondary)]">
+                  <span className="break-all text-sm font-medium uppercase tracking-[0.12em] text-[var(--text-secondary)]">
                     {link.url.replace(/^https?:\/\//, '')}
                   </span>
                 </div>
@@ -77,7 +77,7 @@ export function PublicLinks({ links }: { links: LinkRecord[] }) {
                   <span className="nd-label text-[var(--text-disabled)]">
                     {index.toString().padStart(2, '0')}
                   </span>
-                  <span className="font-mono text-xs uppercase tracking-[0.12em] text-[var(--accent)]">
+                  <span className="text-sm font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
                     [ Open ]
                   </span>
                 </div>
