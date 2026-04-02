@@ -23,7 +23,7 @@ export function BlogIndex({ posts }: { posts: PostRecord[] }) {
         <div className="grid gap-5">
           <span className="nd-label text-[var(--text-secondary)]">Writing Index</span>
           <div className="grid gap-5">
-            <h1 className="text-balance font-display text-[clamp(3rem,17vw,7.5rem)] leading-[0.88] tracking-[-0.06em] text-[var(--text-display)] md:leading-[0.84]">
+            <h1 className="text-balance font-display text-[clamp(2.7rem,14vw,7.5rem)] leading-[0.9] tracking-[-0.04em] text-[var(--text-display)] md:leading-[0.84] md:tracking-[-0.06em]">
               ARCHIVE
             </h1>
             <p className="max-w-2xl text-sm leading-6 text-[var(--text-secondary)] sm:text-base sm:leading-7 md:text-lg">
@@ -94,7 +94,7 @@ export function BlogIndex({ posts }: { posts: PostRecord[] }) {
                   </div>
 
                   <div className="grid min-w-0 gap-3">
-                    <h2 className="max-w-3xl text-balance text-[clamp(1.65rem,7vw,2.2rem)] leading-[1.02] tracking-[-0.04em] text-[var(--text-display)] transition-colors group-hover:text-[var(--interactive)]">
+                    <h2 className="max-w-3xl text-balance text-[clamp(1.45rem,6.8vw,2.2rem)] leading-[1.06] tracking-[-0.035em] text-[var(--text-display)] transition-colors group-hover:text-[var(--interactive)] md:leading-[1.02] md:tracking-[-0.04em]">
                       {getPreferredPostTitle(post)}
                     </h2>
                     <p className="max-w-3xl text-sm leading-6 text-[var(--text-secondary)] md:text-base md:leading-7">

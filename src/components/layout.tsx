@@ -21,16 +21,16 @@ export function Layout({
       </a>
 
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--black)]">
-        <div className="mx-auto flex min-h-[var(--header-height)] w-full max-w-7xl items-center justify-between gap-5 px-5 py-4 md:px-8">
-          <Link href="/" className="flex min-w-0 items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text-display)]">
-              <BrandMark className="h-8 w-8" />
+        <div className="mx-auto flex min-h-[var(--header-height)] w-full max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:gap-5 sm:px-5 sm:py-4 md:px-8">
+          <Link href="/" className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text-display)] sm:h-11 sm:w-11">
+              <BrandMark className="h-7 w-7 sm:h-8 sm:w-8" />
             </span>
             <div className="flex min-w-0 flex-col justify-center gap-1">
-              <span className="truncate text-[1.1rem] font-medium leading-none tracking-[-0.045em] text-[var(--text-display)] md:text-[1.35rem]">
+              <span className="truncate text-base font-medium leading-none tracking-[-0.04em] text-[var(--text-display)] sm:text-[1.1rem] md:text-[1.35rem]">
                 {SITE_CONFIG.title}
               </span>
-              <span className="nd-label truncate text-[var(--text-secondary)]">
+              <span className="nd-label truncate text-[var(--text-secondary)] max-[359px]:hidden">
                 {IS_MULTI_WORD_TITLE ? 'Writing Archive' : TITLE_WORDS[0]}
               </span>
             </div>
@@ -42,13 +42,13 @@ export function Layout({
 
       <main
         id="main-content"
-        className="mx-auto min-h-[calc(100vh-var(--header-height))] w-full max-w-7xl px-5 py-10 md:px-8 md:py-14"
+        className="mx-auto min-h-[calc(100vh-var(--header-height))] w-full max-w-7xl px-4 py-8 sm:px-5 sm:py-10 md:px-8 md:py-14"
       >
         {children}
       </main>
 
       <footer className="border-t border-[var(--border)] py-10">
-        <div className="mx-auto grid w-full max-w-7xl gap-8 px-5 md:grid-cols-[1.2fr_auto] md:items-end md:px-8">
+        <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 sm:px-5 md:grid-cols-[1.2fr_auto] md:items-end md:px-8">
           <div className="grid gap-3">
             <span className="nd-label text-[var(--text-secondary)]">Archive Status</span>
             <div className="flex flex-wrap items-end gap-x-5 gap-y-3">

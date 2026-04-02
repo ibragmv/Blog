@@ -12,15 +12,15 @@ const iconMap = {
 
 export function PublicLinks({ links }: { links: LinkRecord[] }) {
   return (
-    <div className="grid gap-14 animate-in fade-in duration-500">
-      <section className="grid gap-10 border-b border-[var(--border)] pb-12 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] lg:items-end">
+    <div className="grid gap-10 animate-in fade-in duration-500 md:gap-14">
+      <section className="grid gap-8 border-b border-[var(--border)] pb-10 md:gap-10 md:pb-12 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] lg:items-end">
         <div className="grid gap-5">
           <span className="nd-label text-[var(--text-secondary)]">External Presence</span>
           <div className="grid gap-5">
-            <h1 className="text-balance font-display text-[clamp(4rem,12vw,7.5rem)] leading-[0.84] tracking-[-0.06em] text-[var(--text-display)]">
+            <h1 className="text-balance font-display text-[clamp(2.9rem,14vw,7.5rem)] leading-[0.88] tracking-[-0.04em] text-[var(--text-display)] md:leading-[0.84] md:tracking-[-0.06em]">
               LINKS
             </h1>
-            <p className="max-w-2xl text-base leading-7 text-[var(--text-secondary)] md:text-lg">
+            <p className="max-w-2xl text-sm leading-6 text-[var(--text-secondary)] sm:text-base sm:leading-7 md:text-lg">
               A compact directory of platforms, profiles, and direct contact endpoints.
             </p>
           </div>
@@ -69,7 +69,7 @@ export function PublicLinks({ links }: { links: LinkRecord[] }) {
                   <span className="text-xl tracking-[-0.03em] text-[var(--text-display)] transition-colors group-hover:text-[var(--interactive)] md:text-[1.7rem]">
                     {link.title}
                   </span>
-                  <span className="font-mono text-xs uppercase tracking-[0.12em] text-[var(--text-secondary)]">
+                  <span className="break-all font-mono text-xs uppercase tracking-[0.12em] text-[var(--text-secondary)]">
                     {link.url.replace(/^https?:\/\//, '')}
                   </span>
                 </div>
