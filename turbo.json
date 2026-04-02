@@ -1,0 +1,64 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    ".env*",
+    "biome.json",
+    "bun.lock",
+    "next.config.ts",
+    "package.json",
+    "postcss.config.mjs",
+    "scripts/**",
+    "tsconfig.json",
+    "turbo.json"
+  ],
+  "globalEnv": ["CI", "NODE_ENV"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "convex/**",
+        "next-env.d.ts",
+        "next.config.ts",
+        "package.json",
+        "postcss.config.mjs",
+        "public/**",
+        "scripts/**",
+        "src/**",
+        "tsconfig.json"
+      ],
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": ["CONVEX_DEPLOYMENT", "GEMINI_MODEL", "NEXT_PUBLIC_CONVEX_URL", "NEXT_PUBLIC_SITE_URL"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"],
+      "inputs": [
+        "biome.json",
+        "next.config.ts",
+        "package.json",
+        "scripts/**",
+        "src/**",
+        "tsconfig.json"
+      ],
+      "outputs": []
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "inputs": [
+        "next-env.d.ts",
+        "next.config.ts",
+        "package.json",
+        "scripts/**",
+        "src/**",
+        "tsconfig.json"
+      ],
+      "outputs": []
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}
