@@ -103,7 +103,6 @@ export function AdminDashboard() {
   const handleLogout = async () => {
     await signOut();
     router.push('/login');
-    router.refresh();
   };
 
   if (isLoading || (isAuthenticated && activeTab === 'posts' && posts === undefined)) {

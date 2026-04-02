@@ -129,7 +129,6 @@ export function PostEditorForm(props: PostEditorFormProps) {
       });
 
       router.push('/admin');
-      router.refresh();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An unknown error occurred';
       window.alert(`Error saving post: ${message}`);

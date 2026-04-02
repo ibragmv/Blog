@@ -1,22 +1,23 @@
+import { api } from '@convex/_generated/api';
+import { fetchQuery, preloadedQueryResult, preloadQuery } from 'convex/nextjs';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { BlogPostView } from '@/components/blog-post-view';
 import { getPreferredPostContent, getPreferredPostTitle } from '@/lib/content';
 import { buildDescription } from '@/lib/seo';
-import { getPublishedPostBySlug, getPublishedPosts } from '@/lib/server/data';
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
 export async function generateStaticParams() {
-  const posts = await getPublishedPosts();
+  const posts = await fetchQuery(api.posts.listPublished, {});
   return posts.map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPublishedPostBySlug(slug);
+  const post = await fetchQuery(api.posts.getPublishedBySlug, { slug });
 
   if (!post) {
     return {
@@ -66,11 +67,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
-  const post = await getPublishedPostBySlug(slug);
+  const preloadedPost = await preloadQuery(api.posts.getPublishedBySlug, { slug });
+  const post = preloadedQueryResult(preloadedPost);
 
   if (!post) {
     notFound();
   }
 
-  return <BlogPostView slug={slug} initialPost={post} />;
+  return <BlogPostView preloadedPost={preloadedPost} />;
 }

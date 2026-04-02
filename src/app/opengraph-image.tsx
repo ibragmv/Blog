@@ -1,6 +1,7 @@
+import { api } from '@convex/_generated/api';
+import { fetchQuery } from 'convex/nextjs';
 import { ImageResponse } from 'next/og';
 import { getOgImageOptions, OG_IMAGE_SIZE, renderOgPreview } from '@/lib/og-preview';
-import { getHomePagePost } from '@/lib/server/data';
 import { SITE_CONFIG } from '@/lib/site';
 
 export const alt = SITE_CONFIG.siteName;
@@ -9,7 +10,7 @@ export const contentType = 'image/png';
 export const runtime = 'nodejs';
 
 export default async function Image() {
-  const homePost = await getHomePagePost();
+  const homePost = await fetchQuery(api.posts.getHomePage, {});
   const title = homePost?.title?.trim() || SITE_CONFIG.siteName;
 
   return new ImageResponse(renderOgPreview({ title }), await getOgImageOptions());

@@ -1,3 +1,4 @@
+import { fetchMutation, fetchQuery } from 'convex/nextjs';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import type { AdminSession } from '@/lib/content';
@@ -6,7 +7,6 @@ import {
   ADMIN_SESSION_MAX_AGE_MS,
   api,
   createAdminSessionToken,
-  createConvexHttpClient,
   hashAdminSessionToken,
 } from '@/lib/server/convex';
 
@@ -37,8 +37,7 @@ export async function getCurrentAdminSession(): Promise<AdminSession> {
     return buildUnauthenticatedSession();
   }
 
-  const convex = createConvexHttpClient();
-  const session = await convex.query(api.sessions.getByTokenHash, {
+  const session = await fetchQuery(api.sessions.getByTokenHash, {
     tokenHash: hashAdminSessionToken(sessionToken),
   });
 
@@ -74,9 +73,8 @@ export async function signInAdmin(email: string, password: string): Promise<Admi
   }
 
   const sessionToken = createAdminSessionToken();
-  const convex = createConvexHttpClient();
 
-  await convex.mutation(api.sessions.create, {
+  await fetchMutation(api.sessions.create, {
     tokenHash: hashAdminSessionToken(sessionToken),
     email: credentials.email,
     expiresAt: Date.now() + ADMIN_SESSION_MAX_AGE_MS,
@@ -103,8 +101,7 @@ export async function signOutAdmin(): Promise<AdminSession> {
   const sessionToken = cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value;
 
   if (sessionToken) {
-    const convex = createConvexHttpClient();
-    await convex.mutation(api.sessions.removeByTokenHash, {
+    await fetchMutation(api.sessions.removeByTokenHash, {
       tokenHash: hashAdminSessionToken(sessionToken),
     });
   }

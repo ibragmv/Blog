@@ -1,9 +1,10 @@
+import { api } from '@convex/_generated/api';
+import { fetchQuery } from 'convex/nextjs';
 import type { MetadataRoute } from 'next';
 import { absoluteUrl } from '@/lib/seo';
-import { getPublishedPosts } from '@/lib/server/data';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const posts = await getPublishedPosts();
+  const posts = await fetchQuery(api.posts.listPublished, {});
 
   return [
     {

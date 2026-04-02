@@ -1,21 +1,23 @@
 'use client';
 
-import { api } from '@convex/_generated/api';
-import { useQuery } from 'convex/react';
+import type { api } from '@convex/_generated/api';
+import type { Preloaded } from 'convex/react';
+import { usePreloadedQuery } from 'convex/react';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { LanguageToggle } from '@/components/language-toggle';
 import { LazyMarkdownRenderer } from '@/components/lazy-markdown';
-import { PageLoader } from '@/components/page-loader';
-import type { PostRecord } from '@/lib/content';
 import { formatLongUtcDate } from '@/lib/dates';
 
-export function BlogPostView({ slug, initialPost }: { slug: string; initialPost: PostRecord }) {
-  const reactivePost = useQuery(api.posts.getPublishedBySlug, { slug });
-  const post = reactivePost === undefined ? initialPost : reactivePost;
+export function BlogPostView({
+  preloadedPost,
+}: {
+  preloadedPost: Preloaded<typeof api.posts.getPublishedBySlug>;
+}) {
+  const post = usePreloadedQuery(preloadedPost);
   const [language, setLanguage] = useState<'ru' | 'en'>(
-    initialPost.titleEn && initialPost.contentEn ? 'en' : 'ru'
+    post?.titleEn && post?.contentEn ? 'en' : 'ru'
   );
   const [readingProgress, setReadingProgress] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -78,7 +80,15 @@ export function BlogPostView({ slug, initialPost }: { slug: string; initialPost:
   }, [postId, post]);
 
   if (!post) {
-    return <PageLoader label="Updating article content" />;
+    return (
+      <article className="grid gap-10 animate-in fade-in duration-500">
+        <div className="border-y border-[var(--border)] py-10 text-center">
+          <p className="text-base uppercase tracking-[0.12em] text-[var(--text-secondary)]">
+            [ Article is no longer published ]
+          </p>
+        </div>
+      </article>
+    );
   }
 
   const hasTranslation = !!post.titleEn && !!post.contentEn;

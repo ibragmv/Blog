@@ -1,7 +1,8 @@
+import { api } from '@convex/_generated/api';
+import { fetchQuery } from 'convex/nextjs';
 import { ImageResponse } from 'next/og';
 import { getPreferredPostTitle } from '@/lib/content';
 import { getOgImageOptions, OG_IMAGE_SIZE, renderOgPreview } from '@/lib/og-preview';
-import { getPublishedPostBySlug } from '@/lib/server/data';
 import { SITE_CONFIG } from '@/lib/site';
 
 export const alt = SITE_CONFIG.siteName;
@@ -15,7 +16,7 @@ type Props = {
 
 export default async function Image({ params }: Props) {
   const { slug } = await params;
-  const post = await getPublishedPostBySlug(slug);
+  const post = await fetchQuery(api.posts.getPublishedBySlug, { slug });
 
   const title = post ? getPreferredPostTitle(post) : 'Post not found';
 

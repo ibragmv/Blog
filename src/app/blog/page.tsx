@@ -1,6 +1,7 @@
+import { api } from '@convex/_generated/api';
+import { preloadQuery } from 'convex/nextjs';
 import type { Metadata } from 'next';
 import { BlogIndex } from '@/components/blog-index';
-import { getPublishedPosts } from '@/lib/server/data';
 
 export const metadata: Metadata = {
   title: 'Writing',
@@ -11,6 +12,6 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogPage() {
-  const posts = await getPublishedPosts();
-  return <BlogIndex initialPosts={posts} />;
+  const preloadedPosts = await preloadQuery(api.posts.listPublished, {});
+  return <BlogIndex preloadedPosts={preloadedPosts} />;
 }

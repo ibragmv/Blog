@@ -1,21 +1,20 @@
 'use client';
 
-import { api } from '@convex/_generated/api';
-import { useQuery } from 'convex/react';
+import type { api } from '@convex/_generated/api';
+import type { Preloaded } from 'convex/react';
+import { usePreloadedQuery } from 'convex/react';
 import { useEffect, useState } from 'react';
 import { LanguageToggle } from '@/components/language-toggle';
 import { LazyMarkdownRenderer } from '@/components/lazy-markdown';
-import type { PostRecord } from '@/lib/content';
 import { SITE_CONFIG } from '@/lib/site';
 
 type HomePageViewProps = {
-  initialPost: PostRecord | null;
+  preloadedHomePost: Preloaded<typeof api.posts.getHomePage>;
   fallbackContent: string;
 };
 
-export function HomePageView({ initialPost, fallbackContent }: HomePageViewProps) {
-  const reactivePost = useQuery(api.posts.getHomePage, {});
-  const post = reactivePost === undefined ? initialPost : reactivePost;
+export function HomePageView({ preloadedHomePost, fallbackContent }: HomePageViewProps) {
+  const post = usePreloadedQuery(preloadedHomePost);
   const content = post?.content || fallbackContent;
   const contentEn = post?.contentEn;
   const [language, setLanguage] = useState<'ru' | 'en'>(contentEn ? 'en' : 'ru');

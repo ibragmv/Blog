@@ -1,6 +1,7 @@
+import { api } from '@convex/_generated/api';
+import { preloadQuery } from 'convex/nextjs';
 import type { Metadata } from 'next';
 import { PublicLinks } from '@/components/public-links';
-import { getPublicLinks } from '@/lib/server/data';
 
 export const metadata: Metadata = {
   title: 'Links',
@@ -11,6 +12,6 @@ export const metadata: Metadata = {
 };
 
 export default async function LinksPage() {
-  const links = await getPublicLinks();
-  return <PublicLinks links={links} />;
+  const preloadedLinks = await preloadQuery(api.links.listPublic, {});
+  return <PublicLinks preloadedLinks={preloadedLinks} />;
 }
