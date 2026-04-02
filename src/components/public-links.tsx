@@ -12,12 +12,12 @@ const iconMap = {
 
 export function PublicLinks({ links }: { links: LinkRecord[] }) {
   return (
-    <div className="grid gap-12 animate-in fade-in duration-500">
-      <section className="grid gap-8 border-b border-[var(--border)] pb-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)] lg:items-end">
+    <div className="grid gap-14 animate-in fade-in duration-500">
+      <section className="grid gap-10 border-b border-[var(--border)] pb-12 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] lg:items-end">
         <div className="grid gap-5">
           <span className="nd-label text-[var(--text-secondary)]">External Presence</span>
-          <div className="grid gap-4">
-            <h1 className="font-display text-[clamp(4rem,12vw,7rem)] leading-[0.88] tracking-[-0.06em] text-[var(--text-display)]">
+          <div className="grid gap-5">
+            <h1 className="text-balance font-display text-[clamp(4rem,12vw,7.5rem)] leading-[0.84] tracking-[-0.06em] text-[var(--text-display)]">
               LINKS
             </h1>
             <p className="max-w-2xl text-base leading-7 text-[var(--text-secondary)] md:text-lg">
@@ -26,10 +26,10 @@ export function PublicLinks({ links }: { links: LinkRecord[] }) {
           </div>
         </div>
 
-        <div className="nd-panel-raised dot-grid-subtle grid gap-5 p-5 md:p-6">
-          <div className="flex items-baseline justify-between gap-4">
+        <div className="grid gap-3 border-t border-[var(--border)] pt-5">
+          <div className="flex items-end justify-between gap-4">
             <span className="nd-label text-[var(--text-secondary)]">Channels</span>
-            <span className="font-display text-5xl leading-none tracking-[-0.05em] text-[var(--text-display)]">
+            <span className="font-display text-[clamp(2.75rem,8vw,4.5rem)] leading-[0.9] tracking-[-0.05em] text-[var(--text-display)]">
               {links.length}
             </span>
           </div>
@@ -44,7 +44,7 @@ export function PublicLinks({ links }: { links: LinkRecord[] }) {
 
       <section className="grid gap-4">
         {links.length === 0 ? (
-          <div className="nd-panel flex min-h-56 items-center justify-center px-6 py-12 text-center">
+          <div className="flex min-h-56 items-center justify-center border-y border-[var(--border)] px-6 py-12 text-center">
             <p className="max-w-sm text-sm uppercase tracking-[0.12em] text-[var(--text-secondary)]">
               [ No external channels configured ]
             </p>
@@ -60,13 +60,13 @@ export function PublicLinks({ links }: { links: LinkRecord[] }) {
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group grid gap-4 border-b border-[var(--border)] py-5 md:grid-cols-[72px_minmax(0,1fr)_120px] md:items-center"
+                className="group grid gap-4 border-b border-[var(--border)] py-5 md:grid-cols-[5rem_minmax(0,1fr)_6.5rem] md:items-center md:gap-8"
               >
                 <span className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] group-hover:text-[var(--text-display)]">
-                  <Icon size={18} />
+                  <Icon size={18} aria-hidden="true" />
                 </span>
-                <div className="grid gap-1">
-                  <span className="text-xl tracking-[-0.03em] text-[var(--text-display)] transition-colors group-hover:text-[var(--interactive)]">
+                <div className="grid min-w-0 gap-1">
+                  <span className="text-xl tracking-[-0.03em] text-[var(--text-display)] transition-colors group-hover:text-[var(--interactive)] md:text-[1.7rem]">
                     {link.title}
                   </span>
                   <span className="font-mono text-xs uppercase tracking-[0.12em] text-[var(--text-secondary)]">

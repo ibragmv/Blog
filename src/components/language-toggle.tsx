@@ -11,31 +11,26 @@ type LanguageToggleProps = {
 
 export function LanguageToggle({ value, onChange }: LanguageToggleProps) {
   return (
-    <div className="inline-flex shrink-0 items-center rounded-full border border-[var(--border-visible)] p-1">
+    <fieldset className="nd-segmented-control shrink-0">
+      <legend className="sr-only">Language selection</legend>
       <button
         type="button"
         onClick={() => onChange('ru')}
-        className={cn(
-          'nd-label rounded-full px-4 py-2',
-          value === 'ru'
-            ? 'bg-[var(--text-display)] text-[var(--black)]'
-            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-        )}
+        aria-pressed={value === 'ru'}
+        data-state={value === 'ru' ? 'active' : 'inactive'}
+        className={cn('shrink-0')}
       >
         RU
       </button>
       <button
         type="button"
         onClick={() => onChange('en')}
-        className={cn(
-          'nd-label rounded-full px-4 py-2',
-          value === 'en'
-            ? 'bg-[var(--text-display)] text-[var(--black)]'
-            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-        )}
+        aria-pressed={value === 'en'}
+        data-state={value === 'en' ? 'active' : 'inactive'}
+        className={cn('shrink-0')}
       >
         EN
       </button>
-    </div>
+    </fieldset>
   );
 }

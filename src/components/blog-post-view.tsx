@@ -2,7 +2,7 @@
 
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LanguageToggle } from '@/components/language-toggle';
 import { LazyMarkdownRenderer } from '@/components/lazy-markdown';
 import type { PostRecord } from '@/lib/content';
@@ -13,15 +13,26 @@ export function BlogPostView({ post }: { post: PostRecord }) {
     post.titleEn && post.contentEn ? 'en' : 'ru'
   );
   const [readingProgress, setReadingProgress] = useState(0);
+  const contentRef = useRef<HTMLDivElement>(null);
   const postId = post.id;
 
   useEffect(() => {
     let frameId = 0;
 
     const updateReadingProgress = () => {
-      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const nextProgress =
-        scrollHeight > 0 ? Number(((window.scrollY / scrollHeight) * 100).toFixed(2)) : 0;
+      const contentElement = contentRef.current;
+
+      if (!contentElement) {
+        setReadingProgress(0);
+        return;
+      }
+
+      const rect = contentElement.getBoundingClientRect();
+      const contentTop = window.scrollY + rect.top;
+      const viewportOffset = window.innerHeight * 0.3;
+      const travel = Math.max(contentElement.offsetHeight - viewportOffset, 1);
+      const rawProgress = ((window.scrollY + viewportOffset - contentTop) / travel) * 100;
+      const nextProgress = Number(Math.min(100, Math.max(0, rawProgress)).toFixed(2));
 
       setReadingProgress(nextProgress);
     };
@@ -60,31 +71,38 @@ export function BlogPostView({ post }: { post: PostRecord }) {
   const hasTranslation = !!post.titleEn && !!post.contentEn;
   const currentTitle = language === 'en' && post.titleEn ? post.titleEn : post.title;
   const currentContent = language === 'en' && post.contentEn ? post.contentEn : post.content;
-  const progressSegments = Array.from({ length: 20 }, (_, index) => {
-    const threshold = ((index + 1) / 20) * 100;
+  const progressSegments = Array.from({ length: 16 }, (_, index) => {
+    const threshold = ((index + 1) / 16) * 100;
     return readingProgress >= threshold;
   });
 
   return (
     <article className="grid gap-10 animate-in fade-in duration-500">
-      <div className="grid gap-3 border-b border-[var(--border)] pb-5">
+      <div className="sticky top-[var(--header-height)] z-30 grid gap-4 border-y border-[var(--border)] bg-[var(--black)] py-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 text-sm uppercase tracking-[0.12em] text-[var(--text-secondary)] hover:text-[var(--text-display)]"
+            className="inline-flex min-h-11 items-center gap-2 text-sm uppercase tracking-[0.12em] text-[var(--text-secondary)] hover:text-[var(--text-display)]"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={16} aria-hidden="true" />
             Back to writing
           </Link>
           <span className="font-mono text-xs uppercase tracking-[0.12em] text-[var(--accent)]">
             [{Math.round(readingProgress)}% Read]
           </span>
         </div>
-        <div className="grid grid-cols-10 gap-1 md:grid-cols-20">
+        <div
+          className="grid grid-cols-8 gap-1 md:grid-cols-16"
+          role="progressbar"
+          aria-label="Article reading progress"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(readingProgress)}
+        >
           {progressSegments.map((isActive, index) => (
             <span
               key={String(index)}
-              className="h-2 w-full"
+              className="h-2.5 w-full"
               style={{
                 backgroundColor: isActive ? 'var(--text-display)' : 'var(--border)',
               }}
@@ -93,8 +111,8 @@ export function BlogPostView({ post }: { post: PostRecord }) {
         </div>
       </div>
 
-      <div className="grid gap-10 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-12">
-        <aside className="grid h-fit gap-6 lg:sticky lg:top-28">
+      <div className="grid gap-10 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-14">
+        <aside className="grid h-fit gap-6 lg:sticky lg:top-[calc(var(--header-height)+6rem)]">
           <div className="grid gap-2">
             <span className="nd-label text-[var(--text-secondary)]">Published</span>
             <time className="font-mono text-sm uppercase tracking-[0.08em] text-[var(--text-display)]">
@@ -112,17 +130,17 @@ export function BlogPostView({ post }: { post: PostRecord }) {
             )}
           </div>
           <div className="grid gap-2 border-t border-[var(--border)] pt-4">
-            <span className="nd-label text-[var(--text-secondary)]">Status</span>
+            <span className="nd-label text-[var(--text-secondary)]">Progress</span>
             <span className="font-mono text-sm uppercase tracking-[0.08em] text-[var(--accent)]">
-              [ Reading ]
+              [{Math.round(readingProgress)}% Read]
             </span>
           </div>
         </aside>
 
-        <div className="grid gap-8">
+        <div ref={contentRef} className="grid min-w-0 gap-8">
           <header className="grid gap-5 border-b border-[var(--border)] pb-8">
             <span className="nd-label text-[var(--text-secondary)]">Article Transmission</span>
-            <h1 className="max-w-4xl font-display text-[clamp(3rem,10vw,6.5rem)] leading-[0.9] tracking-[-0.06em] text-[var(--text-display)]">
+            <h1 className="max-w-4xl text-balance text-[clamp(3rem,9vw,6.25rem)] font-medium leading-[0.88] tracking-[-0.06em] text-[var(--text-display)]">
               {currentTitle}
             </h1>
           </header>

@@ -7,20 +7,14 @@ export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div
-      className="inline-flex items-center rounded-full border border-[var(--border-visible)] p-1"
-      role="tablist"
-      aria-label="Theme selection"
-    >
+    <fieldset className="nd-segmented-control">
+      <legend className="sr-only">Theme selection</legend>
       <button
         type="button"
         onClick={() => setTheme('light')}
-        className={cn(
-          'nd-label rounded-full px-4 py-2',
-          theme === 'light'
-            ? 'bg-[var(--text-display)] text-[var(--black)]'
-            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-        )}
+        aria-pressed={theme === 'light'}
+        data-state={theme === 'light' ? 'active' : 'inactive'}
+        className={cn('shrink-0')}
         title="Light Mode"
       >
         Light
@@ -28,12 +22,9 @@ export function ThemeToggle() {
       <button
         type="button"
         onClick={() => setTheme('dark')}
-        className={cn(
-          'nd-label rounded-full px-4 py-2',
-          theme === 'dark'
-            ? 'bg-[var(--text-display)] text-[var(--black)]'
-            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-        )}
+        aria-pressed={theme === 'dark'}
+        data-state={theme === 'dark' ? 'active' : 'inactive'}
+        className={cn('shrink-0')}
         title="Dark Mode"
       >
         Dark
@@ -41,16 +32,13 @@ export function ThemeToggle() {
       <button
         type="button"
         onClick={() => setTheme('system')}
-        className={cn(
-          'nd-label rounded-full px-4 py-2',
-          theme === 'system'
-            ? 'bg-[var(--text-display)] text-[var(--black)]'
-            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-        )}
+        aria-pressed={theme === 'system'}
+        data-state={theme === 'system' ? 'active' : 'inactive'}
+        className={cn('shrink-0')}
         title="System Theme"
       >
         Auto
       </button>
-    </div>
+    </fieldset>
   );
 }
