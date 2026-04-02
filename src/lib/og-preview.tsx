@@ -1,6 +1,6 @@
 import type { ImageResponseOptions } from 'next/server';
 import { getDotoFontData } from '@/lib/og-fonts';
-import { getSiteHost, SITE_CONFIG } from '@/lib/site';
+import { SITE_CONFIG } from '@/lib/site';
 
 export const OG_IMAGE_SIZE = {
   width: 1200,
@@ -49,7 +49,6 @@ export async function getOgImageOptions(): Promise<ImageResponseOptions> {
 }
 
 export function renderOgPreview({ title }: RenderOgPreviewOptions) {
-  const siteHost = getSiteHost();
   const previewTitle = createPreviewTitle(title);
   const previewTitleSize = getPreviewTitleSize(previewTitle);
 
@@ -85,17 +84,13 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
             width: '100%',
             alignItems: 'center',
             justifyContent: 'space-between',
-            color: '#b1b1b1',
-            fontSize: 20,
-            letterSpacing: '0.16em',
-            textTransform: 'uppercase',
           }}
         >
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 12,
+              gap: 10,
             }}
           >
             <div
@@ -107,9 +102,23 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
                 background: '#d71921',
               }}
             />
-            <span>{siteHost}</span>
+            <div
+              style={{
+                display: 'flex',
+                width: 72,
+                height: 2,
+                background: '#2f2f2f',
+              }}
+            />
           </div>
-          <span>[ Article ]</span>
+          <div
+            style={{
+              display: 'flex',
+              width: 96,
+              height: 2,
+              background: '#2f2f2f',
+            }}
+          />
         </div>
 
         <div
@@ -118,7 +127,7 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
             flex: 1,
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '32px 84px 20px',
+            padding: '24px 84px 12px',
           }}
         >
           <div
@@ -145,53 +154,46 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
           style={{
             display: 'flex',
             width: '100%',
-            alignItems: 'flex-end',
+            alignItems: 'center',
             justifyContent: 'space-between',
             gap: 24,
             borderTop: '2px solid #343434',
-            paddingTop: 20,
+            paddingTop: 18,
           }}
         >
           <div
             style={{
               display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
+              width: 132,
+              height: 2,
+              background: '#2f2f2f',
             }}
-          >
-            <span
-              style={{
-                display: 'flex',
-                color: '#9f9f9f',
-                fontSize: 20,
-                letterSpacing: '0.16em',
-                textTransform: 'uppercase',
-              }}
-            >
-              Nothing Transmission
-            </span>
-            <span
-              style={{
-                display: 'flex',
-                color: '#f3f3f3',
-                fontSize: 30,
-                letterSpacing: '-0.04em',
-              }}
-            >
-              {SITE_CONFIG.siteName}
-            </span>
-          </div>
-          <span
+          />
+          <div
             style={{
               display: 'flex',
-              color: '#9f9f9f',
-              fontSize: 20,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
+              gap: 10,
+              alignItems: 'center',
             }}
           >
-            [ Signal ]
-          </span>
+            <div
+              style={{
+                display: 'flex',
+                width: 10,
+                height: 10,
+                borderRadius: 9999,
+                background: '#f5f5f5',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                width: 54,
+                height: 2,
+                background: '#2f2f2f',
+              }}
+            />
+          </div>
         </div>
       </div>
     </div>
