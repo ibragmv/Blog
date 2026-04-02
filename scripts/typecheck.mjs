@@ -21,10 +21,14 @@ run('bunx', ['next', 'typegen']);
 const tsconfigPath = path.join(cwd, 'tsconfig.json');
 const tsconfig = JSON.parse(readFileSync(tsconfigPath, 'utf8'));
 const include = Array.isArray(tsconfig.include) ? tsconfig.include : [];
+const nextTypePatterns = new Set([
+  '.next/dev/types/**/*.d.ts',
+  '.next/dev/types/**/*.ts',
+  '.next/types/**/*.d.ts',
+  '.next/types/**/*.ts',
+]);
 
-const filteredInclude = include.filter(
-  (entry) => entry !== '.next/types/**/*.ts' && entry !== '.next/dev/types/**/*.ts'
-);
+const filteredInclude = include.filter((entry) => !nextTypePatterns.has(entry));
 
 const tempTsconfigPath = path.join(cwd, 'tsconfig.typecheck.tmp.json');
 

@@ -8,15 +8,16 @@
     "bun": ">=1.2.21"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build --webpack",
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
     "start": "next start",
     "clean": "rm -rf .next .turbo .vercel tsconfig.tsbuildinfo",
     "typecheck": "bun scripts/typecheck.mjs",
     "lint": "biome check .",
     "fix": "biome check --write .",
     "format": "biome format --write .",
-    "check": "turbo run lint typecheck build --continue",
+    "analyze": "next build --turbopack --experimental-analyze",
+    "check": "turbo run lint typecheck build --continue --ui=stream",
     "convex": "bun scripts/convex-dev.mjs",
     "deploy": "convex deploy --typecheck=disable"
   },
