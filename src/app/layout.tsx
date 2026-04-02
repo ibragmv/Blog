@@ -1,5 +1,3 @@
-import { Analytics } from '@vercel/analytics/next';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata, Viewport } from 'next';
 import { Doto, Space_Grotesk, Space_Mono } from 'next/font/google';
 import { Layout } from '@/components/layout';
@@ -92,8 +90,6 @@ export default function RootLayout({
       <body className="font-sans">
         <ThemeProvider defaultTheme="system" storageKey="blog-theme">
           <Layout currentYear={new Date().getFullYear()}>{children}</Layout>
-          <Analytics />
-          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>

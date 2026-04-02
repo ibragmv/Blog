@@ -1,103 +1,102 @@
 # Ibragim Ibragimov Blog
 
-Monochrome long-form blog built with Next.js App Router and Convex. Public pages are tuned for reading first, while the private admin area handles posts, links, and translation workflows.
+Minimal editorial blog built with Next.js App Router, Convex, Bun, and Turbo. The public side is optimized for long-form reading, while the private admin panel handles posts, links, authentication, and optional RU -> EN translation.
 
 ## Stack
 
 - Next.js 16 + React 19
-- Convex for content, sessions, and admin data
-- Tailwind CSS 4 for the UI system
+- Convex for posts, links, sessions, and admin mutations
+- Tailwind CSS 4 for styling
 - Biome for linting and formatting
-- Turbo for combined project checks
-- Gemini-powered translation inside the admin flow
+- Turbo for project-wide checks
+- Google Gemini for optional translation inside the editor
 
-## Routes
+## Features
 
-- `/` renders the home page content from the `home` post
-- `/blog` lists published writing
-- `/blog/[slug]` renders a single article
-- `/links` renders public links
-- `/login` handles admin authentication
-- `/admin` manages posts and links
-- `/api/admin/session` creates and clears admin sessions
-- `/api/translate` translates title and markdown content from Russian to English
+- Home page content is sourced from the `home` post record
+- `/blog` lists published posts with previews and search
+- `/blog/[slug]` renders full articles with OG images and SEO metadata
+- `/links` exposes curated public links
+- `/login` and `/admin` provide a private editorial workflow
+- `/api/translate` can translate post title and markdown from Russian to English
 
-## Environment Setup
+## Environment
 
-Use `.env.example` as the publish-safe template, then keep all real secrets only in your private `.env`.
+Copy [`.env.example`](/Users/ibragimibragimov/Eldenlord/Blog/.env.example) to `.env`. The files should have the same keys and section order; `.env.example` must contain only placeholders, never real secrets.
 
 ```env
 NEXT_PUBLIC_SITE_URL="https://your-domain.example"
 CONVEX_DEPLOYMENT="dev:your-cloud-dev-deployment"
-NEXT_PUBLIC_CONVEX_URL="https://your-production-deployment.convex.cloud"
+NEXT_PUBLIC_CONVEX_URL="https://your-deployment.convex.cloud"
+GEMINI_API_KEY="your-gemini-api-key"
+GEMINI_MODEL="gemini-2.5-flash"
 ADMIN_EMAIL="admin@example.com"
 ADMIN_PASSWORD="change-me"
 NODE_OPTIONS="--no-deprecation"
 ```
 
-Private-only additions for `.env`:
+Notes:
 
-- `GEMINI_API_KEY`
-- `GEMINI_MODEL`
+- `NEXT_PUBLIC_SITE_URL` drives canonical URLs, sitemap, metadata, and OG output
+- `CONVEX_DEPLOYMENT` is used by the local Convex CLI workflow
+- `NEXT_PUBLIC_CONVEX_URL` is required by both the app and admin data layer
+- `GEMINI_API_KEY` enables translation requests in `/api/translate`
+- `GEMINI_MODEL` controls the Gemini model used by the editor translation flow
+- `ADMIN_EMAIL` and `ADMIN_PASSWORD` protect the admin session flow
+- `NODE_OPTIONS="--no-deprecation"` keeps Bun/Next output quieter in local workflows
 
-Variable notes:
-
-- `NEXT_PUBLIC_SITE_URL` drives metadata, canonical URLs, sitemap, and OG output
-- `CONVEX_DEPLOYMENT` is used by local Convex CLI workflows such as `bun run convex:dev`
-- `NEXT_PUBLIC_CONVEX_URL` is the runtime endpoint used by the app
-- `ADMIN_EMAIL` and `ADMIN_PASSWORD` protect the private admin flow
-- Gemini variables are only required if you use the translation endpoint
-
-## Local Development
+## Development
 
 ```bash
 bun install
 bun run dev
 ```
 
-If you need Convex tooling during development:
+If you also need the Convex dev process:
 
 ```bash
-bun run convex:dev
+bun run convex
 ```
 
 ## Scripts
 
 ```bash
-bun run dev
-bun run build
-bun run start
-bun run preview
-bun run lint
-bun run lint:fix
-bun run format
-bun run typecheck
-bun run check
-bun run convex:dev
-bun run convex:deploy
+bun run dev        # start Next.js in development
+bun run convex     # run Convex dev with env cleanup
+bun run build      # production build
+bun run start      # serve the production build
+bun run lint       # biome check
+bun run fix        # biome check with safe writes
+bun run format     # biome format
+bun run typecheck  # next typegen + tsc
+bun run check      # turbo lint + typecheck + build
+bun run clean      # remove local build artifacts
+bun run deploy     # deploy Convex functions only
 ```
 
-## Content Model
+## Project Shape
+
+- [src/app](/Users/ibragimibragimov/Eldenlord/Blog/src/app) contains routes, metadata, API handlers, and OG image entries
+- [src/components](/Users/ibragimibragimov/Eldenlord/Blog/src/components) contains UI for the public site and admin
+- [src/lib](/Users/ibragimibragimov/Eldenlord/Blog/src/lib) contains content helpers, SEO, theme logic, and server utilities
+- [convex](/Users/ibragimibragimov/Eldenlord/Blog/convex) contains schema, queries, mutations, auth helpers, and generated types
+- [scripts](/Users/ibragimibragimov/Eldenlord/Blog/scripts) contains local DX helpers for typecheck and Convex dev
 
 Schema lives in [schema.ts](/Users/ibragimibragimov/Eldenlord/Blog/convex/schema.ts).
 
-- `posts` stores blog posts and page-like content, including the home page entry
-- `links` stores public external links with manual ordering
-- `sessions` stores hashed admin sessions with expiration timestamps
-
-Each post can hold bilingual title/content fields plus publication and page flags.
+- `posts` stores articles and page-like content such as the home page
+- `links` stores ordered public links
+- `sessions` stores hashed admin sessions with expiration
 
 ## Verification
 
-Run the core checks:
+Run:
 
 ```bash
-bun run lint
-bun run typecheck
-bun run build
+bun run check
 ```
 
-Then manually verify:
+Then verify these routes locally:
 
 - `http://localhost:3000/`
 - `http://localhost:3000/blog`

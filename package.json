@@ -9,28 +9,22 @@
   },
   "scripts": {
     "dev": "next dev",
-    "start": "next start",
-    "convex:dev": "bun scripts/convex-dev.mjs",
-    "convex:deploy": "convex deploy --typecheck=disable",
     "build": "next build --webpack",
-    "preview": "next start",
-    "clean": "rm -rf .next .turbo",
+    "start": "next start",
+    "clean": "rm -rf .next .turbo .vercel tsconfig.tsbuildinfo",
     "typecheck": "bun scripts/typecheck.mjs",
     "lint": "biome check .",
-    "lint:fix": "biome check --write .",
+    "fix": "biome check --write .",
     "format": "biome format --write .",
     "check": "turbo run lint typecheck build --continue",
-    "turbo:dev": "turbo run dev --parallel --continue",
-    "turbo:build": "turbo run build --env-mode=strict --summarize",
-    "turbo:lint": "turbo run lint typecheck --env-mode=strict --continue"
+    "convex": "bun scripts/convex-dev.mjs",
+    "deploy": "convex deploy --typecheck=disable"
   },
   "trustedDependencies": [
     "protobufjs"
   ],
   "dependencies": {
     "@google/genai": "^1.43.0",
-    "@vercel/analytics": "^1.1.0",
-    "@vercel/speed-insights": "^1.1.0",
     "clsx": "^2.1.1",
     "convex": "^1.34.1",
     "katex": "^0.16.33",
