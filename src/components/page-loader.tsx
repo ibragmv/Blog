@@ -1,4 +1,3 @@
-import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type PageLoaderProps = {
@@ -12,7 +11,9 @@ export function PageLoader({ className, label = 'Loading page content' }: PageLo
       className={cn('flex min-h-[40vh] items-center justify-center', className)}
       aria-live="polite"
     >
-      <Loader2 className="h-8 w-8 animate-spin text-zinc-600 dark:text-zinc-300" />
+      <span className="nd-label rounded-full border border-[var(--border-visible)] px-4 py-3 text-[var(--text-secondary)]">
+        [ LOADING... ]
+      </span>
       <span className="sr-only">{label}</span>
     </output>
   );

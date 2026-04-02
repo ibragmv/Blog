@@ -12,16 +12,45 @@ const iconMap = {
 
 export function PublicLinks({ links }: { links: LinkRecord[] }) {
   return (
-    <div className="max-w-md mx-auto space-y-8 animate-in fade-in duration-500">
-      <h1 className="text-3xl font-bold tracking-tight text-center text-zinc-900 dark:text-zinc-100 font-display">
-        Connect
-      </h1>
+    <div className="grid gap-12 animate-in fade-in duration-500">
+      <section className="grid gap-8 border-b border-[var(--border)] pb-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)] lg:items-end">
+        <div className="grid gap-5">
+          <span className="nd-label text-[var(--text-secondary)]">External Presence</span>
+          <div className="grid gap-4">
+            <h1 className="font-display text-[clamp(4rem,12vw,7rem)] leading-[0.88] tracking-[-0.06em] text-[var(--text-display)]">
+              LINKS
+            </h1>
+            <p className="max-w-2xl text-base leading-7 text-[var(--text-secondary)] md:text-lg">
+              A compact directory of platforms, profiles, and direct contact endpoints.
+            </p>
+          </div>
+        </div>
 
-      <div className="grid gap-4">
+        <div className="nd-panel-raised dot-grid-subtle grid gap-5 p-5 md:p-6">
+          <div className="flex items-baseline justify-between gap-4">
+            <span className="nd-label text-[var(--text-secondary)]">Channels</span>
+            <span className="font-display text-5xl leading-none tracking-[-0.05em] text-[var(--text-display)]">
+              {links.length}
+            </span>
+          </div>
+          <div className="flex items-baseline justify-between gap-4 border-t border-[var(--border)] pt-3">
+            <span className="nd-label text-[var(--text-disabled)]">State</span>
+            <span className="font-mono text-sm uppercase tracking-[0.1em] text-[var(--accent)]">
+              [ Public ]
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4">
         {links.length === 0 ? (
-          <p className="text-center text-zinc-500">No links added yet.</p>
+          <div className="nd-panel flex min-h-56 items-center justify-center px-6 py-12 text-center">
+            <p className="max-w-sm text-sm uppercase tracking-[0.12em] text-[var(--text-secondary)]">
+              [ No external channels configured ]
+            </p>
+          </div>
         ) : (
-          links.map((link) => {
+          links.map((link, index) => {
             const Icon =
               iconMap[link.icon.toLowerCase() as keyof typeof iconMap] || iconMap.default;
 
@@ -31,19 +60,32 @@ export function PublicLinks({ links }: { links: LinkRecord[] }) {
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all group"
+                className="group grid gap-4 border-b border-[var(--border)] py-5 md:grid-cols-[72px_minmax(0,1fr)_120px] md:items-center"
               >
-                <span className="text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-zinc-200 mr-4">
-                  <Icon size={20} />
+                <span className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] group-hover:text-[var(--text-display)]">
+                  <Icon size={18} />
                 </span>
-                <span className="font-medium text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-200">
-                  {link.title}
-                </span>
+                <div className="grid gap-1">
+                  <span className="text-xl tracking-[-0.03em] text-[var(--text-display)] transition-colors group-hover:text-[var(--interactive)]">
+                    {link.title}
+                  </span>
+                  <span className="font-mono text-xs uppercase tracking-[0.12em] text-[var(--text-secondary)]">
+                    {link.url.replace(/^https?:\/\//, '')}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-3 md:justify-end">
+                  <span className="nd-label text-[var(--text-disabled)]">
+                    {index.toString().padStart(2, '0')}
+                  </span>
+                  <span className="font-mono text-xs uppercase tracking-[0.12em] text-[var(--accent)]">
+                    [ Open ]
+                  </span>
+                </div>
               </a>
             );
           })
         )}
-      </div>
+      </section>
     </div>
   );
 }

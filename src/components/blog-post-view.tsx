@@ -60,38 +60,77 @@ export function BlogPostView({ post }: { post: PostRecord }) {
   const hasTranslation = !!post.titleEn && !!post.contentEn;
   const currentTitle = language === 'en' && post.titleEn ? post.titleEn : post.title;
   const currentContent = language === 'en' && post.contentEn ? post.contentEn : post.content;
+  const progressSegments = Array.from({ length: 20 }, (_, index) => {
+    const threshold = ((index + 1) / 20) * 100;
+    return readingProgress >= threshold;
+  });
 
   return (
-    <article className="animate-in fade-in duration-500">
-      <div
-        className="fixed top-0 left-0 h-1 bg-zinc-300 dark:bg-zinc-700 z-50 transition-all duration-300 ease-out"
-        style={{ width: `${readingProgress}%` }}
-      />
-
-      <div className="flex items-center justify-between mb-8">
-        <Link
-          href="/blog"
-          className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 transition-colors"
-        >
-          <ArrowLeft size={16} className="mr-2" />
-          Back to writing
-        </Link>
+    <article className="grid gap-10 animate-in fade-in duration-500">
+      <div className="grid gap-3 border-b border-[var(--border)] pb-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-2 text-sm uppercase tracking-[0.12em] text-[var(--text-secondary)] hover:text-[var(--text-display)]"
+          >
+            <ArrowLeft size={16} />
+            Back to writing
+          </Link>
+          <span className="font-mono text-xs uppercase tracking-[0.12em] text-[var(--accent)]">
+            [{Math.round(readingProgress)}% Read]
+          </span>
+        </div>
+        <div className="grid grid-cols-10 gap-1 md:grid-cols-20">
+          {progressSegments.map((isActive, index) => (
+            <span
+              key={String(index)}
+              className="h-2 w-full"
+              style={{
+                backgroundColor: isActive ? 'var(--text-display)' : 'var(--border)',
+              }}
+            />
+          ))}
+        </div>
       </div>
 
-      <header className="mb-10">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 font-display transition-all duration-300">
-            {currentTitle}
-          </h1>
+      <div className="grid gap-10 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-12">
+        <aside className="grid h-fit gap-6 lg:sticky lg:top-28">
+          <div className="grid gap-2">
+            <span className="nd-label text-[var(--text-secondary)]">Published</span>
+            <time className="font-mono text-sm uppercase tracking-[0.08em] text-[var(--text-display)]">
+              {formatLongUtcDate(post.createdAt)}
+            </time>
+          </div>
+          <div className="grid gap-2 border-t border-[var(--border)] pt-4">
+            <span className="nd-label text-[var(--text-secondary)]">Language</span>
+            {hasTranslation ? (
+              <LanguageToggle value={language} onChange={setLanguage} />
+            ) : (
+              <span className="font-mono text-sm uppercase tracking-[0.08em] text-[var(--text-primary)]">
+                [ Single ]
+              </span>
+            )}
+          </div>
+          <div className="grid gap-2 border-t border-[var(--border)] pt-4">
+            <span className="nd-label text-[var(--text-secondary)]">Status</span>
+            <span className="font-mono text-sm uppercase tracking-[0.08em] text-[var(--accent)]">
+              [ Reading ]
+            </span>
+          </div>
+        </aside>
 
-          {hasTranslation && <LanguageToggle value={language} onChange={setLanguage} />}
+        <div className="grid gap-8">
+          <header className="grid gap-5 border-b border-[var(--border)] pb-8">
+            <span className="nd-label text-[var(--text-secondary)]">Article Transmission</span>
+            <h1 className="max-w-4xl font-display text-[clamp(3rem,10vw,6.5rem)] leading-[0.9] tracking-[-0.06em] text-[var(--text-display)]">
+              {currentTitle}
+            </h1>
+          </header>
+
+          <div className="transition-opacity duration-300">
+            <LazyMarkdownRenderer content={currentContent} preload />
+          </div>
         </div>
-
-        <time className="text-zinc-500 text-sm">{formatLongUtcDate(post.createdAt)}</time>
-      </header>
-
-      <div className="transition-opacity duration-300">
-        <LazyMarkdownRenderer content={currentContent} preload />
       </div>
     </article>
   );

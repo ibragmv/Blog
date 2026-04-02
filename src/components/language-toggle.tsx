@@ -11,15 +11,15 @@ type LanguageToggleProps = {
 
 export function LanguageToggle({ value, onChange }: LanguageToggleProps) {
   return (
-    <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 rounded-lg p-1 border border-zinc-200 dark:border-zinc-800 shrink-0 self-start">
+    <div className="inline-flex shrink-0 items-center rounded-full border border-[var(--border-visible)] p-1">
       <button
         type="button"
         onClick={() => onChange('ru')}
         className={cn(
-          'px-3 py-1 text-sm font-medium rounded-md transition-all',
+          'nd-label rounded-full px-4 py-2',
           value === 'ru'
-            ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
-            : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'
+            ? 'bg-[var(--text-display)] text-[var(--black)]'
+            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
         )}
       >
         RU
@@ -28,10 +28,10 @@ export function LanguageToggle({ value, onChange }: LanguageToggleProps) {
         type="button"
         onClick={() => onChange('en')}
         className={cn(
-          'px-3 py-1 text-sm font-medium rounded-md transition-all',
+          'nd-label rounded-full px-4 py-2',
           value === 'en'
-            ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
-            : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'
+            ? 'bg-[var(--text-display)] text-[var(--black)]'
+            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
         )}
       >
         EN

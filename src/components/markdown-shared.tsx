@@ -14,31 +14,28 @@ export function MarkdownContainer({
   className?: string;
   children: ReactNode;
 }) {
-  return (
-    <div
-      className={cn('prose prose-zinc dark:prose-invert max-w-none wrap-break-words', className)}
-    >
-      {children}
-    </div>
-  );
+  return <div className={cn('prose max-w-none break-words', className)}>{children}</div>;
 }
 
 export const markdownComponents: Components = {
   a: ({ node, ...props }) => (
     <a
       {...props}
-      className="text-blue-400 hover:underline underline-offset-4"
+      className="text-[var(--interactive)] underline underline-offset-4"
       target="_blank"
       rel="noopener noreferrer"
     />
   ),
   table: ({ node, ...props }) => (
-    <div className="my-4 overflow-x-auto">
-      <table {...props} className="min-w-full divide-y divide-zinc-700" />
+    <div className="my-8 overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
+      <table {...props} className="min-w-full" />
     </div>
   ),
   blockquote: ({ node, ...props }) => (
-    <blockquote {...props} className="border-l-4 border-zinc-500 pl-4 italic text-zinc-400" />
+    <blockquote
+      {...props}
+      className="border-l border-[var(--border-visible)] pl-6 text-[var(--text-secondary)]"
+    />
   ),
   code: ({ node, className, children, ...props }) => {
     const match = /language-(\w+)/.exec(className || '');
@@ -48,7 +45,7 @@ export const markdownComponents: Components = {
       return (
         <code
           className={cn(
-            'rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-sm text-zinc-200',
+            'rounded-lg border border-[var(--border)] bg-[var(--surface-raised)]',
             className
           )}
           {...props}

@@ -1,12 +1,32 @@
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata, Viewport } from 'next';
+import { Doto, Space_Grotesk, Space_Mono } from 'next/font/google';
 import Script from 'next/script';
 import { Layout } from '@/components/layout';
 import { ThemeProvider } from '@/components/theme-provider';
 import { absoluteUrl } from '@/lib/seo';
 import { getSiteUrl, SITE_CONFIG } from '@/lib/site';
 import './globals.css';
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+});
+
+const spaceMono = Space_Mono({
+  subsets: ['latin'],
+  variable: '--font-space-mono',
+  weight: ['400', '700'],
+  display: 'swap',
+});
+
+const doto = Doto({
+  subsets: ['latin'],
+  variable: '--font-doto',
+  display: 'swap',
+});
 
 const themeInitScript = `
 (() => {
@@ -71,8 +91,8 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#09090b' },
+    { media: '(prefers-color-scheme: light)', color: '#f5f5f5' },
+    { media: '(prefers-color-scheme: dark)', color: '#000000' },
   ],
 };
 
@@ -82,7 +102,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
+    <html
+      lang="en"
+      suppressHydrationWarning
+      data-scroll-behavior="smooth"
+      className={`${spaceGrotesk.variable} ${spaceMono.variable} ${doto.variable}`}
+    >
       <body className="font-sans">
         <Script id="theme-init" strategy="beforeInteractive">
           {themeInitScript}

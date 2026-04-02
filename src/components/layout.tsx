@@ -15,13 +15,10 @@ export function Layout({
   currentYear: number;
 }) {
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-300 font-sans selection:bg-zinc-200 dark:selection:bg-zinc-800 selection:text-zinc-900 dark:selection:text-zinc-100 transition-colors duration-300">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-sm border-b border-zinc-200 dark:border-zinc-900 transition-colors duration-300">
-        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center gap-3 leading-none font-bold tracking-tight text-zinc-900 dark:text-zinc-100 hover:opacity-70 transition-opacity font-display uppercase"
-          >
+    <div className="min-h-screen bg-[var(--black)] text-[var(--text-primary)]">
+      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--black)] backdrop-blur-sm">
+        <div className="mx-auto flex h-20 w-full max-w-6xl items-center justify-between gap-4 px-5 md:px-8">
+          <Link href="/" className="flex min-w-0 items-center gap-3 leading-none">
             <Image
               src="/favicon.svg"
               alt={`${SITE_CONFIG.siteName} logo`}
@@ -29,16 +26,23 @@ export function Layout({
               height={32}
               sizes="32px"
               priority
-              className="w-8 h-8"
+              className="h-8 w-8 rounded-full border border-[var(--border)] bg-[var(--surface)] p-1"
             />
-            <div className="flex flex-col">
+            <div className="flex min-w-0 flex-col">
+              <span className="nd-label text-[var(--text-secondary)]">Personal Signal</span>
               {IS_MULTI_WORD_TITLE ? (
                 <>
-                  <span className="text-xl">{TITLE_WORDS[0]}</span>
-                  <span className="text-xl">{TITLE_WORDS.slice(1).join(' ')}</span>
+                  <span className="truncate font-display text-[1.45rem] tracking-[-0.04em] text-[var(--text-display)] md:text-[1.7rem]">
+                    {TITLE_WORDS[0]}
+                  </span>
+                  <span className="-mt-1 truncate font-mono text-[0.72rem] uppercase tracking-[0.16em] text-[var(--text-secondary)] md:text-[0.78rem]">
+                    {TITLE_WORDS.slice(1).join(' ')}
+                  </span>
                 </>
               ) : (
-                <span className="text-2xl">{SITE_CONFIG.title}</span>
+                <span className="truncate font-display text-[1.7rem] tracking-[-0.04em] text-[var(--text-display)]">
+                  {SITE_CONFIG.title}
+                </span>
               )}
             </div>
           </Link>
@@ -47,17 +51,32 @@ export function Layout({
         </div>
       </header>
 
-      <main className="pt-24 pb-16 px-6 max-w-3xl mx-auto min-h-[calc(100vh-4rem)]">
+      <main className="mx-auto min-h-[calc(100vh-5rem)] w-full max-w-6xl px-5 py-10 md:px-8 md:py-14">
         {children}
       </main>
 
-      <footer className="border-t border-zinc-200 dark:border-zinc-900 py-12">
-        <div className="max-w-3xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="text-xs text-zinc-500 dark:text-zinc-600">
-            &copy; {currentYear} Ibragim Ibragimov. All rights reserved.
+      <footer className="border-t border-[var(--border)] py-10">
+        <div className="mx-auto grid w-full max-w-6xl gap-8 px-5 md:grid-cols-[1.4fr_auto] md:items-end md:px-8">
+          <div className="grid gap-3">
+            <span className="nd-label text-[var(--text-secondary)]">Archive Status</span>
+            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
+              <span className="font-display text-[clamp(2.25rem,8vw,4.25rem)] leading-none tracking-[-0.05em] text-[var(--text-display)]">
+                {currentYear}
+              </span>
+              <span className="max-w-lg text-sm text-[var(--text-secondary)] md:text-base">
+                Independent writing archive, notes, essays, and field signals by{' '}
+                {SITE_CONFIG.author}.
+              </span>
+            </div>
+            <div className="nd-label flex flex-wrap gap-x-5 gap-y-2 text-[var(--text-disabled)]">
+              <span>[ PUBLIC ]</span>
+              <span>[ WRITING ]</span>
+              <span>[ ALL RIGHTS RESERVED ]</span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col items-start gap-3 md:items-end">
+            <span className="nd-label text-[var(--text-secondary)]">Mode Control</span>
             <ThemeToggle />
           </div>
         </div>
