@@ -1,19 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { api } from '@convex/_generated/api';
+import { useQuery } from 'convex/react';
+import { useEffect, useState } from 'react';
 import { LanguageToggle } from '@/components/language-toggle';
 import { LazyMarkdownRenderer } from '@/components/lazy-markdown';
+import type { PostRecord } from '@/lib/content';
 import { SITE_CONFIG } from '@/lib/site';
 
 type HomePageViewProps = {
-  content: string;
-  contentEn?: string;
+  initialPost: PostRecord | null;
+  fallbackContent: string;
 };
 
-export function HomePageView({ content, contentEn }: HomePageViewProps) {
+export function HomePageView({ initialPost, fallbackContent }: HomePageViewProps) {
+  const reactivePost = useQuery(api.posts.getHomePage, {});
+  const post = reactivePost === undefined ? initialPost : reactivePost;
+  const content = post?.content || fallbackContent;
+  const contentEn = post?.contentEn;
   const [language, setLanguage] = useState<'ru' | 'en'>(contentEn ? 'en' : 'ru');
   const hasTranslation = !!contentEn;
   const currentContent = language === 'en' && contentEn ? contentEn : content;
+
+  useEffect(() => {
+    setLanguage(contentEn ? 'en' : 'ru');
+  }, [contentEn]);
 
   return (
     <div className="grid gap-10 animate-in fade-in duration-500 md:gap-14">

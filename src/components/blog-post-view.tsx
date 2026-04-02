@@ -1,20 +1,25 @@
 'use client';
 
+import { api } from '@convex/_generated/api';
+import { useQuery } from 'convex/react';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { LanguageToggle } from '@/components/language-toggle';
 import { LazyMarkdownRenderer } from '@/components/lazy-markdown';
+import { PageLoader } from '@/components/page-loader';
 import type { PostRecord } from '@/lib/content';
 import { formatLongUtcDate } from '@/lib/dates';
 
-export function BlogPostView({ post }: { post: PostRecord }) {
+export function BlogPostView({ slug, initialPost }: { slug: string; initialPost: PostRecord }) {
+  const reactivePost = useQuery(api.posts.getPublishedBySlug, { slug });
+  const post = reactivePost === undefined ? initialPost : reactivePost;
   const [language, setLanguage] = useState<'ru' | 'en'>(
-    post.titleEn && post.contentEn ? 'en' : 'ru'
+    initialPost.titleEn && initialPost.contentEn ? 'en' : 'ru'
   );
   const [readingProgress, setReadingProgress] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
-  const postId = post.id;
+  const postId = post?.id ?? null;
 
   useEffect(() => {
     let frameId = 0;
@@ -65,10 +70,16 @@ export function BlogPostView({ post }: { post: PostRecord }) {
   }, []);
 
   useEffect(() => {
-    if (postId) {
-      setLanguage(post.titleEn && post.contentEn ? 'en' : 'ru');
+    if (!postId || !post) {
+      return;
     }
-  }, [postId, post.titleEn, post.contentEn]);
+
+    setLanguage(post.titleEn && post.contentEn ? 'en' : 'ru');
+  }, [postId, post]);
+
+  if (!post) {
+    return <PageLoader label="Updating article content" />;
+  }
 
   const hasTranslation = !!post.titleEn && !!post.contentEn;
   const currentTitle = language === 'en' && post.titleEn ? post.titleEn : post.title;

@@ -12,5 +12,5 @@ export const metadata: Metadata = {
 
 export default async function BlogPage() {
   const posts = await getPublishedPosts();
-  return <BlogIndex posts={posts} />;
+  return <BlogIndex initialPosts={posts} />;
 }

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { cache } from 'react';
 import { BlogPostView } from '@/components/blog-post-view';
 import { getPreferredPostContent, getPreferredPostTitle } from '@/lib/content';
 import { buildDescription } from '@/lib/seo';
@@ -10,8 +9,6 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
-const getCachedPublishedPostBySlug = cache((slug: string) => getPublishedPostBySlug(slug));
-
 export async function generateStaticParams() {
   const posts = await getPublishedPosts();
   return posts.map((post) => ({ slug: post.slug }));
@@ -19,7 +16,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getCachedPublishedPostBySlug(slug);
+  const post = await getPublishedPostBySlug(slug);
 
   if (!post) {
     return {
@@ -69,11 +66,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
-  const post = await getCachedPublishedPostBySlug(slug);
+  const post = await getPublishedPostBySlug(slug);
 
   if (!post) {
     notFound();
   }
 
-  return <BlogPostView post={post} />;
+  return <BlogPostView slug={slug} initialPost={post} />;
 }

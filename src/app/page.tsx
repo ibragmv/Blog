@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { cache } from 'react';
 import { HomePageView } from '@/components/home-page-view';
 import { getPreferredPostContent } from '@/lib/content';
 import { absoluteUrl, buildDescription } from '@/lib/seo';
@@ -9,10 +8,8 @@ import { SITE_CONFIG } from '@/lib/site';
 const HOME_FALLBACK_CONTENT =
   '# Welcome\n\nThis is the home page. You can edit this content in the admin panel by creating a post with the slug `home`.';
 
-const getCachedHomePagePost = cache(getHomePagePost);
-
 export async function generateMetadata(): Promise<Metadata> {
-  const homePost = await getCachedHomePagePost();
+  const homePost = await getHomePagePost();
   const description = buildDescription(homePost ? getPreferredPostContent(homePost) : undefined);
   const ogImage = absoluteUrl('/opengraph-image');
 
@@ -48,9 +45,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const homePost = await getCachedHomePagePost();
-  const content = homePost?.content || HOME_FALLBACK_CONTENT;
-  const contentEn = homePost?.contentEn;
+  const homePost = await getHomePagePost();
 
-  return <HomePageView content={content} contentEn={contentEn} />;
+  return <HomePageView initialPost={homePost} fallbackContent={HOME_FALLBACK_CONTENT} />;
 }
