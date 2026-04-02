@@ -80,7 +80,7 @@ export function BlogPostView({ post }: { post: PostRecord }) {
 
   return (
     <article className="grid gap-10 animate-in fade-in duration-500">
-      <div className="sticky top-[var(--header-height)] z-30 grid gap-4 border-y border-[var(--border)] bg-[var(--black)] py-4">
+      <div className="grid gap-4 border-y border-[var(--border)] bg-[var(--black)] py-4 md:sticky md:top-[var(--header-height)] md:z-30">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link
             href="/blog"
@@ -113,8 +113,8 @@ export function BlogPostView({ post }: { post: PostRecord }) {
         </div>
       </div>
 
-      <div className="grid gap-10 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-14">
-        <aside className="grid h-fit gap-6 lg:sticky lg:top-[calc(var(--header-height)+6rem)]">
+      <div className="grid gap-8 md:gap-10 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-14">
+        <aside className="grid h-fit gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-1 lg:gap-6 lg:sticky lg:top-[calc(var(--header-height)+6rem)]">
           <div className="grid gap-2">
             <span className="nd-label text-[var(--text-secondary)]">Published</span>
             <time className="font-mono text-sm uppercase tracking-[0.08em] text-[var(--text-display)]">
@@ -140,9 +140,9 @@ export function BlogPostView({ post }: { post: PostRecord }) {
         </aside>
 
         <div ref={contentRef} className="grid min-w-0 gap-8">
-          <header className="grid gap-5 border-b border-[var(--border)] pb-8">
+          <header className="grid gap-4 border-b border-[var(--border)] pb-6 md:gap-5 md:pb-8">
             <span className="nd-label text-[var(--text-secondary)]">Article Transmission</span>
-            <h1 className="max-w-4xl text-balance text-[clamp(3rem,9vw,6.25rem)] font-medium leading-[0.88] tracking-[-0.06em] text-[var(--text-display)]">
+            <h1 className="max-w-4xl text-balance text-[clamp(2.3rem,11vw,6.25rem)] font-medium leading-[0.92] tracking-[-0.06em] text-[var(--text-display)] md:leading-[0.88]">
               {currentTitle}
             </h1>
           </header>
