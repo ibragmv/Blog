@@ -1,7 +1,6 @@
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata, Viewport } from 'next';
-import { Space_Grotesk, Space_Mono } from 'next/font/google';
 import localFont from 'next/font/local';
 import { Layout } from '@/components/layout';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -9,63 +8,99 @@ import { absoluteUrl } from '@/lib/seo';
 import { getSiteUrl, SITE_CONFIG } from '@/lib/site';
 import './globals.css';
 
-const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
+const spaceGrotesk = localFont({
+  src: [
+    {
+      path: '../../fonts/space-grotesk/static/SpaceGrotesk-Light.ttf',
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/space-grotesk/static/SpaceGrotesk-Regular.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/space-grotesk/static/SpaceGrotesk-Medium.ttf',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/space-grotesk/static/SpaceGrotesk-SemiBold.ttf',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/space-grotesk/static/SpaceGrotesk-Bold.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
   variable: '--font-space-grotesk',
   display: 'swap',
 });
 
-const spaceMono = Space_Mono({
-  subsets: ['latin'],
+const spaceMono = localFont({
+  src: [
+    {
+      path: '../../fonts/space-mono/SpaceMono-Regular.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/space-mono/SpaceMono-Bold.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
   variable: '--font-space-mono',
-  weight: ['400', '700'],
   display: 'swap',
 });
 
 const doto = localFont({
   src: [
     {
-      path: '../../Doto Font/static/Doto-Thin.ttf',
+      path: '../../fonts/doto/static/Doto-Thin.ttf',
       weight: '100',
       style: 'normal',
     },
     {
-      path: '../../Doto Font/static/Doto-ExtraLight.ttf',
+      path: '../../fonts/doto/static/Doto-ExtraLight.ttf',
       weight: '200',
       style: 'normal',
     },
     {
-      path: '../../Doto Font/static/Doto-Light.ttf',
+      path: '../../fonts/doto/static/Doto-Light.ttf',
       weight: '300',
       style: 'normal',
     },
     {
-      path: '../../Doto Font/static/Doto-Regular.ttf',
+      path: '../../fonts/doto/static/Doto-Regular.ttf',
       weight: '400',
       style: 'normal',
     },
     {
-      path: '../../Doto Font/static/Doto-Medium.ttf',
+      path: '../../fonts/doto/static/Doto-Medium.ttf',
       weight: '500',
       style: 'normal',
     },
     {
-      path: '../../Doto Font/static/Doto-SemiBold.ttf',
+      path: '../../fonts/doto/static/Doto-SemiBold.ttf',
       weight: '600',
       style: 'normal',
     },
     {
-      path: '../../Doto Font/static/Doto-Bold.ttf',
+      path: '../../fonts/doto/static/Doto-Bold.ttf',
       weight: '700',
       style: 'normal',
     },
     {
-      path: '../../Doto Font/static/Doto-ExtraBold.ttf',
+      path: '../../fonts/doto/static/Doto-ExtraBold.ttf',
       weight: '800',
       style: 'normal',
     },
     {
-      path: '../../Doto Font/static/Doto-Black.ttf',
+      path: '../../fonts/doto/static/Doto-Black.ttf',
       weight: '900',
       style: 'normal',
     },

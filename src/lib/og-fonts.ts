@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-const DOTO_FONT_FILE = path.join(process.cwd(), 'Doto Font', 'static', 'Doto-Regular.ttf');
+const DOTO_FONT_FILE = path.join(process.cwd(), 'fonts', 'doto', 'static', 'Doto-Regular.ttf');
 
 let dotoFontDataPromise: Promise<ArrayBuffer> | undefined;
 
