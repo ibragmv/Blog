@@ -19,19 +19,19 @@ function createPreviewTitle(title: string) {
 function getPreviewTitleSize(title: string) {
   const length = title.length;
 
-  if (length <= 18) {
-    return 118;
+  if (length <= 16) {
+    return 130;
   }
 
-  if (length <= 34) {
-    return 100;
+  if (length <= 28) {
+    return 110;
   }
 
-  if (length <= 52) {
-    return 84;
+  if (length <= 44) {
+    return 88;
   }
 
-  return 70;
+  return 72;
 }
 
 export async function getOgImageOptions(): Promise<ImageResponseOptions> {
@@ -59,7 +59,7 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
         width: '100%',
         height: '100%',
         background: '#000000',
-        padding: '24px',
+        padding: '22px',
         alignItems: 'center',
         justifyContent: 'center',
       }}
@@ -70,53 +70,47 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
           width: '100%',
           height: '100%',
           flexDirection: 'column',
-          borderRadius: 22,
+          borderRadius: 18,
           background: '#000000',
-          border: '2px solid #f4f4f4',
+          border: '2px solid #f2f2f2',
           position: 'relative',
           overflow: 'hidden',
-          padding: '30px 34px',
+          padding: '30px 36px',
         }}
       >
         <div
           style={{
             display: 'flex',
-            width: '100%',
+            position: 'absolute',
+            top: 34,
+            left: 40,
             alignItems: 'center',
-            justifyContent: 'space-between',
+            gap: 12,
           }}
         >
           <div
             style={{
               display: 'flex',
-              alignItems: 'center',
-              gap: 12,
+              width: 16,
+              height: 16,
+              borderRadius: 9999,
+              background: '#d71921',
             }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                width: 14,
-                height: 14,
-                borderRadius: 9999,
-                background: '#d71921',
-              }}
-            />
-            <div
-              style={{
-                display: 'flex',
-                width: 88,
-                height: 2,
-                background: '#f4f4f4',
-              }}
-            />
-          </div>
+          />
           <div
             style={{
               display: 'flex',
-              width: 112,
+              width: 96,
               height: 2,
-              background: '#d71921',
+              background: '#f2f2f2',
+            }}
+          />
+          <div
+            style={{
+              display: 'flex',
+              width: 32,
+              height: 2,
+              background: '#4a4a4a',
             }}
           />
         </div>
@@ -124,24 +118,86 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
         <div
           style={{
             display: 'flex',
-            flex: 1,
+            position: 'absolute',
+            top: 42,
+            right: 40,
             alignItems: 'center',
-            justifyContent: 'center',
-            padding: '12px 80px 0',
+            gap: 10,
           }}
         >
           <div
             style={{
               display: 'flex',
-              maxWidth: 940,
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                width: 44,
+                height: 2,
+                background: '#4a4a4a',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                width: 92,
+                height: 2,
+                background: '#d71921',
+              }}
+            />
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            position: 'absolute',
+            right: -118,
+            bottom: -118,
+            width: 260,
+            height: 260,
+            borderRadius: 9999,
+            border: '2px solid #2d2d2d',
+          }}
+        />
+
+        <div
+          style={{
+            display: 'flex',
+            position: 'absolute',
+            left: -84,
+            bottom: 82,
+            width: 168,
+            height: 168,
+            borderRadius: 9999,
+            border: '2px solid #1f1f1f',
+          }}
+        />
+
+        <div
+          style={{
+            display: 'flex',
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '32px 92px 92px',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              maxWidth: 860,
               textAlign: 'center',
               color: '#ffffff',
               fontFamily: 'Doto',
               fontSize: previewTitleSize,
-              lineHeight: 0.92,
-              letterSpacing: '-0.07em',
+              lineHeight: 0.9,
+              letterSpacing: '-0.075em',
               whiteSpace: 'pre-wrap',
               wordBreak: 'break-word',
             }}
@@ -153,55 +209,53 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
         <div
           style={{
             display: 'flex',
-            width: '100%',
-            alignItems: 'center',
+            position: 'absolute',
+            left: 36,
+            right: 36,
+            bottom: 34,
+            alignItems: 'flex-end',
             justifyContent: 'space-between',
-            gap: 24,
-            borderTop: '2px solid #f4f4f4',
-            paddingTop: 20,
           }}
         >
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: 10,
+              gap: 14,
             }}
           >
             <div
               style={{
                 display: 'flex',
-                color: '#ffffff',
-                fontFamily: 'Doto',
-                fontSize: 26,
-                lineHeight: 1,
+                width: 224,
+                height: 2,
+                background: '#f2f2f2',
               }}
-            >
-              {SITE_CONFIG.siteName}
-            </div>
+            />
             <div
               style={{
                 display: 'flex',
-                width: 148,
+                width: 168,
                 height: 2,
                 background: '#d71921',
               }}
             />
           </div>
+
           <div
             style={{
               display: 'flex',
-              gap: 12,
               alignItems: 'center',
+              gap: 16,
             }}
           >
             <div
               style={{
                 display: 'flex',
-                width: 42,
-                height: 42,
+                width: 52,
+                height: 52,
                 borderRadius: 9999,
-                border: '2px solid #ffffff',
+                border: '2px solid #f2f2f2',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
@@ -209,8 +263,8 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
               <div
                 style={{
                   display: 'flex',
-                  width: 12,
-                  height: 12,
+                  width: 14,
+                  height: 14,
                   borderRadius: 9999,
                   background: '#d71921',
                 }}
@@ -219,11 +273,28 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
             <div
               style={{
                 display: 'flex',
-                width: 64,
-                height: 2,
-                background: '#ffffff',
+                flexDirection: 'column',
+                gap: 12,
               }}
-            />
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  width: 110,
+                  height: 2,
+                  background: '#f2f2f2',
+                }}
+              />
+              <div
+                style={{
+                  display: 'flex',
+                  width: 74,
+                  height: 2,
+                  background: '#4a4a4a',
+                  alignSelf: 'flex-end',
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
