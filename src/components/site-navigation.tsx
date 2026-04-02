@@ -1,10 +1,11 @@
 'use client';
 
-import { Menu, Shield, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { AdminAccess } from './admin-access';
 
 const NAV_ITEMS = [
   { name: 'Home', path: '/' },
@@ -23,8 +24,8 @@ export function SiteNavigation() {
   }, [pathname]);
 
   return (
-    <div className="flex items-center gap-2.5 md:gap-5">
-      <nav className="hidden items-center gap-6 lg:flex">
+    <div className="flex items-center gap-2.5 md:gap-5 lg:items-start">
+      <nav className="hidden items-start gap-6 lg:flex">
         {NAV_ITEMS.map((item) => (
           <Link
             key={item.path}
@@ -50,14 +51,7 @@ export function SiteNavigation() {
         ))}
       </nav>
 
-      <Link
-        href="/admin"
-        className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:border-[var(--border-visible)] hover:text-[var(--text-display)]"
-        title="Admin Panel"
-        aria-label="Admin panel"
-      >
-        <Shield size={19} aria-hidden="true" />
-      </Link>
+      <AdminAccess />
 
       <button
         type="button"
