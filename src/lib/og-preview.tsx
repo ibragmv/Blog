@@ -85,9 +85,9 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
             width: '100%',
             alignItems: 'center',
             justifyContent: 'space-between',
-            color: '#6f6f6f',
-            fontSize: 18,
-            letterSpacing: '0.18em',
+            color: '#b1b1b1',
+            fontSize: 20,
+            letterSpacing: '0.16em',
             textTransform: 'uppercase',
           }}
         >
@@ -128,7 +128,7 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
               alignItems: 'center',
               justifyContent: 'center',
               textAlign: 'center',
-              color: '#f5f5f5',
+              color: '#fafafa',
               fontFamily: 'Doto',
               fontSize: previewTitleSize,
               lineHeight: 0.92,
@@ -148,8 +148,8 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
             alignItems: 'flex-end',
             justifyContent: 'space-between',
             gap: 24,
-            borderTop: '2px solid #2a2a2a',
-            paddingTop: 18,
+            borderTop: '2px solid #343434',
+            paddingTop: 20,
           }}
         >
           <div
@@ -162,9 +162,9 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
             <span
               style={{
                 display: 'flex',
-                color: '#6f6f6f',
-                fontSize: 18,
-                letterSpacing: '0.18em',
+                color: '#9f9f9f',
+                fontSize: 20,
+                letterSpacing: '0.16em',
                 textTransform: 'uppercase',
               }}
             >
@@ -173,8 +173,8 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
             <span
               style={{
                 display: 'flex',
-                color: '#f5f5f5',
-                fontSize: 28,
+                color: '#f3f3f3',
+                fontSize: 30,
                 letterSpacing: '-0.04em',
               }}
             >
@@ -184,9 +184,9 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
           <span
             style={{
               display: 'flex',
-              color: '#6f6f6f',
-              fontSize: 18,
-              letterSpacing: '0.16em',
+              color: '#9f9f9f',
+              fontSize: 20,
+              letterSpacing: '0.14em',
               textTransform: 'uppercase',
             }}
           >
