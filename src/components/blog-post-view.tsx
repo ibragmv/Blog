@@ -80,7 +80,7 @@ export function BlogPostView({ post }: { post: PostRecord }) {
 
   return (
     <article className="grid gap-10 animate-in fade-in duration-500">
-      <div className="grid gap-4 border-y border-[var(--border)] bg-[var(--black)] py-4 md:sticky md:top-[var(--header-height)] md:z-30">
+      <div className="sticky top-[var(--header-height)] z-30 grid gap-4 border-y border-[var(--border)] bg-[var(--black)] py-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link
             href="/blog"
