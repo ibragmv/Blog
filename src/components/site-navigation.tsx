@@ -30,7 +30,7 @@ export function SiteNavigation() {
             key={item.path}
             href={item.path}
             className={cn(
-              'group relative inline-flex flex-col items-start gap-3 pb-3 text-[0.9rem] font-medium uppercase tracking-[0.14em] transition-colors',
+              'group relative inline-flex min-w-[5.5rem] flex-col items-center gap-3 pb-3 text-center text-[0.9rem] font-medium uppercase tracking-[0.14em] transition-colors',
               pathname === item.path
                 ? 'text-[var(--text-display)]'
                 : 'text-[var(--text-disabled)] hover:text-[var(--text-primary)]'
@@ -40,7 +40,7 @@ export function SiteNavigation() {
             <span
               aria-hidden="true"
               className={cn(
-                'block h-px w-full transition-colors',
+                'block h-px w-16 rounded-full transition-colors',
                 pathname === item.path
                   ? 'bg-[var(--text-display)]'
                   : 'bg-transparent group-hover:bg-[color-mix(in_srgb,var(--text-primary)_55%,transparent)]'
