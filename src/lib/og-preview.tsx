@@ -72,7 +72,7 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
           flexDirection: 'column',
           borderRadius: 22,
           background: '#000000',
-          border: '2px solid #2a2a2a',
+          border: '2px solid #f4f4f4',
           position: 'relative',
           overflow: 'hidden',
           padding: '30px 34px',
@@ -90,14 +90,14 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 10,
+              gap: 12,
             }}
           >
             <div
               style={{
                 display: 'flex',
-                width: 12,
-                height: 12,
+                width: 14,
+                height: 14,
                 borderRadius: 9999,
                 background: '#d71921',
               }}
@@ -105,18 +105,18 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
             <div
               style={{
                 display: 'flex',
-                width: 72,
+                width: 88,
                 height: 2,
-                background: '#2f2f2f',
+                background: '#f4f4f4',
               }}
             />
           </div>
           <div
             style={{
               display: 'flex',
-              width: 96,
+              width: 112,
               height: 2,
-              background: '#2f2f2f',
+              background: '#d71921',
             }}
           />
         </div>
@@ -127,7 +127,7 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
             flex: 1,
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '24px 84px 12px',
+            padding: '12px 80px 0',
           }}
         >
           <div
@@ -137,7 +137,7 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
               alignItems: 'center',
               justifyContent: 'center',
               textAlign: 'center',
-              color: '#fafafa',
+              color: '#ffffff',
               fontFamily: 'Doto',
               fontSize: previewTitleSize,
               lineHeight: 0.92,
@@ -157,40 +157,71 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: 24,
-            borderTop: '2px solid #343434',
-            paddingTop: 18,
+            borderTop: '2px solid #f4f4f4',
+            paddingTop: 20,
           }}
         >
           <div
             style={{
               display: 'flex',
-              width: 132,
-              height: 2,
-              background: '#2f2f2f',
+              flexDirection: 'column',
+              gap: 10,
             }}
-          />
+          >
+            <div
+              style={{
+                display: 'flex',
+                color: '#ffffff',
+                fontFamily: 'Doto',
+                fontSize: 26,
+                lineHeight: 1,
+              }}
+            >
+              {SITE_CONFIG.siteName}
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                width: 148,
+                height: 2,
+                background: '#d71921',
+              }}
+            />
+          </div>
           <div
             style={{
               display: 'flex',
-              gap: 10,
+              gap: 12,
               alignItems: 'center',
             }}
           >
             <div
               style={{
                 display: 'flex',
-                width: 10,
-                height: 10,
+                width: 42,
+                height: 42,
                 borderRadius: 9999,
-                background: '#f5f5f5',
+                border: '2px solid #ffffff',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
-            />
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  width: 12,
+                  height: 12,
+                  borderRadius: 9999,
+                  background: '#d71921',
+                }}
+              />
+            </div>
             <div
               style={{
                 display: 'flex',
-                width: 54,
+                width: 64,
                 height: 2,
-                background: '#2f2f2f',
+                background: '#ffffff',
               }}
             />
           </div>
