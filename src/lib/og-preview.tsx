@@ -105,6 +105,14 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
               background: '#f2f2f2',
             }}
           />
+          <div
+            style={{
+              display: 'flex',
+              width: 32,
+              height: 2,
+              background: '#4a4a4a',
+            }}
+          />
         </div>
 
         <div
@@ -124,6 +132,14 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
               gap: 8,
             }}
           >
+            <div
+              style={{
+                display: 'flex',
+                width: 44,
+                height: 2,
+                background: '#4a4a4a',
+              }}
+            />
             <div
               style={{
                 display: 'flex',
@@ -216,6 +232,14 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
                 background: '#f2f2f2',
               }}
             />
+            <div
+              style={{
+                display: 'flex',
+                width: 168,
+                height: 2,
+                background: '#d71921',
+              }}
+            />
           </div>
 
           <div
@@ -249,11 +273,28 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
             <div
               style={{
                 display: 'flex',
-                width: 110,
-                height: 2,
-                background: '#f2f2f2',
+                flexDirection: 'column',
+                gap: 12,
               }}
-            />
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  width: 110,
+                  height: 2,
+                  background: '#f2f2f2',
+                }}
+              />
+              <div
+                style={{
+                  display: 'flex',
+                  width: 74,
+                  height: 2,
+                  background: '#4a4a4a',
+                  alignSelf: 'flex-end',
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
