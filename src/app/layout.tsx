@@ -1,7 +1,8 @@
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata, Viewport } from 'next';
-import { Doto, Space_Grotesk, Space_Mono } from 'next/font/google';
+import { Space_Grotesk, Space_Mono } from 'next/font/google';
+import localFont from 'next/font/local';
 import { Layout } from '@/components/layout';
 import { ThemeProvider } from '@/components/theme-provider';
 import { absoluteUrl } from '@/lib/seo';
@@ -21,8 +22,54 @@ const spaceMono = Space_Mono({
   display: 'swap',
 });
 
-const doto = Doto({
-  subsets: ['latin'],
+const doto = localFont({
+  src: [
+    {
+      path: '../../Doto Font/static/Doto-Thin.ttf',
+      weight: '100',
+      style: 'normal',
+    },
+    {
+      path: '../../Doto Font/static/Doto-ExtraLight.ttf',
+      weight: '200',
+      style: 'normal',
+    },
+    {
+      path: '../../Doto Font/static/Doto-Light.ttf',
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: '../../Doto Font/static/Doto-Regular.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../Doto Font/static/Doto-Medium.ttf',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../../Doto Font/static/Doto-SemiBold.ttf',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../../Doto Font/static/Doto-Bold.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../../Doto Font/static/Doto-ExtraBold.ttf',
+      weight: '800',
+      style: 'normal',
+    },
+    {
+      path: '../../Doto Font/static/Doto-Black.ttf',
+      weight: '900',
+      style: 'normal',
+    },
+  ],
   variable: '--font-doto',
   display: 'swap',
 });
