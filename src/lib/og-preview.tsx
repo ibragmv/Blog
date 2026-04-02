@@ -59,8 +59,8 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
         display: 'flex',
         width: '100%',
         height: '100%',
-        background: '#efede8',
-        padding: '28px',
+        background: '#000000',
+        padding: '24px',
         alignItems: 'center',
         justifyContent: 'center',
       }}
@@ -71,12 +71,12 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
           width: '100%',
           height: '100%',
           flexDirection: 'column',
-          borderRadius: 24,
-          background: '#f6f4ef',
-          border: '2px solid #141414',
+          borderRadius: 22,
+          background: '#000000',
+          border: '2px solid #2a2a2a',
           position: 'relative',
           overflow: 'hidden',
-          padding: '28px 34px',
+          padding: '30px 34px',
         }}
       >
         <div
@@ -85,7 +85,7 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
             width: '100%',
             alignItems: 'center',
             justifyContent: 'space-between',
-            color: '#5e5a54',
+            color: '#6f6f6f',
             fontSize: 18,
             letterSpacing: '0.18em',
             textTransform: 'uppercase',
@@ -128,7 +128,7 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
               alignItems: 'center',
               justifyContent: 'center',
               textAlign: 'center',
-              color: '#111111',
+              color: '#f5f5f5',
               fontFamily: 'Doto',
               fontSize: previewTitleSize,
               lineHeight: 0.92,
@@ -148,7 +148,7 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
             alignItems: 'flex-end',
             justifyContent: 'space-between',
             gap: 24,
-            borderTop: '2px solid #141414',
+            borderTop: '2px solid #2a2a2a',
             paddingTop: 18,
           }}
         >
@@ -162,7 +162,7 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
             <span
               style={{
                 display: 'flex',
-                color: '#5e5a54',
+                color: '#6f6f6f',
                 fontSize: 18,
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
@@ -173,7 +173,7 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
             <span
               style={{
                 display: 'flex',
-                color: '#141414',
+                color: '#f5f5f5',
                 fontSize: 28,
                 letterSpacing: '-0.04em',
               }}
@@ -181,30 +181,17 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
               {SITE_CONFIG.siteName}
             </span>
           </div>
-
-          <div
+          <span
             style={{
               display: 'flex',
-              minWidth: 214,
-              justifyContent: 'flex-end',
-              gap: 10,
+              color: '#6f6f6f',
+              fontSize: 18,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
             }}
           >
-            {Array.from({ length: 6 }, (_, index) => (
-              <span
-                // eslint-disable-next-line react/no-array-index-key
-                key={String(index)}
-                style={{
-                  display: 'flex',
-                  width: 18,
-                  height: 18,
-                  borderRadius: 9999,
-                  border: '2px solid #141414',
-                  background: index < 1 ? '#141414' : 'transparent',
-                }}
-              />
-            ))}
-          </div>
+            [ Signal ]
+          </span>
         </div>
       </div>
     </div>
