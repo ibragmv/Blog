@@ -4,5 +4,10 @@ import { requireAdminSessionOrRedirect } from '@/lib/server/admin-auth';
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await requireAdminSessionOrRedirect('/admin');
 
-  return <AdminProviders initialSession={session}>{children}</AdminProviders>;
+  return (
+    <>
+      <span data-admin-route="true" className="hidden" aria-hidden="true" />
+      <AdminProviders initialSession={session}>{children}</AdminProviders>
+    </>
+  );
 }

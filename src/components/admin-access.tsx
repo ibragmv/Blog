@@ -18,6 +18,7 @@ export function AdminAccess({ className }: { className?: string }) {
       className={cn('group inline-flex items-center justify-center transition-colors', className)}
     >
       <span
+        data-admin-access-mobile="true"
         className={cn(
           'flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] transition-colors group-hover:border-[var(--border-visible)] group-hover:text-[var(--text-display)] lg:hidden',
           isAdminRoute &&
@@ -27,10 +28,13 @@ export function AdminAccess({ className }: { className?: string }) {
         <Shield size={19} aria-hidden="true" strokeWidth={1.9} />
       </span>
 
-      <span className="hidden lg:inline-flex min-w-[6rem] flex-col items-center gap-3 pb-3">
+      <span
+        data-admin-access-desktop="true"
+        className="hidden lg:inline-flex min-w-[6rem] flex-col items-center gap-3 pb-3"
+      >
         <span
           className={cn(
-            'inline-flex items-center gap-2 font-mono text-[0.76rem] font-normal uppercase tracking-[0.12em] transition-colors',
+            'inline-flex items-center gap-2 text-[0.9rem] font-medium uppercase tracking-[0.14em] transition-colors',
             isAdminRoute
               ? 'text-[var(--accent)]'
               : 'text-[var(--text-disabled)] group-hover:text-[var(--text-primary)]'

@@ -27,6 +27,7 @@ export default async function LoginPage({ searchParams }: Props) {
 
   return (
     <AuthProviders initialSession={session}>
+      <span data-admin-route="true" className="hidden" aria-hidden="true" />
       <LoginForm redirectTo={nextPath} />
     </AuthProviders>
   );

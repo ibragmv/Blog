@@ -155,6 +155,24 @@
     transform: translateY(0);
   }
 
+  body:has([data-admin-route='true']) [data-admin-access-mobile='true'] {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+    background: var(--accent-subtle);
+    color: var(--accent);
+  }
+
+  body:has([data-admin-route='true']) [data-admin-access-desktop='true'] {
+    color: var(--accent);
+  }
+
+  body:has([data-admin-route='true']) [data-admin-access-desktop='true'] > span:last-child {
+    background: var(--accent);
+  }
+
+  body:has([data-admin-route='true']) [data-admin-access-desktop='true'] [aria-hidden='true']:first-child {
+    opacity: 1;
+  }
+
   .nd-segmented-control {
     display: inline-flex;
     width: fit-content;

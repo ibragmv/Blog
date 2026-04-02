@@ -152,7 +152,7 @@ export function BlogPostView({
               </span>
             )}
           </div>
-          <div className="grid gap-2 border-t border-[var(--border)] pt-4">
+          <div className="hidden gap-2 border-t border-[var(--border)] pt-4 lg:grid">
             <span className="nd-label text-[var(--text-secondary)]">Progress</span>
             <span className="text-[0.95rem] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
               [{Math.round(readingProgress)}% Read]
