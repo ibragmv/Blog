@@ -2,7 +2,6 @@ import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata, Viewport } from 'next';
 import { Doto, Space_Grotesk, Space_Mono } from 'next/font/google';
-import Script from 'next/script';
 import { Layout } from '@/components/layout';
 import { ThemeProvider } from '@/components/theme-provider';
 import { absoluteUrl } from '@/lib/seo';
@@ -27,24 +26,6 @@ const doto = Doto({
   variable: '--font-doto',
   display: 'swap',
 });
-
-const themeInitScript = `
-(() => {
-  try {
-    const storageKey = 'blog-theme';
-    const storedTheme = localStorage.getItem(storageKey);
-    const theme = storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'system'
-      ? storedTheme
-      : 'system';
-    const resolvedTheme = theme === 'system'
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-      : theme;
-    document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(resolvedTheme);
-    document.documentElement.style.colorScheme = resolvedTheme;
-  } catch {}
-})();
-`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -109,9 +90,6 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${spaceMono.variable} ${doto.variable}`}
     >
       <body className="font-sans">
-        <Script id="theme-init" strategy="beforeInteractive">
-          {themeInitScript}
-        </Script>
         <ThemeProvider defaultTheme="system" storageKey="blog-theme">
           <Layout currentYear={new Date().getFullYear()}>{children}</Layout>
           <Analytics />

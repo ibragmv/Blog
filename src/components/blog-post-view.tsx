@@ -29,9 +29,11 @@ export function BlogPostView({ post }: { post: PostRecord }) {
 
       const rect = contentElement.getBoundingClientRect();
       const contentTop = window.scrollY + rect.top;
+      const contentBottom = contentTop + contentElement.offsetHeight;
       const viewportOffset = window.innerHeight * 0.3;
-      const travel = Math.max(contentElement.offsetHeight - viewportOffset, 1);
-      const rawProgress = ((window.scrollY + viewportOffset - contentTop) / travel) * 100;
+      const startScroll = contentTop - viewportOffset;
+      const endScroll = Math.max(contentBottom - window.innerHeight, startScroll + 1);
+      const rawProgress = ((window.scrollY - startScroll) / (endScroll - startScroll)) * 100;
       const nextProgress = Number(Math.min(100, Math.max(0, rawProgress)).toFixed(2));
 
       setReadingProgress(nextProgress);

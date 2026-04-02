@@ -4,27 +4,30 @@ import { DinoGame } from '@/components/dino-game';
 
 export default function NotFound() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] py-12 px-4">
-      <div className="text-center mb-12">
-        <h1 className="text-6xl font-bold text-zinc-900 dark:text-zinc-100 mb-4 font-display">
+    <div className="grid min-h-[70vh] gap-10 px-4 py-12">
+      <div className="grid gap-4 border-b border-[var(--border)] pb-10 text-center">
+        <span className="nd-label text-[var(--text-secondary)]">Route Lost</span>
+        <h1 className="font-display text-[clamp(4rem,14vw,8rem)] leading-[0.84] tracking-[-0.06em] text-[var(--text-display)]">
           404
         </h1>
-        <p className="text-xl text-zinc-600 dark:text-zinc-400 mb-8">
-          Oops! The page you&apos;re looking for doesn&apos;t exist.
+        <p className="mx-auto max-w-2xl text-base leading-7 text-[var(--text-secondary)] md:text-lg">
+          This page does not exist anymore, or the address was never valid.
         </p>
-        <p className="text-sm text-zinc-500 dark:text-zinc-500 mb-8">
-          But while you&apos;re here, why not set a new high score from any device?
+        <p className="mx-auto max-w-xl font-mono text-xs uppercase tracking-[0.12em] text-[var(--text-disabled)]">
+          [ FALLBACK ACTIVE ] [ DINO READY ]
         </p>
       </div>
 
-      <DinoGame />
+      <div className="mx-auto w-full max-w-4xl">
+        <DinoGame />
+      </div>
 
-      <div className="mt-12">
+      <div className="flex justify-center">
         <Link
           href="/"
-          className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 transition-colors"
+          className="inline-flex min-h-11 items-center gap-2 text-sm uppercase tracking-[0.12em] text-[var(--text-secondary)] hover:text-[var(--text-display)]"
         >
-          <ArrowLeft size={16} className="mr-2" />
+          <ArrowLeft size={16} aria-hidden="true" />
           Back to home
         </Link>
       </div>

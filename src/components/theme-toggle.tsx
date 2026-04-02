@@ -1,10 +1,16 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useTheme } from '@/components/theme-provider';
 import { cn } from '@/lib/utils';
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <fieldset className="nd-segmented-control">
@@ -12,8 +18,8 @@ export function ThemeToggle() {
       <button
         type="button"
         onClick={() => setTheme('light')}
-        aria-pressed={theme === 'light'}
-        data-state={theme === 'light' ? 'active' : 'inactive'}
+        aria-pressed={mounted ? theme === 'light' : false}
+        data-state={mounted && theme === 'light' ? 'active' : 'inactive'}
         className={cn('shrink-0')}
         title="Light Mode"
       >
@@ -22,8 +28,8 @@ export function ThemeToggle() {
       <button
         type="button"
         onClick={() => setTheme('dark')}
-        aria-pressed={theme === 'dark'}
-        data-state={theme === 'dark' ? 'active' : 'inactive'}
+        aria-pressed={mounted ? theme === 'dark' : false}
+        data-state={mounted && theme === 'dark' ? 'active' : 'inactive'}
         className={cn('shrink-0')}
         title="Dark Mode"
       >
@@ -32,8 +38,8 @@ export function ThemeToggle() {
       <button
         type="button"
         onClick={() => setTheme('system')}
-        aria-pressed={theme === 'system'}
-        data-state={theme === 'system' ? 'active' : 'inactive'}
+        aria-pressed={mounted ? theme === 'system' : false}
+        data-state={mounted && theme === 'system' ? 'active' : 'inactive'}
         className={cn('shrink-0')}
         title="System Theme"
       >

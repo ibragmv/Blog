@@ -1,6 +1,6 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { SITE_CONFIG } from '@/lib/site';
+import { BrandMark } from './brand-mark';
 import { SiteNavigation } from './site-navigation';
 import { ThemeToggle } from './theme-toggle';
 
@@ -22,32 +22,17 @@ export function Layout({
 
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--black)]">
         <div className="mx-auto flex min-h-[var(--header-height)] w-full max-w-7xl items-center justify-between gap-5 px-5 py-4 md:px-8">
-          <Link href="/" className="flex min-w-0 items-center gap-4">
-            <Image
-              src="/favicon.svg"
-              alt={`${SITE_CONFIG.siteName} logo`}
-              width={40}
-              height={40}
-              sizes="40px"
-              priority
-              className="h-10 w-10 shrink-0 rounded-full border border-[var(--border)] bg-[var(--surface)] p-1.5"
-            />
-            <div className="flex min-w-0 flex-col justify-center">
-              <span className="nd-label text-[var(--text-secondary)]">Personal Signal</span>
-              {IS_MULTI_WORD_TITLE ? (
-                <>
-                  <span className="truncate text-[1.15rem] font-medium leading-none tracking-[-0.04em] text-[var(--text-display)] md:text-[1.45rem]">
-                    {TITLE_WORDS[0]}
-                  </span>
-                  <span className="truncate font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[var(--text-secondary)] md:pt-1 md:text-[0.76rem]">
-                    {TITLE_WORDS.slice(1).join(' ')}
-                  </span>
-                </>
-              ) : (
-                <span className="truncate text-[1.35rem] font-medium tracking-[-0.04em] text-[var(--text-display)]">
-                  {SITE_CONFIG.title}
-                </span>
-              )}
+          <Link href="/" className="flex min-w-0 items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text-display)]">
+              <BrandMark className="h-8 w-8" />
+            </span>
+            <div className="flex min-w-0 flex-col justify-center gap-1">
+              <span className="truncate text-[1.1rem] font-medium leading-none tracking-[-0.045em] text-[var(--text-display)] md:text-[1.35rem]">
+                {SITE_CONFIG.title}
+              </span>
+              <span className="nd-label truncate text-[var(--text-secondary)]">
+                {IS_MULTI_WORD_TITLE ? 'Writing Archive' : TITLE_WORDS[0]}
+              </span>
             </div>
           </Link>
 
