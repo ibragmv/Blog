@@ -154,32 +154,6 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
         <div
           style={{
             display: 'flex',
-            position: 'absolute',
-            right: -118,
-            bottom: -118,
-            width: 260,
-            height: 260,
-            borderRadius: 9999,
-            border: '2px solid #2d2d2d',
-          }}
-        />
-
-        <div
-          style={{
-            display: 'flex',
-            position: 'absolute',
-            left: -84,
-            bottom: 82,
-            width: 168,
-            height: 168,
-            borderRadius: 9999,
-            border: '2px solid #1f1f1f',
-          }}
-        />
-
-        <div
-          style={{
-            display: 'flex',
             flex: 1,
             alignItems: 'center',
             justifyContent: 'center',
