@@ -1,31 +1,32 @@
-# Ibragim Ibragimov Archive.
+# Ibragim Ibragimov Archive
 
-Editorial archive built on Next.js App Router, Convex, Bun, Turbo, and Turbopack. The public site is tuned for long-form reading, while the admin side covers authoring, links, auth, and optional RU -> EN translation.
+Editorial archive built with Next.js App Router, Convex, Bun, Turbo, and Turbopack. The public side is optimized for long-form reading, while the private side covers authoring, links, authentication, and optional RU -> EN translation through Gemini.
+
+## What This App Does
+
+- `/` renders the homepage from the `home` post record
+- `/archive` lists published essays and notes
+- `/archive/[slug]` renders the full article page with metadata and OG output
+- `/links` exposes curated public links
+- `/login` and `/admin` power the editorial workflow
+- `/api/translate` translates editor content when Gemini is configured
 
 ## Stack
 
 - Next.js 16 App Router with React 19
-- Turbopack for local development and production builds
-- Turbo for cached orchestration across lint, typecheck, and build
-- Convex for content, links, sessions, and admin mutations
+- Bun as the package manager and runtime entrypoint
+- Turbopack for development and production builds
+- Turbo for orchestration across lint, typecheck, and build
+- Convex for content, links, sessions, queries, and mutations
 - Tailwind CSS 4 for styling
-- Biome for formatting and linting
-- Google Gemini model integration for optional translation
+- Biome for linting and formatting
+- Google Gemini for optional translation inside the admin editor
 
-## Core Flows
+## Environment Contract
 
-- `/` renders the homepage from the `home` post record
-- `/archive` lists published posts with previews and search
-- `/archive/[slug]` renders full articles with metadata and OG images
-- `/links` exposes curated public links
-- `/login` and `/admin` provide the editorial workflow
-- `/api/translate` can translate titles and markdown inside the editor
+Real secrets belong only in [`.env`](./.env). The public template lives in [`.env.example`](./.env.example). The repo already ignores private env files in [`.gitignore`](./.gitignore).
 
-## Environment
-
-Use [`.env.example`](./.env.example) as the public template and keep real secrets only in `.env`, which is already ignored by [`.gitignore`](./.gitignore).
-
-Public template keys:
+Public template keys in [`.env.example`](./.env.example):
 
 ```env
 NEXT_PUBLIC_SITE_URL="https://your-domain.example"
@@ -37,61 +38,71 @@ ADMIN_PASSWORD="change-me"
 NODE_OPTIONS="--no-deprecation"
 ```
 
-Local-only secrets that should exist in `.env` but never in `.env.example`:
+Private-only server secret in [`.env`](./.env):
 
 ```env
 GEMINI_API_KEY="your-gemini-api-key"
 ```
 
-## Development
+Notes:
+
+- `NEXT_PUBLIC_SITE_URL` is used for canonical URLs, metadata, sitemap, and OG generation
+- `CONVEX_DEPLOYMENT` is used by Convex CLI workflows
+- `NEXT_PUBLIC_CONVEX_URL` is required by the app runtime
+- `GEMINI_API_KEY` is only required if you use `/api/translate`
+- `GEMINI_MODEL` is optional in practice and falls back to `gemini-2.5-flash`
+- `ADMIN_EMAIL` and `ADMIN_PASSWORD` are required for `/login` and `/admin`
+- `NODE_OPTIONS="--no-deprecation"` is the current local runtime default
+
+## Local Development
 
 ```bash
 bun install
 bun run dev
 ```
 
-`bun run dev` starts Next.js through Turbopack against the configured production Convex deployment.
+`bun run dev` starts the Next.js app through Turbopack. Before launching it, make sure your private [`.env`](./.env) is filled with real values that match your active Convex deployment and admin credentials.
 
 ## Scripts
 
 ```bash
-bun run dev        # Next.js dev server on Turbopack
-bun run build      # production build on Turbopack
-bun run analyze    # Turbopack bundle analysis output
-bun run start      # serve the production build
-bun run convex     # Convex dev with env cleanup
+bun run dev        # start Next.js in dev mode with Turbopack
+bun run build      # create a production build with Turbopack
+bun run start      # run the production build
 bun run lint       # biome check
-bun run fix        # biome check with safe writes
-bun run format     # biome format
 bun run typecheck  # next typegen + tsc
 bun run check      # turbo pipeline: lint + typecheck + build
+bun run format     # biome format --write
+bun run fix        # biome check --write
+bun run analyze    # production build with Turbopack analyzer
 bun run clean      # remove local build artifacts
-bun run deploy     # deploy Convex functions to the configured production deployment
+bun run deploy     # deploy Convex functions to the configured Convex deployment
 ```
 
 ## Project Shape
 
 - [src/app](./src/app) contains routes, metadata, route handlers, and OG image entries
 - [src/components](./src/components) contains public and admin UI
-- [src/lib](./src/lib) contains SEO, content, server helpers, and shared utilities
-- [convex](./convex) contains schema, queries, mutations, auth helpers, and generated types
-- [scripts](./scripts) contains local DX helpers
+- [src/lib](./src/lib) contains SEO helpers, server utilities, and shared domain logic
+- [convex](./convex) contains the schema, queries, mutations, auth helpers, and generated types
+- [scripts](./scripts) contains local development helpers
 
-Schema lives in [schema.ts](./convex/schema.ts).
+Schema lives in [convex/schema.ts](./convex/schema.ts).
 
 - `posts` stores articles and page-like content such as the homepage
 - `links` stores ordered public links
-- `sessions` stores hashed admin sessions with expiration
+- `sessions` stores hashed admin sessions with expiration timestamps
 
 ## Verification
 
-Run:
+Run the required quality checks:
 
 ```bash
-bun run check
+bun run lint
+bun run typecheck
 ```
 
-Then smoke-test:
+Then smoke-test the main flows:
 
 - `http://localhost:3000/`
 - `http://localhost:3000/archive`
