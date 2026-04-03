@@ -35,7 +35,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
 
   return (
     <div className="max-w-sm mx-auto mt-20 animate-in fade-in duration-500">
-      <h1 className="font-display text-[2.4rem] font-black mb-6 text-center text-zinc-100 tracking-[0.08em] leading-none">
+      <h1 className="font-display text-[2.8rem] font-medium mb-6 text-center text-zinc-100 tracking-[0.16em] leading-none">
         ADMIN
       </h1>
 
