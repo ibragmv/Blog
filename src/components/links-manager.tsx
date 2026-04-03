@@ -20,6 +20,7 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/components/admin-auth-provider';
 import type { LinkRecord } from '@/lib/content';
+import { formatDisplayOrder } from '@/lib/utils';
 
 const ICON_OPTIONS = [
   { value: 'default', label: 'Default', icon: LinkIcon },
@@ -42,7 +43,7 @@ export function LinksManager() {
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [icon, setIcon] = useState('default');
-  const [order, setOrder] = useState(0);
+  const [order, setOrder] = useState(1);
   const [editId, setEditId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,11 +53,11 @@ export function LinksManager() {
 
     if (links.length > 0) {
       const maxOrder = Math.max(...links.map((link) => link.order));
-      setOrder(maxOrder + 1);
+      setOrder(Math.max(1, maxOrder + 1));
       return;
     }
 
-    setOrder(0);
+    setOrder(1);
   }, [isEditing, links]);
 
   const resetForm = () => {
@@ -67,9 +68,9 @@ export function LinksManager() {
     // Recalculate next order
     if (links && links.length > 0) {
       const maxOrder = Math.max(...links.map((link) => link.order));
-      setOrder(maxOrder + 1);
+      setOrder(Math.max(1, maxOrder + 1));
     } else {
-      setOrder(0);
+      setOrder(1);
     }
     setIsEditing(false);
   };
@@ -205,8 +206,9 @@ export function LinksManager() {
               <input
                 id="link-order"
                 type="number"
+                min={1}
                 value={order}
-                onChange={(e) => setOrder(Number.parseInt(e.target.value, 10) || 0)}
+                onChange={(e) => setOrder(Math.max(1, Number.parseInt(e.target.value, 10) || 1))}
                 className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-700 text-zinc-200"
               />
             </div>
@@ -253,7 +255,7 @@ export function LinksManager() {
                 ICON_OPTIONS.find((opt) => opt.value === link.icon)?.icon || LinkIcon;
               return (
                 <tr key={link.id} className="hover:bg-zinc-800/50 transition-colors">
-                  <td className="px-6 py-4 text-zinc-500">{link.order}</td>
+                  <td className="px-6 py-4 text-zinc-500">{formatDisplayOrder(link.order)}</td>
                   <td className="px-6 py-4 text-zinc-400">
                     <IconComponent size={18} />
                   </td>

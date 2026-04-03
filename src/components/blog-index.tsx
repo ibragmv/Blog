@@ -9,6 +9,7 @@ import { useDeferredValue, useState } from 'react';
 import { getPreferredPostContent, getPreferredPostTitle } from '@/lib/content';
 import { formatLongUtcDate } from '@/lib/dates';
 import { buildDescription } from '@/lib/seo';
+import { formatDisplayOrder } from '@/lib/utils';
 
 export function BlogIndex({
   preloadedPosts,
@@ -112,7 +113,7 @@ export function BlogIndex({
 
                   <div className="flex items-center justify-between gap-3 sm:col-start-2 sm:justify-start lg:col-start-auto lg:justify-end">
                     <span className="nd-label text-[var(--text-disabled)]">
-                      {index.toString().padStart(2, '0')}
+                      {formatDisplayOrder(index + 1)}
                     </span>
                     <span className="text-sm font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
                       [ Open ]

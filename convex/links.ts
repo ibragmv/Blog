@@ -23,6 +23,10 @@ function serializeLink(link: Doc<"links">) {
   };
 }
 
+function normalizeOrder(order: number) {
+  return Math.max(1, Math.trunc(order));
+}
+
 function buildLinkDocument(args: {
   title: string;
   url: string;
@@ -33,7 +37,7 @@ function buildLinkDocument(args: {
     title: args.title.trim(),
     url: args.url.trim(),
     icon: args.icon.trim() || "default",
-    order: args.order,
+    order: normalizeOrder(args.order),
     createdAt,
   };
 }

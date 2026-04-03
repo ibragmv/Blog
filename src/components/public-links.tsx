@@ -4,6 +4,7 @@ import type { api } from '@convex/_generated/api';
 import type { Preloaded } from 'convex/react';
 import { usePreloadedQuery } from 'convex/react';
 import { Github, Globe, Linkedin, Link as LinkIcon, Mail, Twitter } from 'lucide-react';
+import { formatDisplayOrder } from '@/lib/utils';
 
 const iconMap = {
   github: Github,
@@ -85,7 +86,7 @@ export function PublicLinks({
                 </div>
                 <div className="flex items-center justify-between gap-3 md:justify-end">
                   <span className="nd-label text-[var(--text-disabled)]">
-                    {link.order.toString().padStart(2, '0')}
+                    {formatDisplayOrder(link.order)}
                   </span>
                   <span className="text-sm font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
                     [ Open ]
