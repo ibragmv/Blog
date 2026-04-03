@@ -1,8 +1,5 @@
 'use client';
 
-import { api } from '@convex/_generated/api';
-import type { Id } from '@convex/_generated/dataModel';
-import { useMutation, useQuery } from 'convex/react';
 import { ArrowLeft, Languages, Loader2, Save } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -10,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/components/admin-auth-provider';
 import { MarkdownEditor } from '@/components/markdown-editor';
 import { PageLoader } from '@/components/page-loader';
+import { AdminApiError, createAdminPost, getAdminPost, updateAdminPost } from '@/lib/admin-api';
 import { translatePost } from '@/services/translation';
 
 type PostEditorFormProps = { mode: 'create'; postId?: never } | { mode: 'edit'; postId: string };
@@ -17,12 +15,9 @@ type PostEditorFormProps = { mode: 'create'; postId?: never } | { mode: 'edit'; 
 export function PostEditorForm(props: PostEditorFormProps) {
   const router = useRouter();
   const isEditing = props.mode === 'edit';
-  const { isAuthenticated, isLoading, sessionToken } = useAdminAuth();
-  const savePost = useMutation(api.posts.save);
-  const post = useQuery(
-    api.posts.getAdminById,
-    isEditing && sessionToken ? { sessionToken, postId: props.postId as Id<'posts'> } : 'skip'
-  );
+  const editPostId = props.mode === 'edit' ? props.postId : null;
+  const { isAuthenticated, isLoading } = useAdminAuth();
+  const [isPostLoading, setIsPostLoading] = useState(isEditing);
 
   const [titleRU, setTitleRU] = useState('');
   const [slug, setSlug] = useState('');
@@ -35,23 +30,57 @@ export function PostEditorForm(props: PostEditorFormProps) {
   const [translationError, setTranslationError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isEditing && post === null) {
-      router.replace('/admin');
-    }
-  }, [isEditing, post, router]);
-
-  useEffect(() => {
-    if (!isEditing || !post) {
+    if (!isEditing || !isAuthenticated || !editPostId) {
       return;
     }
 
-    setTitleRU(post.titleRU);
-    setSlug(post.slug);
-    setContentRU(post.contentRU);
-    setTitleEN(post.titleEN || '');
-    setContentEN(post.contentEN || '');
-    setPublished(post.published);
-  }, [isEditing, post]);
+    let cancelled = false;
+    setIsPostLoading(true);
+
+    getAdminPost(editPostId)
+      .then((post) => {
+        if (cancelled) {
+          return;
+        }
+
+        setTitleRU(post.titleRU);
+        setSlug(post.slug);
+        setContentRU(post.contentRU);
+        setTitleEN(post.titleEN || '');
+        setContentEN(post.contentEN || '');
+        setPublished(post.published);
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return;
+        }
+
+        if (error instanceof AdminApiError) {
+          if (error.status === 404) {
+            router.replace('/admin');
+            return;
+          }
+
+          if (error.status === 401) {
+            router.replace(`/login?next=${encodeURIComponent(`/admin/edit/${editPostId}`)}`);
+            router.refresh();
+            return;
+          }
+        }
+
+        window.alert(error instanceof Error ? error.message : 'Failed to load post.');
+        router.replace('/admin');
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsPostLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [editPostId, isAuthenticated, isEditing, router]);
 
   const generateSlug = (text: string) =>
     text
@@ -88,10 +117,6 @@ export function PostEditorForm(props: PostEditorFormProps) {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!sessionToken) {
-      return;
-    }
-
     setLoading(true);
 
     let finalTitleEN = titleEN;
@@ -117,19 +142,34 @@ export function PostEditorForm(props: PostEditorFormProps) {
     }
 
     try {
-      await savePost({
-        sessionToken,
-        ...(isEditing ? { postId: props.postId as Id<'posts'> } : {}),
+      const payload = {
         titleRU,
         slug,
         contentRU,
         titleEN: finalTitleEN,
         contentEN: finalContentEN,
         published,
-      });
+      };
+
+      if (isEditing) {
+        if (!editPostId) {
+          throw new Error('Missing post id.');
+        }
+
+        await updateAdminPost(editPostId, payload);
+      } else {
+        await createAdminPost(payload);
+      }
 
       router.push('/admin');
+      router.refresh();
     } catch (error) {
+      if (error instanceof AdminApiError && error.status === 401) {
+        router.replace('/login?next=/admin');
+        router.refresh();
+        return;
+      }
+
       const message = error instanceof Error ? error.message : 'An unknown error occurred';
       window.alert(`Error saving post: ${message}`);
     } finally {
@@ -137,7 +177,7 @@ export function PostEditorForm(props: PostEditorFormProps) {
     }
   };
 
-  if (!isAuthenticated || isLoading || (isEditing && post === undefined)) {
+  if (!isAuthenticated || isLoading || (isEditing && isPostLoading)) {
     return <PageLoader className="h-64" />;
   }
 

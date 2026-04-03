@@ -1,8 +1,5 @@
 'use client';
 
-import { api } from '@convex/_generated/api';
-import type { Id } from '@convex/_generated/dataModel';
-import { useMutation, useQuery } from 'convex/react';
 import { Edit2, FileText, Link as LinkIcon, Loader2, LogOut, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -10,6 +7,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useAdminAuth } from '@/components/admin-auth-provider';
 import { LinksManager } from '@/components/links-manager';
 import { PageLoader } from '@/components/page-loader';
+import { AdminApiError, deleteAdminPost, getAdminPosts } from '@/lib/admin-api';
+import type { PostRecord } from '@/lib/content';
 import { formatShortUtcDate } from '@/lib/dates';
 
 function DeleteButton({ id, onDelete }: { id: string; onDelete: (id: string) => Promise<void> }) {
@@ -81,31 +80,66 @@ function DeleteButton({ id, onDelete }: { id: string; onDelete: (id: string) => 
 
 export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'posts' | 'links'>('posts');
+  const [posts, setPosts] = useState<PostRecord[] | null>(null);
   const router = useRouter();
-  const { isAuthenticated, isLoading, sessionToken, signOut } = useAdminAuth();
-  const posts = useQuery(
-    api.posts.listAdmin,
-    sessionToken && activeTab === 'posts' ? { sessionToken } : 'skip'
-  );
-  const removePost = useMutation(api.posts.remove);
+  const { isAuthenticated, isLoading, signOut } = useAdminAuth();
 
-  const handleDelete = async (id: string) => {
-    if (!sessionToken) {
+  useEffect(() => {
+    if (!isAuthenticated || activeTab !== 'posts') {
       return;
     }
 
-    await removePost({
-      sessionToken,
-      postId: id as Id<'posts'>,
-    });
+    let cancelled = false;
+    setPosts(null);
+
+    getAdminPosts()
+      .then((nextPosts) => {
+        if (!cancelled) {
+          setPosts(nextPosts);
+        }
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return;
+        }
+
+        if (error instanceof AdminApiError && error.status === 401) {
+          router.replace('/login?next=/admin');
+          router.refresh();
+          return;
+        }
+
+        window.alert(error instanceof Error ? error.message : 'Failed to load posts.');
+        setPosts([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, isAuthenticated, router]);
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteAdminPost(id);
+      setPosts((currentPosts) => currentPosts?.filter((post) => post.id !== id) ?? []);
+    } catch (error) {
+      if (error instanceof AdminApiError && error.status === 401) {
+        router.replace('/login?next=/admin');
+        router.refresh();
+        return;
+      }
+
+      window.alert(error instanceof Error ? error.message : 'Failed to delete post.');
+    }
   };
 
   const handleLogout = async () => {
     await signOut();
     router.push('/login');
+    router.refresh();
   };
 
-  if (isLoading || (isAuthenticated && activeTab === 'posts' && posts === undefined)) {
+  if (isLoading || (isAuthenticated && activeTab === 'posts' && posts === null)) {
     return <PageLoader className="h-64" />;
   }
 

@@ -10,11 +10,44 @@ import {
   hashAdminSessionToken,
 } from '@/lib/server/convex';
 
+type VerifiedAdminSession = {
+  email: string;
+  sessionToken: string;
+};
+
+export class AdminAuthorizationError extends Error {
+  constructor(message = 'Admin session is invalid or expired.') {
+    super(message);
+    this.name = 'AdminAuthorizationError';
+  }
+}
+
 function buildUnauthenticatedSession(): AdminSession {
   return {
     authenticated: false,
     email: null,
-    sessionToken: null,
+  };
+}
+
+async function getVerifiedAdminSession(): Promise<VerifiedAdminSession | null> {
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value;
+
+  if (!sessionToken) {
+    return null;
+  }
+
+  const session = await fetchQuery(api.sessions.getByTokenHash, {
+    tokenHash: hashAdminSessionToken(sessionToken),
+  });
+
+  if (!session || session.expiresAt <= Date.now()) {
+    return null;
+  }
+
+  return {
+    email: session.email,
+    sessionToken,
   };
 }
 
@@ -30,26 +63,26 @@ function getAdminCredentials() {
 }
 
 export async function getCurrentAdminSession(): Promise<AdminSession> {
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value;
+  const session = await getVerifiedAdminSession();
 
-  if (!sessionToken) {
-    return buildUnauthenticatedSession();
-  }
-
-  const session = await fetchQuery(api.sessions.getByTokenHash, {
-    tokenHash: hashAdminSessionToken(sessionToken),
-  });
-
-  if (!session || session.expiresAt <= Date.now()) {
+  if (!session) {
     return buildUnauthenticatedSession();
   }
 
   return {
     authenticated: true,
     email: session.email,
-    sessionToken,
   };
+}
+
+export async function requireAdminSession(): Promise<VerifiedAdminSession> {
+  const session = await getVerifiedAdminSession();
+
+  if (!session) {
+    throw new AdminAuthorizationError();
+  }
+
+  return session;
 }
 
 export async function requireAdminSessionOrRedirect(nextPath = '/admin') {
@@ -92,7 +125,6 @@ export async function signInAdmin(email: string, password: string): Promise<Admi
   return {
     authenticated: true,
     email: credentials.email,
-    sessionToken,
   };
 }
 

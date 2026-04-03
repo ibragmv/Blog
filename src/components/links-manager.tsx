@@ -1,8 +1,5 @@
 'use client';
 
-import { api } from '@convex/_generated/api';
-import type { Id } from '@convex/_generated/dataModel';
-import { useMutation, useQuery } from 'convex/react';
 import {
   Edit2,
   Github,
@@ -16,9 +13,17 @@ import {
   Trash2,
   Twitter,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/components/admin-auth-provider';
+import {
+  AdminApiError,
+  createAdminLink,
+  deleteAdminLink,
+  getAdminLinks,
+  updateAdminLink,
+} from '@/lib/admin-api';
 import type { LinkRecord } from '@/lib/content';
 import { formatDisplayOrder } from '@/lib/utils';
 
@@ -32,10 +37,9 @@ const ICON_OPTIONS = [
 ];
 
 export function LinksManager() {
-  const { sessionToken } = useAdminAuth();
-  const links = useQuery(api.links.listAdmin, sessionToken ? { sessionToken } : 'skip');
-  const saveLink = useMutation(api.links.save);
-  const removeLink = useMutation(api.links.remove);
+  const router = useRouter();
+  const { isAuthenticated } = useAdminAuth();
+  const [links, setLinks] = useState<LinkRecord[] | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -45,6 +49,39 @@ export function LinksManager() {
   const [icon, setIcon] = useState('default');
   const [order, setOrder] = useState(1);
   const [editId, setEditId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    let cancelled = false;
+
+    getAdminLinks()
+      .then((nextLinks) => {
+        if (!cancelled) {
+          setLinks(nextLinks);
+        }
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return;
+        }
+
+        if (error instanceof AdminApiError && error.status === 401) {
+          router.replace('/login?next=/admin');
+          router.refresh();
+          return;
+        }
+
+        alert(error instanceof Error ? error.message : 'Failed to load links.');
+        setLinks([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, router]);
 
   useEffect(() => {
     if (isEditing || !links) {
@@ -85,13 +122,17 @@ export function LinksManager() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Delete this link?') || !sessionToken) return;
+    if (!window.confirm('Delete this link?')) return;
     try {
-      await removeLink({
-        sessionToken,
-        linkId: id as Id<'links'>,
-      });
+      await deleteAdminLink(id);
+      setLinks((currentLinks) => currentLinks?.filter((link) => link.id !== id) ?? []);
     } catch (err: unknown) {
+      if (err instanceof AdminApiError && err.status === 401) {
+        router.replace('/login?next=/admin');
+        router.refresh();
+        return;
+      }
+
       const message = err instanceof Error ? err.message : 'Failed to delete link';
       alert(message);
     }
@@ -99,15 +140,9 @@ export function LinksManager() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!sessionToken) {
-      return;
-    }
 
     setIsSubmitting(true);
-
     const linkData = {
-      sessionToken,
-      ...(editId ? { linkId: editId as Id<'links'> } : {}),
       title,
       url,
       icon,
@@ -115,9 +150,22 @@ export function LinksManager() {
     };
 
     try {
-      await saveLink(linkData);
+      if (editId) {
+        await updateAdminLink(editId, linkData);
+      } else {
+        await createAdminLink(linkData);
+      }
+
+      const nextLinks = await getAdminLinks();
+      setLinks(nextLinks);
       resetForm();
     } catch (err: unknown) {
+      if (err instanceof AdminApiError && err.status === 401) {
+        router.replace('/login?next=/admin');
+        router.refresh();
+        return;
+      }
+
       console.error('Error saving link:', err);
       const message = err instanceof Error ? err.message : 'Unknown error';
       alert(`Error saving link: ${message}`);
@@ -126,7 +174,7 @@ export function LinksManager() {
     }
   };
 
-  if (links === undefined) {
+  if (links === null) {
     return (
       <div className="flex justify-center p-8">
         <Loader2 className="animate-spin text-zinc-600" />

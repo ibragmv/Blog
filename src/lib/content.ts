@@ -36,8 +36,23 @@ export type LinkRecord = {
   createdAt: number;
 };
 
+export type AdminPostDraft = {
+  titleRU: string;
+  titleEN?: string;
+  slug: string;
+  contentRU: string;
+  contentEN?: string;
+  published: boolean;
+};
+
+export type AdminLinkDraft = {
+  title: string;
+  url: string;
+  icon: string;
+  order: number;
+};
+
 export type AdminSession = {
   authenticated: boolean;
   email: string | null;
-  sessionToken: string | null;
 };

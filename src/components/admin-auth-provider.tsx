@@ -1,14 +1,13 @@
 'use client';
 
-import { createContext, type ReactNode, useCallback, useContext, useState } from 'react';
-import { getAdminSession, signInAdmin, signOutAdmin } from '@/lib/admin-session';
+import { createContext, type ReactNode, useContext, useState } from 'react';
+import { getAdminSession, signInAdmin, signOutAdmin } from '@/lib/admin-api';
 import type { AdminSession } from '@/lib/content';
 
 type AdminAuthContextValue = {
   email: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  sessionToken: string | null;
   refreshSession: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -19,7 +18,7 @@ const AdminAuthContext = createContext<AdminAuthContextValue | null>(null);
 function normalizeSession(session: AdminSession) {
   return {
     email: session.authenticated ? session.email : null,
-    sessionToken: session.authenticated ? session.sessionToken : null,
+    isAuthenticated: session.authenticated,
   };
 }
 
@@ -30,17 +29,12 @@ export function AdminAuthProvider({
   children: ReactNode;
   initialSession: AdminSession;
 }) {
-  const [email, setEmail] = useState<string | null>(normalizeSession(initialSession).email);
-  const [sessionToken, setSessionToken] = useState<string | null>(
-    normalizeSession(initialSession).sessionToken
-  );
+  const [session, setSession] = useState(() => normalizeSession(initialSession));
   const [isLoading, setIsLoading] = useState(false);
 
-  const applySession = useCallback((session: AdminSession) => {
-    const normalized = normalizeSession(session);
-    setEmail(normalized.email);
-    setSessionToken(normalized.sessionToken);
-  }, []);
+  const applySession = (nextSession: AdminSession) => {
+    setSession(normalizeSession(nextSession));
+  };
 
   const refreshSession = async () => {
     setIsLoading(true);
@@ -52,7 +46,6 @@ export function AdminAuthProvider({
       applySession({
         authenticated: false,
         email: null,
-        sessionToken: null,
       });
     } finally {
       setIsLoading(false);
@@ -84,10 +77,9 @@ export function AdminAuthProvider({
   return (
     <AdminAuthContext.Provider
       value={{
-        email,
-        isAuthenticated: !!sessionToken,
+        email: session.email,
+        isAuthenticated: session.isAuthenticated,
         isLoading,
-        sessionToken,
         refreshSession,
         signIn,
         signOut,
