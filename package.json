@@ -18,7 +18,6 @@
     "format": "biome format --write .",
     "analyze": "next build --turbopack --experimental-analyze",
     "check": "turbo run lint typecheck build --continue --ui=stream",
-    "convex": "bun scripts/convex-dev.mjs",
     "deploy": "convex deploy --typecheck=disable"
   },
   "trustedDependencies": [

@@ -29,8 +29,8 @@ Public template keys:
 
 ```env
 NEXT_PUBLIC_SITE_URL="https://your-domain.example"
-CONVEX_DEPLOYMENT="dev:your-cloud-dev-deployment"
-NEXT_PUBLIC_CONVEX_URL="https://your-convex-deployment.convex.cloud"
+CONVEX_DEPLOYMENT="prod:your-production-deployment"
+NEXT_PUBLIC_CONVEX_URL="https://your-production-deployment.convex.cloud"
 GEMINI_MODEL="gemini-2.5-flash"
 ADMIN_EMAIL="admin@example.com"
 ADMIN_PASSWORD="change-me"
@@ -50,11 +50,7 @@ bun install
 bun run dev
 ```
 
-`bun run dev` starts Next.js through Turbopack. If you also need the Convex worker:
-
-```bash
-bun run convex
-```
+`bun run dev` starts Next.js through Turbopack against the configured production Convex deployment.
 
 ## Scripts
 
@@ -70,7 +66,7 @@ bun run format     # biome format
 bun run typecheck  # next typegen + tsc
 bun run check      # turbo pipeline: lint + typecheck + build
 bun run clean      # remove local build artifacts
-bun run deploy     # deploy Convex functions only
+bun run deploy     # deploy Convex functions to the configured production deployment
 ```
 
 ## Project Shape
