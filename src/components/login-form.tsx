@@ -35,7 +35,9 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
 
   return (
     <div className="max-w-sm mx-auto mt-20 animate-in fade-in duration-500">
-      <h1 className="text-2xl font-bold mb-6 text-center text-zinc-100">Admin Login</h1>
+      <h1 className="font-display text-[2.4rem] font-black mb-6 text-center text-zinc-100 tracking-[0.08em] leading-none">
+        ADMIN
+      </h1>
 
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
