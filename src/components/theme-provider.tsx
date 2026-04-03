@@ -29,7 +29,7 @@ function isTheme(value: string | null): value is Theme {
 export function ThemeProvider({
   children,
   defaultTheme = 'system',
-  storageKey = 'blog-theme',
+  storageKey = 'archive-theme',
 }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>(defaultTheme);
 

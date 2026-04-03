@@ -9,7 +9,7 @@ import { AdminAccess } from './admin-access';
 
 const NAV_ITEMS = [
   { name: 'Home', path: '/' },
-  { name: 'Blog', path: '/blog' },
+  { name: 'Archive', path: '/archive' },
   { name: 'Links', path: '/links' },
 ];
 

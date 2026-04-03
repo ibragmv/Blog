@@ -10,7 +10,7 @@ import { LanguageToggle } from '@/components/language-toggle';
 import { LazyMarkdownRenderer } from '@/components/lazy-markdown';
 import { formatLongUtcDate } from '@/lib/dates';
 
-export function BlogPostView({
+export function ArchivePostView({
   preloadedPost,
 }: {
   preloadedPost: Preloaded<typeof api.posts.getPublishedBySlug>;
@@ -104,11 +104,11 @@ export function BlogPostView({
       <div className="sticky top-[var(--header-height)] z-30 grid gap-4 border-y border-[var(--border)] bg-[var(--black)] py-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link
-            href="/blog"
+            href="/archive"
             className="inline-flex min-h-11 items-center gap-2 text-base font-medium uppercase tracking-[0.12em] text-[var(--text-secondary)] hover:text-[var(--text-display)]"
           >
             <ArrowLeft size={16} aria-hidden="true" />
-            Back to writing
+            Back to archive
           </Link>
           <span className="text-sm font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
             [{Math.round(readingProgress)}% Read]

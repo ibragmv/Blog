@@ -13,7 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     {
-      url: absoluteUrl('/blog'),
+      url: absoluteUrl('/archive'),
       changeFrequency: 'daily',
       priority: 0.9,
     },
@@ -23,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
     ...posts.map((post) => ({
-      url: absoluteUrl(`/blog/${post.slug}`),
+      url: absoluteUrl(`/archive/${post.slug}`),
       lastModified: new Date(post.updatedAt),
       changeFrequency: 'weekly' as const,
       priority: 0.8,

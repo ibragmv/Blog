@@ -174,7 +174,7 @@ export default function RootLayout({
     >
       <body className="font-sans">
         <PublicProviders>
-          <ThemeProvider defaultTheme="system" storageKey="blog-theme">
+          <ThemeProvider defaultTheme="system" storageKey="archive-theme">
             <Layout currentYear={new Date().getFullYear()}>{children}</Layout>
           </ThemeProvider>
         </PublicProviders>

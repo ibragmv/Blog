@@ -11,7 +11,7 @@ import { formatLongUtcDate } from '@/lib/dates';
 import { buildDescription } from '@/lib/seo';
 import { formatDisplayOrder } from '@/lib/utils';
 
-export function BlogIndex({
+export function ArchiveIndex({
   preloadedPosts,
 }: {
   preloadedPosts: Preloaded<typeof api.posts.listPublished>;
@@ -93,7 +93,7 @@ export function BlogIndex({
         ) : (
           <div className="grid">
             {filteredPosts.map((post, index) => (
-              <Link key={post.id} href={`/blog/${post.slug}`} className="group block">
+              <Link key={post.id} href={`/archive/${post.slug}`} className="group block">
                 <article className="grid gap-4 border-b border-[var(--border)] py-5 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:gap-x-6 sm:gap-y-4 sm:py-6 lg:grid-cols-[8.5rem_minmax(0,1fr)_6.5rem] lg:items-start lg:gap-8">
                   <div className="grid gap-1 sm:self-start">
                     <span className="nd-label text-[var(--text-secondary)]">Date</span>

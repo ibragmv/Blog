@@ -2,7 +2,7 @@ export const SITE_CONFIG = {
   title: 'Ibragim Ibragimov',
   siteName: 'Ibragim Ibragimov',
   description:
-    'Personal blog, essays, and notes by Ibragim Ibragimov with a private admin panel powered by Convex.',
+    'Personal archive, essays, and notes by Ibragim Ibragimov with a private admin panel powered by Convex.',
   titleSeparator: '|',
   author: 'Ibragim Ibragimov',
   locale: 'en_US',

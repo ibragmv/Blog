@@ -2,7 +2,7 @@ import { api } from '@convex/_generated/api';
 import { fetchQuery, preloadedQueryResult, preloadQuery } from 'convex/nextjs';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { BlogPostView } from '@/components/blog-post-view';
+import { ArchivePostView } from '@/components/archive-post-view';
 import { getPreferredPostContent, getPreferredPostTitle } from '@/lib/content';
 import { buildDescription } from '@/lib/seo';
 
@@ -32,19 +32,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = getPreferredPostTitle(post);
   const description = buildDescription(getPreferredPostContent(post));
-  const ogImage = `/blog/${post.slug}/opengraph-image`;
+  const ogImage = `/archive/${post.slug}/opengraph-image`;
 
   return {
     title,
     description,
     alternates: {
-      canonical: `/blog/${post.slug}`,
+      canonical: `/archive/${post.slug}`,
     },
     openGraph: {
       type: 'article',
       title,
       description,
-      url: `/blog/${post.slug}`,
+      url: `/archive/${post.slug}`,
       publishedTime: new Date(post.createdAt).toISOString(),
       modifiedTime: new Date(post.updatedAt).toISOString(),
       images: [
@@ -65,7 +65,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function BlogPostPage({ params }: Props) {
+export default async function ArchivePostPage({ params }: Props) {
   const { slug } = await params;
   const preloadedPost = await preloadQuery(api.posts.getPublishedBySlug, { slug });
   const post = preloadedQueryResult(preloadedPost);
@@ -74,5 +74,5 @@ export default async function BlogPostPage({ params }: Props) {
     notFound();
   }
 
-  return <BlogPostView preloadedPost={preloadedPost} />;
+  return <ArchivePostView preloadedPost={preloadedPost} />;
 }

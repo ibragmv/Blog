@@ -30,7 +30,7 @@ export async function POST(request: Request) {
             .generateContent({
               model,
               contents: `
-Translate the following blog post title from Russian to English.
+Translate the following archive entry title from Russian to English.
 Do not add any conversational text. Just the translation.
 
 Title: "${title}"
@@ -43,7 +43,7 @@ Title: "${title}"
             .generateContent({
               model,
               contents: `
-Translate the following blog post content from Russian to English.
+Translate the following archive entry content from Russian to English.
 Strictly preserve the Markdown formatting.
 Do not translate code inside code blocks.
 Do not add notes or explanations. Return translation only.

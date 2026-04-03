@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "blog",
+      "name": "archive",
       "dependencies": {
         "@google/genai": "^1.43.0",
         "@vercel/analytics": "^2.0.1",
