@@ -15,21 +15,21 @@ export function LanguageToggle({ value, onChange }: LanguageToggleProps) {
       <legend className="sr-only">Language selection</legend>
       <button
         type="button"
-        onClick={() => onChange('ru')}
-        aria-pressed={value === 'ru'}
-        data-state={value === 'ru' ? 'active' : 'inactive'}
-        className={cn('shrink-0')}
-      >
-        RU
-      </button>
-      <button
-        type="button"
         onClick={() => onChange('en')}
         aria-pressed={value === 'en'}
         data-state={value === 'en' ? 'active' : 'inactive'}
         className={cn('shrink-0')}
       >
         EN
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange('ru')}
+        aria-pressed={value === 'ru'}
+        data-state={value === 'ru' ? 'active' : 'inactive'}
+        className={cn('shrink-0')}
+      >
+        RU
       </button>
     </fieldset>
   );

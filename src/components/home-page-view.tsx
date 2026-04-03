@@ -15,15 +15,15 @@ type HomePageViewProps = {
 
 export function HomePageView({ preloadedHomePost, fallbackContent }: HomePageViewProps) {
   const post = usePreloadedQuery(preloadedHomePost);
-  const content = post?.content || fallbackContent;
-  const contentEn = post?.contentEn;
-  const [language, setLanguage] = useState<'ru' | 'en'>(contentEn ? 'en' : 'ru');
-  const hasTranslation = !!contentEn;
-  const currentContent = language === 'en' && contentEn ? contentEn : content;
+  const contentRU = post?.contentRU || fallbackContent;
+  const contentEN = post?.contentEN;
+  const [language, setLanguage] = useState<'ru' | 'en'>(contentEN ? 'en' : 'ru');
+  const hasTranslation = !!contentEN;
+  const currentContent = language === 'en' && contentEN ? contentEN : contentRU;
 
   useEffect(() => {
-    setLanguage(contentEn ? 'en' : 'ru');
-  }, [contentEn]);
+    setLanguage(contentEN ? 'en' : 'ru');
+  }, [contentEN]);
 
   return (
     <div className="grid gap-10 animate-in fade-in duration-500 md:gap-14">

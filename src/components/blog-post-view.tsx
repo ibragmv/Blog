@@ -17,7 +17,7 @@ export function BlogPostView({
 }) {
   const post = usePreloadedQuery(preloadedPost);
   const [language, setLanguage] = useState<'ru' | 'en'>(
-    post?.titleEn && post?.contentEn ? 'en' : 'ru'
+    post?.titleEn && post?.contentEN ? 'en' : 'ru'
   );
   const [readingProgress, setReadingProgress] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -76,7 +76,7 @@ export function BlogPostView({
       return;
     }
 
-    setLanguage(post.titleEn && post.contentEn ? 'en' : 'ru');
+    setLanguage(post.titleEn && post.contentEN ? 'en' : 'ru');
   }, [postId, post]);
 
   if (!post) {
@@ -91,9 +91,9 @@ export function BlogPostView({
     );
   }
 
-  const hasTranslation = !!post.titleEn && !!post.contentEn;
+  const hasTranslation = !!post.titleEn && !!post.contentEN;
   const currentTitle = language === 'en' && post.titleEn ? post.titleEn : post.title;
-  const currentContent = language === 'en' && post.contentEn ? post.contentEn : post.content;
+  const currentContent = language === 'en' && post.contentEN ? post.contentEN : post.contentRU;
   const progressSegments = Array.from({ length: 16 }, (_, index) => {
     const threshold = ((index + 1) / 16) * 100;
     return readingProgress >= threshold;

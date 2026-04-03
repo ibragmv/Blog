@@ -26,9 +26,9 @@ export function PostEditorForm(props: PostEditorFormProps) {
 
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
-  const [content, setContent] = useState('');
+  const [contentRU, setContentRU] = useState('');
   const [titleEn, setTitleEn] = useState('');
-  const [contentEn, setContentEn] = useState('');
+  const [contentEN, setContentEN] = useState('');
   const [published, setPublished] = useState(true);
   const [loading, setLoading] = useState(false);
   const [translating, setTranslating] = useState(false);
@@ -47,9 +47,9 @@ export function PostEditorForm(props: PostEditorFormProps) {
 
     setTitle(post.title);
     setSlug(post.slug);
-    setContent(post.content);
+    setContentRU(post.contentRU);
     setTitleEn(post.titleEn || '');
-    setContentEn(post.contentEn || '');
+    setContentEN(post.contentEN || '');
     setPublished(post.published);
   }, [isEditing, post]);
 
@@ -67,7 +67,7 @@ export function PostEditorForm(props: PostEditorFormProps) {
   };
 
   const handleTranslate = async () => {
-    if (!title && !content) {
+    if (!title && !contentRU) {
       return;
     }
 
@@ -75,9 +75,9 @@ export function PostEditorForm(props: PostEditorFormProps) {
     setTranslationError(null);
 
     try {
-      const { title_en, content_en } = await translatePost(title, content);
+      const { title_en, content_en } = await translatePost(title, contentRU);
       setTitleEn(title_en);
-      setContentEn(content_en);
+      setContentEN(content_en);
     } catch (error) {
       setTranslationError(error instanceof Error ? error.message : 'An unknown error occurred');
     } finally {
@@ -95,11 +95,11 @@ export function PostEditorForm(props: PostEditorFormProps) {
     setLoading(true);
 
     let finalTitleEn = titleEn;
-    let finalContentEn = contentEn;
+    let finalContentEN = contentEN;
 
     const translationPromise =
-      (!finalTitleEn || !finalContentEn) && (title || content)
-        ? translatePost(title, content).catch((translationFailure) => {
+      (!finalTitleEn || !finalContentEN) && (title || contentRU)
+        ? translatePost(title, contentRU).catch((translationFailure) => {
             console.error('Auto-translation failed', translationFailure);
             return null;
           })
@@ -111,8 +111,8 @@ export function PostEditorForm(props: PostEditorFormProps) {
       if (!finalTitleEn) {
         finalTitleEn = translated.title_en;
       }
-      if (!finalContentEn) {
-        finalContentEn = translated.content_en;
+      if (!finalContentEN) {
+        finalContentEN = translated.content_en;
       }
     }
 
@@ -122,9 +122,9 @@ export function PostEditorForm(props: PostEditorFormProps) {
         ...(isEditing ? { postId: props.postId as Id<'posts'> } : {}),
         title,
         slug,
-        content,
+        contentRU,
         titleEn: finalTitleEn,
-        contentEn: finalContentEn,
+        contentEN: finalContentEN,
         published,
       });
 
@@ -183,10 +183,10 @@ export function PostEditorForm(props: PostEditorFormProps) {
         </div>
 
         <MarkdownEditor
-          id="content"
+          id="contentRU"
           label="Content (Russian - Markdown)"
-          value={content}
-          onChange={setContent}
+          value={contentRU}
+          onChange={setContentRU}
           placeholder="# Write your post here..."
           rows={15}
         />
@@ -198,7 +198,7 @@ export function PostEditorForm(props: PostEditorFormProps) {
               <button
                 type="button"
                 onClick={handleTranslate}
-                disabled={translating || !title || !content}
+                disabled={translating || !title || !contentRU}
                 className="flex items-center px-3 py-1.5 text-sm bg-zinc-800 text-zinc-300 rounded hover:bg-zinc-700 transition-colors disabled:opacity-50"
               >
                 {translating ? (
@@ -233,10 +233,10 @@ export function PostEditorForm(props: PostEditorFormProps) {
             </div>
 
             <MarkdownEditor
-              id="contentEn"
+              id="contentEN"
               label="Content (English - Markdown)"
-              value={contentEn}
-              onChange={setContentEn}
+              value={contentEN}
+              onChange={setContentEN}
               placeholder="Auto-translated content will appear here..."
               rows={15}
             />

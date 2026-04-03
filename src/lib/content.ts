@@ -3,8 +3,8 @@ export type PostRecord = {
   title: string;
   titleEn?: string;
   slug: string;
-  content: string;
-  contentEn?: string;
+  contentRU: string;
+  contentEN?: string;
   createdAt: number;
   updatedAt: number;
   published: boolean;
@@ -15,8 +15,8 @@ export function getPreferredPostTitle(post: Pick<PostRecord, 'title' | 'titleEn'
   return post.titleEn || post.title;
 }
 
-export function getPreferredPostContent(post: Pick<PostRecord, 'content' | 'contentEn'>) {
-  return post.contentEn || post.content;
+export function getPreferredPostContent(post: Pick<PostRecord, 'contentRU' | 'contentEN'>) {
+  return post.contentEN || post.contentRU;
 }
 
 export type LinkRecord = {

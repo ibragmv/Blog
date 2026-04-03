@@ -8,8 +8,8 @@ const postValidator = v.object({
   title: v.string(),
   titleEn: v.optional(v.string()),
   slug: v.string(),
-  content: v.string(),
-  contentEn: v.optional(v.string()),
+  contentRU: v.string(),
+  contentEN: v.optional(v.string()),
   createdAt: v.number(),
   updatedAt: v.number(),
   published: v.boolean(),
@@ -27,8 +27,8 @@ function serializePost(post: Doc<"posts">) {
     title: post.title,
     ...(post.titleEn !== undefined ? { titleEn: post.titleEn } : {}),
     slug: post.slug,
-    content: post.content,
-    ...(post.contentEn !== undefined ? { contentEn: post.contentEn } : {}),
+    contentRU: post.contentRU,
+    ...(post.contentEN !== undefined ? { contentEN: post.contentEN } : {}),
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
     published: post.published,
@@ -39,26 +39,26 @@ function serializePost(post: Doc<"posts">) {
 function buildPostDocument(args: {
   title: string;
   slug: string;
-  content: string;
+  contentRU: string;
   titleEn?: string;
-  contentEn?: string;
+  contentEN?: string;
   published: boolean;
   isPage?: boolean;
 }, createdAt: number, updatedAt: number) {
   const normalizedSlug = args.slug.trim().toLowerCase();
   const titleEn = normalizeOptionalString(args.titleEn);
-  const contentEn = normalizeOptionalString(args.contentEn);
+  const contentEN = normalizeOptionalString(args.contentEN);
 
   return {
     title: args.title.trim(),
     slug: normalizedSlug,
-    content: args.content,
+    contentRU: args.contentRU,
     createdAt,
     updatedAt,
     published: args.published,
     isPage: args.isPage ?? normalizedSlug === "home",
     ...(titleEn !== undefined ? { titleEn } : {}),
-    ...(contentEn !== undefined ? { contentEn } : {}),
+    ...(contentEN !== undefined ? { contentEN } : {}),
   };
 }
 
@@ -148,9 +148,9 @@ export const save = mutation({
     postId: v.optional(v.id("posts")),
     title: v.string(),
     slug: v.string(),
-    content: v.string(),
+    contentRU: v.string(),
     titleEn: v.optional(v.string()),
-    contentEn: v.optional(v.string()),
+    contentEN: v.optional(v.string()),
     published: v.boolean(),
     isPage: v.optional(v.boolean()),
   },
@@ -158,10 +158,10 @@ export const save = mutation({
   handler: async (ctx, args) => {
     await requireAdminSession(ctx, args.sessionToken);
 
-    if (!args.title.trim() || !args.slug.trim() || !args.content.trim()) {
+    if (!args.title.trim() || !args.slug.trim() || !args.contentRU.trim()) {
       throw new ConvexError({
         code: "INVALID_INPUT",
-        message: "Title, slug, and content are required.",
+        message: "Title, slug, and Russian content are required.",
       });
     }
 
