@@ -30,7 +30,7 @@ export function AdminAccess({ className }: { className?: string }) {
 
       <span
         data-admin-access-desktop="true"
-        className="hidden lg:inline-flex min-w-[6rem] flex-col items-center gap-3 pb-3"
+        className="hidden min-w-[5.5rem] flex-col items-center gap-3 pb-3 lg:inline-flex"
       >
         <span
           className={cn(
@@ -52,7 +52,7 @@ export function AdminAccess({ className }: { className?: string }) {
         <span
           aria-hidden="true"
           className={cn(
-            'block h-px w-16 transition-colors',
+            'block h-px w-full rounded-full transition-colors',
             isAdminRoute
               ? 'bg-[var(--accent)]'
               : 'bg-transparent group-hover:bg-[color-mix(in_srgb,var(--text-primary)_55%,transparent)]'

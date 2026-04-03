@@ -41,7 +41,7 @@ export function SiteNavigation() {
             <span
               aria-hidden="true"
               className={cn(
-                'block h-px w-16 rounded-full transition-colors',
+                'block h-px w-full rounded-full transition-colors',
                 pathname === item.path
                   ? 'bg-[var(--text-display)]'
                   : 'bg-transparent group-hover:bg-[color-mix(in_srgb,var(--text-primary)_55%,transparent)]'
