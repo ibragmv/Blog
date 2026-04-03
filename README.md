@@ -1,4 +1,4 @@
-# Ibragim Ibragimov Blog
+# Ibragim Ibragimov Blog.
 
 Editorial blog built on Next.js App Router, Convex, Bun, Turbo, and Turbopack. The public site is tuned for long-form reading, while the admin side covers authoring, links, auth, and optional RU -> EN translation.
 
