@@ -11,7 +11,7 @@ export const runtime = 'nodejs';
 
 export default async function Image() {
   const homePost = await fetchQuery(api.posts.getHomePage, {});
-  const title = homePost?.title?.trim() || SITE_CONFIG.siteName;
+  const title = homePost?.titleRU?.trim() || SITE_CONFIG.siteName;
 
   return new ImageResponse(renderOgPreview({ title }), await getOgImageOptions());
 }

@@ -24,10 +24,10 @@ export function PostEditorForm(props: PostEditorFormProps) {
     isEditing && sessionToken ? { sessionToken, postId: props.postId as Id<'posts'> } : 'skip'
   );
 
-  const [title, setTitle] = useState('');
+  const [titleRU, setTitleRU] = useState('');
   const [slug, setSlug] = useState('');
   const [contentRU, setContentRU] = useState('');
-  const [titleEn, setTitleEn] = useState('');
+  const [titleEN, setTitleEN] = useState('');
   const [contentEN, setContentEN] = useState('');
   const [published, setPublished] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -45,10 +45,10 @@ export function PostEditorForm(props: PostEditorFormProps) {
       return;
     }
 
-    setTitle(post.title);
+    setTitleRU(post.titleRU);
     setSlug(post.slug);
     setContentRU(post.contentRU);
-    setTitleEn(post.titleEn || '');
+    setTitleEN(post.titleEN || '');
     setContentEN(post.contentEN || '');
     setPublished(post.published);
   }, [isEditing, post]);
@@ -60,14 +60,14 @@ export function PostEditorForm(props: PostEditorFormProps) {
       .replace(/(^-|-$)+/g, '');
 
   const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTitle(event.target.value);
+    setTitleRU(event.target.value);
     if (!isEditing) {
       setSlug(generateSlug(event.target.value));
     }
   };
 
   const handleTranslate = async () => {
-    if (!title && !contentRU) {
+    if (!titleRU && !contentRU) {
       return;
     }
 
@@ -75,8 +75,8 @@ export function PostEditorForm(props: PostEditorFormProps) {
     setTranslationError(null);
 
     try {
-      const { title_en, content_en } = await translatePost(title, contentRU);
-      setTitleEn(title_en);
+      const { title_en, content_en } = await translatePost(titleRU, contentRU);
+      setTitleEN(title_en);
       setContentEN(content_en);
     } catch (error) {
       setTranslationError(error instanceof Error ? error.message : 'An unknown error occurred');
@@ -94,12 +94,12 @@ export function PostEditorForm(props: PostEditorFormProps) {
 
     setLoading(true);
 
-    let finalTitleEn = titleEn;
+    let finalTitleEN = titleEN;
     let finalContentEN = contentEN;
 
     const translationPromise =
-      (!finalTitleEn || !finalContentEN) && (title || contentRU)
-        ? translatePost(title, contentRU).catch((translationFailure) => {
+      (!finalTitleEN || !finalContentEN) && (titleRU || contentRU)
+        ? translatePost(titleRU, contentRU).catch((translationFailure) => {
             console.error('Auto-translation failed', translationFailure);
             return null;
           })
@@ -108,8 +108,8 @@ export function PostEditorForm(props: PostEditorFormProps) {
     const translated = await translationPromise;
 
     if (translated) {
-      if (!finalTitleEn) {
-        finalTitleEn = translated.title_en;
+      if (!finalTitleEN) {
+        finalTitleEN = translated.title_en;
       }
       if (!finalContentEN) {
         finalContentEN = translated.content_en;
@@ -120,10 +120,10 @@ export function PostEditorForm(props: PostEditorFormProps) {
       await savePost({
         sessionToken,
         ...(isEditing ? { postId: props.postId as Id<'posts'> } : {}),
-        title,
+        titleRU,
         slug,
         contentRU,
-        titleEn: finalTitleEn,
+        titleEN: finalTitleEN,
         contentEN: finalContentEN,
         published,
       });
@@ -154,13 +154,13 @@ export function PostEditorForm(props: PostEditorFormProps) {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label htmlFor="title" className="block text-sm font-medium text-zinc-400">
+            <label htmlFor="titleRU" className="block text-sm font-medium text-zinc-400">
               Title (Russian)
             </label>
             <input
-              id="title"
+              id="titleRU"
               type="text"
-              value={title}
+              value={titleRU}
               onChange={handleTitleChange}
               className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-700 text-zinc-200 placeholder-zinc-600"
               required
@@ -198,7 +198,7 @@ export function PostEditorForm(props: PostEditorFormProps) {
               <button
                 type="button"
                 onClick={handleTranslate}
-                disabled={translating || !title || !contentRU}
+                disabled={translating || !titleRU || !contentRU}
                 className="flex items-center px-3 py-1.5 text-sm bg-zinc-800 text-zinc-300 rounded hover:bg-zinc-700 transition-colors disabled:opacity-50"
               >
                 {translating ? (
@@ -219,14 +219,14 @@ export function PostEditorForm(props: PostEditorFormProps) {
 
           <div className="grid grid-cols-1 gap-6">
             <div className="space-y-2">
-              <label htmlFor="titleEn" className="block text-sm font-medium text-zinc-400">
+              <label htmlFor="titleEN" className="block text-sm font-medium text-zinc-400">
                 Title (English)
               </label>
               <input
-                id="titleEn"
+                id="titleEN"
                 type="text"
-                value={titleEn}
-                onChange={(event) => setTitleEn(event.target.value)}
+                value={titleEN}
+                onChange={(event) => setTitleEN(event.target.value)}
                 className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-700 text-zinc-200 placeholder-zinc-600"
                 placeholder="Auto-translated title will appear here..."
               />

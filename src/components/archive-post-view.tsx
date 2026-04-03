@@ -17,7 +17,7 @@ export function ArchivePostView({
 }) {
   const post = usePreloadedQuery(preloadedPost);
   const [language, setLanguage] = useState<'ru' | 'en'>(
-    post?.titleEn && post?.contentEN ? 'en' : 'ru'
+    post?.titleEN && post?.contentEN ? 'en' : 'ru'
   );
   const [readingProgress, setReadingProgress] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -76,7 +76,7 @@ export function ArchivePostView({
       return;
     }
 
-    setLanguage(post.titleEn && post.contentEN ? 'en' : 'ru');
+    setLanguage(post.titleEN && post.contentEN ? 'en' : 'ru');
   }, [postId, post]);
 
   if (!post) {
@@ -91,8 +91,8 @@ export function ArchivePostView({
     );
   }
 
-  const hasTranslation = !!post.titleEn && !!post.contentEN;
-  const currentTitle = language === 'en' && post.titleEn ? post.titleEn : post.title;
+  const hasTranslation = !!post.titleEN && !!post.contentEN;
+  const currentTitle = language === 'en' && post.titleEN ? post.titleEN : post.titleRU;
   const currentContent = language === 'en' && post.contentEN ? post.contentEN : post.contentRU;
   const progressSegments = Array.from({ length: 16 }, (_, index) => {
     const threshold = ((index + 1) / 16) * 100;

@@ -4,7 +4,7 @@
  *
  * THIS CODE IS AUTOMATICALLY GENERATED.
  *
- * To regenerate, run `bunx convex codegen`.
+ * To regenerate, run `npx convex dev`.
  * @module
  */
 

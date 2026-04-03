@@ -3,8 +3,8 @@ import { v } from "convex/values";
 
 export default defineSchema({
   posts: defineTable({
-    title: v.string(),
-    titleEn: v.optional(v.string()),
+    titleRU: v.string(),
+    titleEN: v.optional(v.string()),
     slug: v.string(),
     contentRU: v.string(),
     contentEN: v.optional(v.string()),

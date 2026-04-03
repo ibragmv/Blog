@@ -190,7 +190,7 @@ export function AdminDashboard() {
                     className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
                   >
                     <td className="px-6 py-4 font-medium text-zinc-900 dark:text-zinc-200">
-                      {post.title}
+                      {post.titleRU}
                     </td>
                     <td className="px-6 py-4 text-zinc-500 font-mono text-xs">{post.slug}</td>
                     <td className="px-6 py-4 text-zinc-500">

@@ -1,7 +1,7 @@
 export type PostRecord = {
   id: string;
-  title: string;
-  titleEn?: string;
+  titleRU: string;
+  titleEN?: string;
   slug: string;
   contentRU: string;
   contentEN?: string;
@@ -11,8 +11,8 @@ export type PostRecord = {
   isPage: boolean;
 };
 
-export function getPreferredPostTitle(post: Pick<PostRecord, 'title' | 'titleEn'>) {
-  return post.titleEn || post.title;
+export function getPreferredPostTitle(post: Pick<PostRecord, 'titleRU' | 'titleEN'>) {
+  return post.titleEN || post.titleRU;
 }
 
 export function getPreferredPostContent(post: Pick<PostRecord, 'contentRU' | 'contentEN'>) {
