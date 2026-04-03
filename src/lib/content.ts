@@ -11,12 +11,20 @@ export type PostRecord = {
   isPage: boolean;
 };
 
-export function getPreferredPostTitle(post: Pick<PostRecord, 'titleRU' | 'titleEN'>) {
+export type ContentLanguage = 'ru' | 'en';
+
+export function getPrimaryPostTitle(post: Pick<PostRecord, 'titleRU' | 'titleEN'>) {
   return post.titleEN || post.titleRU;
 }
 
-export function getPreferredPostContent(post: Pick<PostRecord, 'contentRU' | 'contentEN'>) {
+export function getPrimaryPostContent(post: Pick<PostRecord, 'contentRU' | 'contentEN'>) {
   return post.contentEN || post.contentRU;
+}
+
+export function getDefaultContentLanguage(
+  post: Pick<PostRecord, 'titleEN' | 'contentEN'> | null | undefined
+): ContentLanguage {
+  return post?.titleEN && post.contentEN ? 'en' : 'ru';
 }
 
 export type LinkRecord = {

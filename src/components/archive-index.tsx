@@ -6,7 +6,7 @@ import { usePreloadedQuery } from 'convex/react';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { useDeferredValue, useState } from 'react';
-import { getPreferredPostContent, getPreferredPostTitle } from '@/lib/content';
+import { getPrimaryPostContent, getPrimaryPostTitle } from '@/lib/content';
 import { formatLongUtcDate } from '@/lib/dates';
 import { buildDescription } from '@/lib/seo';
 import { formatDisplayOrder } from '@/lib/utils';
@@ -23,7 +23,7 @@ export function ArchiveIndex({
   const latestYear = posts[0] ? new Date(posts[0].createdAt).getUTCFullYear() : null;
 
   const filteredPosts = normalizedQuery
-    ? posts.filter((post) => getPreferredPostTitle(post).toLowerCase().includes(normalizedQuery))
+    ? posts.filter((post) => getPrimaryPostTitle(post).toLowerCase().includes(normalizedQuery))
     : posts;
 
   return (
@@ -104,10 +104,10 @@ export function ArchiveIndex({
 
                   <div className="grid min-w-0 gap-3">
                     <h2 className="max-w-3xl text-balance text-[clamp(1.45rem,6.8vw,2.2rem)] leading-[1.06] tracking-[-0.035em] text-[var(--text-display)] transition-colors group-hover:text-[var(--interactive)] md:leading-[1.02] md:tracking-[-0.04em]">
-                      {getPreferredPostTitle(post)}
+                      {getPrimaryPostTitle(post)}
                     </h2>
                     <p className="max-w-3xl text-sm leading-6 text-[var(--text-secondary)] md:text-base md:leading-7">
-                      {buildDescription(getPreferredPostContent(post), '')}
+                      {buildDescription(getPrimaryPostContent(post), '')}
                     </p>
                   </div>
 

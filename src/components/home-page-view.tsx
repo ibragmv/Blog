@@ -6,6 +6,7 @@ import { usePreloadedQuery } from 'convex/react';
 import { useEffect, useState } from 'react';
 import { LanguageToggle } from '@/components/language-toggle';
 import { LazyMarkdownRenderer } from '@/components/lazy-markdown';
+import { getDefaultContentLanguage } from '@/lib/content';
 import { SITE_CONFIG } from '@/lib/site';
 
 type HomePageViewProps = {
@@ -17,13 +18,17 @@ export function HomePageView({ preloadedHomePost, fallbackContent }: HomePageVie
   const post = usePreloadedQuery(preloadedHomePost);
   const contentRU = post?.contentRU || fallbackContent;
   const contentEN = post?.contentEN;
-  const [language, setLanguage] = useState<'ru' | 'en'>(contentEN ? 'en' : 'ru');
   const hasTranslation = !!contentEN;
-  const currentContent = language === 'en' && contentEN ? contentEN : contentRU;
+  const defaultLanguage = getDefaultContentLanguage(
+    post ? { titleEN: post.titleEN, contentEN: post.contentEN } : { titleEN: undefined, contentEN }
+  );
+  const [language, setLanguage] = useState<'ru' | 'en'>('en');
+  const activeLanguage = hasTranslation ? language : defaultLanguage;
+  const currentContent = activeLanguage === 'en' && contentEN ? contentEN : contentRU;
 
   useEffect(() => {
-    setLanguage(contentEN ? 'en' : 'ru');
-  }, [contentEN]);
+    setLanguage(defaultLanguage);
+  }, [defaultLanguage]);
 
   return (
     <div className="grid gap-10 animate-in fade-in duration-500 md:gap-14">
@@ -49,7 +54,7 @@ export function HomePageView({ preloadedHomePost, fallbackContent }: HomePageVie
           <div className="grid gap-2">
             <span className="nd-label text-[var(--text-secondary)]">Current Feed</span>
             <span className="font-mono text-sm uppercase tracking-[0.1em] text-[var(--text-display)]">
-              [{language === 'en' ? 'English' : 'Russian'}]
+              [{activeLanguage === 'en' ? 'English' : 'Russian'}]
             </span>
           </div>
 

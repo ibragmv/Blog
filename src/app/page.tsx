@@ -2,7 +2,7 @@ import { api } from '@convex/_generated/api';
 import { fetchQuery, preloadQuery } from 'convex/nextjs';
 import type { Metadata } from 'next';
 import { HomePageView } from '@/components/home-page-view';
-import { getPreferredPostContent } from '@/lib/content';
+import { getPrimaryPostContent } from '@/lib/content';
 import { absoluteUrl, buildDescription } from '@/lib/seo';
 import { SITE_CONFIG } from '@/lib/site';
 
@@ -11,7 +11,7 @@ const HOME_FALLBACK_CONTENT =
 
 export async function generateMetadata(): Promise<Metadata> {
   const homePost = await fetchQuery(api.posts.getHomePage, {});
-  const description = buildDescription(homePost ? getPreferredPostContent(homePost) : undefined);
+  const description = buildDescription(homePost ? getPrimaryPostContent(homePost) : undefined);
   const ogImage = absoluteUrl('/opengraph-image');
 
   return {

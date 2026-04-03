@@ -3,7 +3,7 @@ import { fetchQuery, preloadedQueryResult, preloadQuery } from 'convex/nextjs';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ArchivePostView } from '@/components/archive-post-view';
-import { getPreferredPostContent, getPreferredPostTitle } from '@/lib/content';
+import { getPrimaryPostContent, getPrimaryPostTitle } from '@/lib/content';
 import { buildDescription } from '@/lib/seo';
 
 type Props = {
@@ -30,8 +30,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const title = getPreferredPostTitle(post);
-  const description = buildDescription(getPreferredPostContent(post));
+  const title = getPrimaryPostTitle(post);
+  const description = buildDescription(getPrimaryPostContent(post));
   const ogImage = `/archive/${post.slug}/opengraph-image`;
 
   return {

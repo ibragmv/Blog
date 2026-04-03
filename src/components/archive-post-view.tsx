@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { LanguageToggle } from '@/components/language-toggle';
 import { LazyMarkdownRenderer } from '@/components/lazy-markdown';
+import { getDefaultContentLanguage } from '@/lib/content';
 import { formatLongUtcDate } from '@/lib/dates';
 
 export function ArchivePostView({
@@ -16,12 +17,11 @@ export function ArchivePostView({
   preloadedPost: Preloaded<typeof api.posts.getPublishedBySlug>;
 }) {
   const post = usePreloadedQuery(preloadedPost);
-  const [language, setLanguage] = useState<'ru' | 'en'>(
-    post?.titleEN && post?.contentEN ? 'en' : 'ru'
-  );
   const [readingProgress, setReadingProgress] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
   const postId = post?.id ?? null;
+  const defaultLanguage = getDefaultContentLanguage(post);
+  const [language, setLanguage] = useState<'ru' | 'en'>('en');
 
   useEffect(() => {
     let frameId = 0;
@@ -76,8 +76,8 @@ export function ArchivePostView({
       return;
     }
 
-    setLanguage(post.titleEN && post.contentEN ? 'en' : 'ru');
-  }, [postId, post]);
+    setLanguage(defaultLanguage);
+  }, [defaultLanguage, postId, post]);
 
   if (!post) {
     return (
@@ -92,8 +92,10 @@ export function ArchivePostView({
   }
 
   const hasTranslation = !!post.titleEN && !!post.contentEN;
-  const currentTitle = language === 'en' && post.titleEN ? post.titleEN : post.titleRU;
-  const currentContent = language === 'en' && post.contentEN ? post.contentEN : post.contentRU;
+  const activeLanguage = hasTranslation ? language : defaultLanguage;
+  const currentTitle = activeLanguage === 'en' && post.titleEN ? post.titleEN : post.titleRU;
+  const currentContent =
+    activeLanguage === 'en' && post.contentEN ? post.contentEN : post.contentRU;
   const progressSegments = Array.from({ length: 16 }, (_, index) => {
     const threshold = ((index + 1) / 16) * 100;
     return readingProgress >= threshold;
