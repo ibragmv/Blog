@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { AdminAuthProvider } from '@/components/admin-auth-provider';
 import { LoginForm } from '@/components/login-form';
+import { normalizeNextPath } from '@/lib/normalize-next-path';
 import { getCurrentAdminSession } from '@/lib/server/admin-auth';
 
 export const metadata: Metadata = {
@@ -19,7 +20,7 @@ type Props = {
 export default async function LoginPage({ searchParams }: Props) {
   const session = await getCurrentAdminSession();
   const params = await searchParams;
-  const nextPath = typeof params.next === 'string' ? params.next : '/admin';
+  const nextPath = normalizeNextPath(params.next);
 
   if (session.authenticated) {
     redirect(nextPath);

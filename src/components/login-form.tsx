@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/components/admin-auth-provider';
 import { AdminNotice } from '@/components/admin-notice';
+import { normalizeNextPath } from '@/lib/normalize-next-path';
 
 export function LoginForm({ redirectTo }: { redirectTo: string }) {
   const [email, setEmail] = useState('');
@@ -12,13 +13,14 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { isAuthenticated, isLoading, signIn } = useAdminAuth();
+  const normalizedRedirectTo = normalizeNextPath(redirectTo);
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace(redirectTo);
+      router.replace(normalizedRedirectTo);
       router.refresh();
     }
-  }, [isAuthenticated, redirectTo, router]);
+  }, [isAuthenticated, normalizedRedirectTo, router]);
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -26,7 +28,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
 
     try {
       await signIn(email, password);
-      router.replace(redirectTo);
+      router.replace(normalizedRedirectTo);
       router.refresh();
     } catch (loginError) {
       const message = loginError instanceof Error ? loginError.message : 'Unknown error';
