@@ -48,8 +48,8 @@ export function MarkdownEditor({
           <button
             type="button"
             onClick={() => setViewMode('split')}
-            onMouseEnter={() => preloadMarkdownRenderer(value)}
-            onFocus={() => preloadMarkdownRenderer(value)}
+            onMouseEnter={preloadMarkdownRenderer}
+            onFocus={preloadMarkdownRenderer}
             aria-pressed={viewMode === 'split'}
             className={`p-1.5 rounded-md transition-colors ${
               viewMode === 'split'
@@ -63,8 +63,8 @@ export function MarkdownEditor({
           <button
             type="button"
             onClick={() => setViewMode('preview')}
-            onMouseEnter={() => preloadMarkdownRenderer(value)}
-            onFocus={() => preloadMarkdownRenderer(value)}
+            onMouseEnter={preloadMarkdownRenderer}
+            onFocus={preloadMarkdownRenderer}
             aria-pressed={viewMode === 'preview'}
             className={`p-1.5 rounded-md transition-colors ${
               viewMode === 'preview'

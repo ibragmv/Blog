@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/components/admin-auth-provider';
+import { AdminNotice } from '@/components/admin-notice';
 import { MarkdownEditor } from '@/components/markdown-editor';
 import { PageLoader } from '@/components/page-loader';
 import { AdminApiError, createAdminPost, getAdminPost, updateAdminPost } from '@/lib/admin-api';
@@ -71,7 +72,6 @@ export function PostEditorForm(props: PostEditorFormProps) {
           }
         }
 
-        console.error('Failed to load post in editor.', error);
         router.replace('/admin');
       })
       .finally(() => {
@@ -143,7 +143,6 @@ export function PostEditorForm(props: PostEditorFormProps) {
             title: finalTitleEN ? undefined : titleRU,
             content: finalContentEN ? undefined : contentRU,
           }).catch((translationFailure) => {
-            console.error('Auto-translation failed', translationFailure);
             setTranslationError(
               translationFailure instanceof Error
                 ? translationFailure.message
@@ -274,11 +273,11 @@ export function PostEditorForm(props: PostEditorFormProps) {
             </div>
           </div>
 
-          {translationError && (
-            <div className="mb-4 p-3 bg-red-900/20 border border-red-900/50 rounded-md text-red-200 text-sm">
-              <strong>Error:</strong> {translationError}
-            </div>
-          )}
+          {translationError ? (
+            <AdminNotice className="mb-4" title="Error:">
+              {translationError}
+            </AdminNotice>
+          ) : null}
 
           <div className="grid grid-cols-1 gap-6">
             <div className="space-y-2">
@@ -318,7 +317,7 @@ export function PostEditorForm(props: PostEditorFormProps) {
           </label>
 
           <div className="flex flex-col items-end gap-2">
-            {submitError && <p className="text-sm text-red-300">{submitError}</p>}
+            {submitError ? <AdminNotice>{submitError}</AdminNotice> : null}
 
             <button
               type="submit"

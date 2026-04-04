@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { AuthProviders } from '@/components/auth-providers';
+import { AdminAuthProvider } from '@/components/admin-auth-provider';
 import { LoginForm } from '@/components/login-form';
 import { getCurrentAdminSession } from '@/lib/server/admin-auth';
 
@@ -26,9 +26,9 @@ export default async function LoginPage({ searchParams }: Props) {
   }
 
   return (
-    <AuthProviders initialSession={session}>
+    <AdminAuthProvider initialSession={session}>
       <span data-admin-route="true" className="hidden" aria-hidden="true" />
       <LoginForm redirectTo={nextPath} />
-    </AuthProviders>
+    </AdminAuthProvider>
   );
 }

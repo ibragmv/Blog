@@ -1,5 +1,5 @@
 import { ContentLanguageToggle } from '@/components/content-language-toggle';
-import { MarkdownContent } from '@/components/markdown-content';
+import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { ReadingProgress } from '@/components/reading-progress';
 import type { ContentLanguage, PostRecord } from '@/lib/content';
 import { formatLongUtcDate } from '@/lib/dates';
@@ -56,7 +56,7 @@ export function ArchivePostView({
           </header>
 
           <div className="transition-opacity duration-300">
-            <MarkdownContent content={currentContent} />
+            <MarkdownRenderer content={currentContent} />
           </div>
         </div>
       </div>

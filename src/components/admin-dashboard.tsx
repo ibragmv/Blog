@@ -1,86 +1,22 @@
 'use client';
 
-import { Edit2, FileText, Link as LinkIcon, Loader2, LogOut, Plus, Trash2 } from 'lucide-react';
+import { Edit2, FileText, Link as LinkIcon, LogOut, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/components/admin-auth-provider';
+import { AdminNotice } from '@/components/admin-notice';
+import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
 import { LinksManager } from '@/components/links-manager';
 import { PageLoader } from '@/components/page-loader';
 import { AdminApiError, deleteAdminPost, getAdminPosts } from '@/lib/admin-api';
 import type { PostRecord } from '@/lib/content';
 import { formatShortUtcDate } from '@/lib/dates';
 
-function DeleteButton({ id, onDelete }: { id: string; onDelete: (id: string) => Promise<void> }) {
-  const [status, setStatus] = useState<'idle' | 'confirm' | 'deleting'>('idle');
-  const timeoutRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current !== null) {
-        window.clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
-
-  const handleClick = async () => {
-    if (status === 'idle') {
-      setStatus('confirm');
-      if (timeoutRef.current !== null) {
-        window.clearTimeout(timeoutRef.current);
-      }
-      timeoutRef.current = window.setTimeout(() => {
-        setStatus((prev) => (prev === 'confirm' ? 'idle' : prev));
-        timeoutRef.current = null;
-      }, 3000);
-      return;
-    }
-
-    if (status === 'confirm') {
-      setStatus('deleting');
-      await onDelete(id).finally(() => {
-        setStatus('idle');
-      });
-    }
-  };
-
-  if (status === 'confirm') {
-    return (
-      <button
-        type="button"
-        onClick={handleClick}
-        className="px-2 py-1 text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors flex items-center gap-2"
-        title="Click again to confirm"
-      >
-        <span className="text-xs font-bold">Confirm?</span>
-        <Trash2 size={14} />
-      </button>
-    );
-  }
-
-  if (status === 'deleting') {
-    return (
-      <button type="button" className="p-2 text-zinc-600 cursor-wait" disabled>
-        <Loader2 size={16} className="animate-spin" />
-      </button>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleClick}
-      className="p-2 text-zinc-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-      title="Delete"
-    >
-      <Trash2 size={16} />
-    </button>
-  );
-}
-
 export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'posts' | 'links'>('posts');
   const [posts, setPosts] = useState<PostRecord[] | null>(null);
+  const [postsError, setPostsError] = useState<string | null>(null);
   const router = useRouter();
   const { isAuthenticated, isLoading, signOut } = useAdminAuth();
 
@@ -91,6 +27,7 @@ export function AdminDashboard() {
 
     let cancelled = false;
     setPosts(null);
+    setPostsError(null);
 
     getAdminPosts()
       .then((nextPosts) => {
@@ -109,7 +46,7 @@ export function AdminDashboard() {
           return;
         }
 
-        window.alert(error instanceof Error ? error.message : 'Failed to load posts.');
+        setPostsError(error instanceof Error ? error.message : 'Failed to load posts.');
         setPosts([]);
       });
 
@@ -119,6 +56,8 @@ export function AdminDashboard() {
   }, [activeTab, isAuthenticated, router]);
 
   const handleDelete = async (id: string) => {
+    setPostsError(null);
+
     try {
       await deleteAdminPost(id);
       setPosts((currentPosts) => currentPosts?.filter((post) => post.id !== id) ?? []);
@@ -129,7 +68,7 @@ export function AdminDashboard() {
         return;
       }
 
-      window.alert(error instanceof Error ? error.message : 'Failed to delete post.');
+      setPostsError(error instanceof Error ? error.message : 'Failed to delete post.');
     }
   };
 
@@ -189,6 +128,8 @@ export function AdminDashboard() {
           Links
         </button>
       </div>
+
+      {activeTab === 'posts' && postsError ? <AdminNotice>{postsError}</AdminNotice> : null}
 
       {activeTab === 'posts' ? (
         <>
@@ -250,7 +191,10 @@ export function AdminDashboard() {
                         >
                           <Edit2 size={16} />
                         </Link>
-                        <DeleteButton id={post.id} onDelete={handleDelete} />
+                        <ConfirmDeleteButton
+                          onDelete={() => handleDelete(post.id)}
+                          title="Delete post"
+                        />
                       </div>
                     </td>
                   </tr>

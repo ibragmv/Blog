@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/components/admin-auth-provider';
+import { AdminNotice } from '@/components/admin-notice';
 
 export function LoginForm({ redirectTo }: { redirectTo: string }) {
   const [email, setEmail] = useState('');
@@ -68,11 +69,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
           />
         </div>
 
-        {error && (
-          <div className="text-red-400 text-sm bg-red-900/20 p-2 rounded border border-red-900/30">
-            {error}
-          </div>
-        )}
+        {error ? <AdminNotice>{error}</AdminNotice> : null}
 
         <button
           type="submit"

@@ -1,4 +1,4 @@
-import { AdminProviders } from '@/components/admin-providers';
+import { AdminAuthProvider } from '@/components/admin-auth-provider';
 import { requireAdminSessionOrRedirect } from '@/lib/server/admin-auth';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -7,7 +7,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <>
       <span data-admin-route="true" className="hidden" aria-hidden="true" />
-      <AdminProviders initialSession={session}>{children}</AdminProviders>
+      <AdminAuthProvider initialSession={session}>{children}</AdminAuthProvider>
     </>
   );
 }

@@ -45,7 +45,7 @@ function sanitizeMarkdownUrl(url?: string | Blob) {
 }
 
 export const markdownComponents: Components = {
-  a: ({ node, href, children, ...props }) => {
+  a: ({ href, children, ...props }) => {
     const safeHref = sanitizeMarkdownUrl(href);
 
     if (!safeHref) {
@@ -64,7 +64,7 @@ export const markdownComponents: Components = {
       </a>
     );
   },
-  img: ({ node, src, alt = '', ...props }) => {
+  img: ({ src, alt = '', ...props }) => {
     const safeSrc = sanitizeMarkdownUrl(src);
 
     if (!safeSrc) {
@@ -74,18 +74,18 @@ export const markdownComponents: Components = {
     // biome-ignore lint/performance/noImgElement: Markdown images can be arbitrary external or relative assets without known dimensions.
     return <img {...props} src={safeSrc} alt={alt} />;
   },
-  table: ({ node, ...props }) => (
+  table: (props) => (
     <div className="my-8 overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
       <table {...props} className="min-w-full" />
     </div>
   ),
-  blockquote: ({ node, ...props }) => (
+  blockquote: (props) => (
     <blockquote
       {...props}
       className="border-l border-[var(--border-visible)] pl-6 text-[var(--text-secondary)]"
     />
   ),
-  code: ({ node, className, children, ...props }) => {
+  code: ({ className, children, ...props }) => {
     const match = /language-(\w+)/.exec(className || '');
     const isInline = !match && typeof children === 'string' && !String(children).includes('\n');
 

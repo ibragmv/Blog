@@ -10,13 +10,14 @@ import {
   Mail,
   Plus,
   Save,
-  Trash2,
   Twitter,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/components/admin-auth-provider';
+import { AdminNotice } from '@/components/admin-notice';
+import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
 import {
   AdminApiError,
   createAdminLink,
@@ -36,10 +37,19 @@ const ICON_OPTIONS = [
   { value: 'mail', label: 'Mail', icon: Mail },
 ];
 
+function getNextLinkOrder(links: LinkRecord[] | null) {
+  if (!links || links.length === 0) {
+    return 1;
+  }
+
+  return Math.max(1, Math.max(...links.map((link) => link.order)) + 1);
+}
+
 export function LinksManager() {
   const router = useRouter();
   const { isAuthenticated } = useAdminAuth();
   const [links, setLinks] = useState<LinkRecord[] | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -56,6 +66,7 @@ export function LinksManager() {
     }
 
     let cancelled = false;
+    setErrorMessage(null);
 
     getAdminLinks()
       .then((nextLinks) => {
@@ -74,7 +85,7 @@ export function LinksManager() {
           return;
         }
 
-        alert(error instanceof Error ? error.message : 'Failed to load links.');
+        setErrorMessage(error instanceof Error ? error.message : 'Failed to load links.');
         setLinks([]);
       });
 
@@ -88,13 +99,7 @@ export function LinksManager() {
       return;
     }
 
-    if (links.length > 0) {
-      const maxOrder = Math.max(...links.map((link) => link.order));
-      setOrder(Math.max(1, maxOrder + 1));
-      return;
-    }
-
-    setOrder(1);
+    setOrder(getNextLinkOrder(links));
   }, [isEditing, links]);
 
   const resetForm = () => {
@@ -102,13 +107,7 @@ export function LinksManager() {
     setUrl('');
     setIcon('default');
     setEditId(null);
-    // Recalculate next order
-    if (links && links.length > 0) {
-      const maxOrder = Math.max(...links.map((link) => link.order));
-      setOrder(Math.max(1, maxOrder + 1));
-    } else {
-      setOrder(1);
-    }
+    setOrder(getNextLinkOrder(links));
     setIsEditing(false);
   };
 
@@ -122,7 +121,8 @@ export function LinksManager() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Delete this link?')) return;
+    setErrorMessage(null);
+
     try {
       await deleteAdminLink(id);
       setLinks((currentLinks) => currentLinks?.filter((link) => link.id !== id) ?? []);
@@ -133,8 +133,7 @@ export function LinksManager() {
         return;
       }
 
-      const message = err instanceof Error ? err.message : 'Failed to delete link';
-      alert(message);
+      setErrorMessage(err instanceof Error ? err.message : 'Failed to delete link.');
     }
   };
 
@@ -142,6 +141,7 @@ export function LinksManager() {
     e.preventDefault();
 
     setIsSubmitting(true);
+    setErrorMessage(null);
     const linkData = {
       title,
       url,
@@ -166,9 +166,7 @@ export function LinksManager() {
         return;
       }
 
-      console.error('Error saving link:', err);
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      alert(`Error saving link: ${message}`);
+      setErrorMessage(err instanceof Error ? err.message : 'Failed to save link.');
     } finally {
       setIsSubmitting(false);
     }
@@ -197,6 +195,8 @@ export function LinksManager() {
           </button>
         )}
       </div>
+
+      {errorMessage ? <AdminNotice>{errorMessage}</AdminNotice> : null}
 
       {isEditing && (
         <form
@@ -318,13 +318,10 @@ export function LinksManager() {
                       >
                         <Edit2 size={16} />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(link.id)}
-                        className="p-2 text-zinc-500 hover:text-red-400 transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <ConfirmDeleteButton
+                        onDelete={() => handleDelete(link.id)}
+                        title="Delete link"
+                      />
                     </div>
                   </td>
                 </tr>

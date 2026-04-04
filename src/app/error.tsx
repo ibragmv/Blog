@@ -1,20 +1,14 @@
 'use client';
 
-import { useEffect } from 'react';
-
 export default function RouteErrorBoundary({
   // Next.js requires this filename for route segment error boundaries.
   // The function name itself does not need to shadow the global Error type.
-  error,
+  error: _error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
-
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-center">
       <h2 className="text-3xl font-display font-semibold text-zinc-900 dark:text-zinc-100">

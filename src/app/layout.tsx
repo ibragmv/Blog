@@ -11,28 +11,8 @@ import './globals.css';
 const spaceGrotesk = localFont({
   src: [
     {
-      path: '../../fonts/space-grotesk/static/SpaceGrotesk-Light.ttf',
-      weight: '300',
-      style: 'normal',
-    },
-    {
-      path: '../../fonts/space-grotesk/static/SpaceGrotesk-Regular.ttf',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../../fonts/space-grotesk/static/SpaceGrotesk-Medium.ttf',
-      weight: '500',
-      style: 'normal',
-    },
-    {
-      path: '../../fonts/space-grotesk/static/SpaceGrotesk-SemiBold.ttf',
-      weight: '600',
-      style: 'normal',
-    },
-    {
-      path: '../../fonts/space-grotesk/static/SpaceGrotesk-Bold.ttf',
-      weight: '700',
+      path: '../../fonts/space-grotesk/SpaceGrotesk-VariableFont_wght.ttf',
+      weight: '300 700',
       style: 'normal',
     },
   ],
@@ -60,48 +40,8 @@ const spaceMono = localFont({
 const doto = localFont({
   src: [
     {
-      path: '../../fonts/doto/static/Doto-Thin.ttf',
-      weight: '100',
-      style: 'normal',
-    },
-    {
-      path: '../../fonts/doto/static/Doto-ExtraLight.ttf',
-      weight: '200',
-      style: 'normal',
-    },
-    {
-      path: '../../fonts/doto/static/Doto-Light.ttf',
-      weight: '300',
-      style: 'normal',
-    },
-    {
-      path: '../../fonts/doto/static/Doto-Regular.ttf',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../../fonts/doto/static/Doto-Medium.ttf',
-      weight: '500',
-      style: 'normal',
-    },
-    {
-      path: '../../fonts/doto/static/Doto-SemiBold.ttf',
-      weight: '600',
-      style: 'normal',
-    },
-    {
-      path: '../../fonts/doto/static/Doto-Bold.ttf',
-      weight: '700',
-      style: 'normal',
-    },
-    {
-      path: '../../fonts/doto/static/Doto-ExtraBold.ttf',
-      weight: '800',
-      style: 'normal',
-    },
-    {
-      path: '../../fonts/doto/static/Doto-Black.ttf',
-      weight: '900',
+      path: '../../fonts/doto/Doto-VariableFont_ROND,wght.ttf',
+      weight: '100 900',
       style: 'normal',
     },
   ],
@@ -172,7 +112,7 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${spaceMono.variable} ${doto.variable}`}
     >
       <body className="font-sans">
-        <ThemeProvider defaultTheme="system" storageKey="archive-theme">
+        <ThemeProvider>
           <Layout currentYear={new Date().getFullYear()}>{children}</Layout>
         </ThemeProvider>
         <Analytics />

@@ -1,5 +1,5 @@
 import { ContentLanguageToggle } from '@/components/content-language-toggle';
-import { MarkdownContent } from '@/components/markdown-content';
+import { MarkdownRenderer } from '@/components/markdown-renderer';
 import type { PostRecord } from '@/lib/content';
 import { SITE_CONFIG } from '@/lib/site';
 
@@ -69,7 +69,7 @@ export function HomePageView({ activeLanguage, defaultLanguage, post }: HomePage
 
         {currentContent ? (
           <div className="min-w-0">
-            <MarkdownContent content={currentContent} />
+            <MarkdownRenderer content={currentContent} />
           </div>
         ) : (
           <div className="flex min-h-44 items-center justify-center border-y border-[var(--border)] px-6 py-10 text-center sm:min-h-56 sm:py-12">
