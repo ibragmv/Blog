@@ -1,35 +1,88 @@
-type TranslationResponse = {
-  content_en?: string;
-  error?: string;
-  message?: string;
-  title_en?: string;
-};
+import type {
+  TranslationErrorCode,
+  TranslationErrorResponse,
+  TranslationPayload,
+  TranslationResult,
+  TranslationSuccessResponse,
+} from '@/lib/translation';
 
-async function readTranslationResponse(response: Response): Promise<TranslationResponse> {
-  const data = (await response.json()) as TranslationResponse;
+export class TranslationApiError extends Error {
+  code: TranslationErrorCode;
+  status: number;
 
-  if (!response.ok) {
-    throw new Error(data.error || data.message || 'Translation failed');
+  constructor(message: string, status: number, code: TranslationErrorCode) {
+    super(message);
+    this.name = 'TranslationApiError';
+    this.status = status;
+    this.code = code;
   }
-
-  return data;
 }
 
-export async function translatePost(
-  title: string,
-  content: string
-): Promise<{ title_en: string; content_en: string }> {
+function getFallbackErrorMessage(status: number) {
+  if (status === 401) {
+    return 'Your admin session has expired. Sign in again.';
+  }
+
+  if (status === 400) {
+    return 'Provide a non-empty title or content to translate.';
+  }
+
+  if (status === 503) {
+    return 'Translation is currently unavailable.';
+  }
+
+  return 'Translation failed.';
+}
+
+function isTranslationErrorResponse(payload: unknown): payload is TranslationErrorResponse {
+  if (!payload || typeof payload !== 'object' || !('error' in payload)) {
+    return false;
+  }
+
+  const error = payload.error;
+  return Boolean(
+    error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      typeof error.code === 'string' &&
+      'message' in error &&
+      typeof error.message === 'string'
+  );
+}
+
+async function readTranslationResponse(response: Response): Promise<TranslationResult> {
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const code =
+      isTranslationErrorResponse(payload) && payload.error.code
+        ? payload.error.code
+        : 'TRANSLATION_FAILED';
+    const message =
+      isTranslationErrorResponse(payload) && payload.error.message
+        ? payload.error.message
+        : getFallbackErrorMessage(response.status);
+
+    throw new TranslationApiError(message, response.status, code);
+  }
+
+  const data = payload as TranslationSuccessResponse | null;
+
+  if (!data?.data || typeof data.data !== 'object') {
+    throw new TranslationApiError('Translation failed.', response.status, 'TRANSLATION_FAILED');
+  }
+
+  return data.data;
+}
+
+export async function translatePost(payload: TranslationPayload): Promise<TranslationResult> {
   const response = await fetch('/api/translate', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ title, content }),
+    body: JSON.stringify(payload),
   });
 
-  const data = await readTranslationResponse(response);
-  return {
-    title_en: data.title_en || title,
-    content_en: data.content_en || content,
-  };
+  return readTranslationResponse(response);
 }

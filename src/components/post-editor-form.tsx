@@ -8,7 +8,7 @@ import { useAdminAuth } from '@/components/admin-auth-provider';
 import { MarkdownEditor } from '@/components/markdown-editor';
 import { PageLoader } from '@/components/page-loader';
 import { AdminApiError, createAdminPost, getAdminPost, updateAdminPost } from '@/lib/admin-api';
-import { translatePost } from '@/services/translation';
+import { TranslationApiError, translatePost } from '@/services/translation';
 
 type PostEditorFormProps = { mode: 'create'; postId?: never } | { mode: 'edit'; postId: string };
 
@@ -27,7 +27,10 @@ export function PostEditorForm(props: PostEditorFormProps) {
   const [published, setPublished] = useState(true);
   const [loading, setLoading] = useState(false);
   const [translating, setTranslating] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [translationError, setTranslationError] = useState<string | null>(null);
+
+  const adminEditorPath = isEditing && editPostId ? `/admin/edit/${editPostId}` : '/admin/new';
 
   useEffect(() => {
     if (!isEditing || !isAuthenticated || !editPostId) {
@@ -68,7 +71,7 @@ export function PostEditorForm(props: PostEditorFormProps) {
           }
         }
 
-        window.alert(error instanceof Error ? error.message : 'Failed to load post.');
+        console.error('Failed to load post in editor.', error);
         router.replace('/admin');
       })
       .finally(() => {
@@ -96,7 +99,8 @@ export function PostEditorForm(props: PostEditorFormProps) {
   };
 
   const handleTranslate = async () => {
-    if (!titleRU && !contentRU) {
+    if (!titleRU.trim() && !contentRU.trim()) {
+      setTranslationError('Add a title or content to translate.');
       return;
     }
 
@@ -104,10 +108,20 @@ export function PostEditorForm(props: PostEditorFormProps) {
     setTranslationError(null);
 
     try {
-      const { title_en, content_en } = await translatePost(titleRU, contentRU);
-      setTitleEN(title_en);
-      setContentEN(content_en);
+      const translation = await translatePost({
+        title: titleRU,
+        content: contentRU,
+      });
+
+      setTitleEN(translation.titleEN ?? titleRU);
+      setContentEN(translation.contentEN ?? contentRU);
     } catch (error) {
+      if (error instanceof TranslationApiError && error.status === 401) {
+        router.replace(`/login?next=${encodeURIComponent(adminEditorPath)}`);
+        router.refresh();
+        return;
+      }
+
       setTranslationError(error instanceof Error ? error.message : 'An unknown error occurred');
     } finally {
       setTranslating(false);
@@ -118,14 +132,23 @@ export function PostEditorForm(props: PostEditorFormProps) {
     event.preventDefault();
 
     setLoading(true);
+    setSubmitError(null);
 
     let finalTitleEN = titleEN;
     let finalContentEN = contentEN;
 
     const translationPromise =
       (!finalTitleEN || !finalContentEN) && (titleRU || contentRU)
-        ? translatePost(titleRU, contentRU).catch((translationFailure) => {
+        ? translatePost({
+            title: finalTitleEN ? undefined : titleRU,
+            content: finalContentEN ? undefined : contentRU,
+          }).catch((translationFailure) => {
             console.error('Auto-translation failed', translationFailure);
+            setTranslationError(
+              translationFailure instanceof Error
+                ? translationFailure.message
+                : 'Auto-translation failed.'
+            );
             return null;
           })
         : Promise.resolve(null);
@@ -134,10 +157,10 @@ export function PostEditorForm(props: PostEditorFormProps) {
 
     if (translated) {
       if (!finalTitleEN) {
-        finalTitleEN = translated.title_en;
+        finalTitleEN = translated.titleEN ?? titleRU;
       }
       if (!finalContentEN) {
-        finalContentEN = translated.content_en;
+        finalContentEN = translated.contentEN ?? contentRU;
       }
     }
 
@@ -171,7 +194,7 @@ export function PostEditorForm(props: PostEditorFormProps) {
       }
 
       const message = error instanceof Error ? error.message : 'An unknown error occurred';
-      window.alert(`Error saving post: ${message}`);
+      setSubmitError(message);
     } finally {
       setLoading(false);
     }
@@ -238,7 +261,7 @@ export function PostEditorForm(props: PostEditorFormProps) {
               <button
                 type="button"
                 onClick={handleTranslate}
-                disabled={translating || !titleRU || !contentRU}
+                disabled={translating || (!titleRU.trim() && !contentRU.trim())}
                 className="flex items-center px-3 py-1.5 text-sm bg-zinc-800 text-zinc-300 rounded hover:bg-zinc-700 transition-colors disabled:opacity-50"
               >
                 {translating ? (
@@ -294,18 +317,22 @@ export function PostEditorForm(props: PostEditorFormProps) {
             <span className="text-sm font-medium text-zinc-400">Published</span>
           </label>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex items-center px-6 py-2 bg-zinc-100 text-zinc-900 rounded-md hover:bg-zinc-200 transition-colors disabled:opacity-50 font-medium"
-          >
-            {loading ? (
-              <Loader2 className="animate-spin mr-2" size={16} />
-            ) : (
-              <Save className="mr-2" size={16} />
-            )}
-            Save Post
-          </button>
+          <div className="flex flex-col items-end gap-2">
+            {submitError && <p className="text-sm text-red-300">{submitError}</p>}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex items-center px-6 py-2 bg-zinc-100 text-zinc-900 rounded-md hover:bg-zinc-200 transition-colors disabled:opacity-50 font-medium"
+            >
+              {loading ? (
+                <Loader2 className="animate-spin mr-2" size={16} />
+              ) : (
+                <Save className="mr-2" size={16} />
+              )}
+              Save Post
+            </button>
+          </div>
         </div>
       </form>
     </div>
