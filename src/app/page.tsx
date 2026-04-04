@@ -8,7 +8,7 @@ import {
   resolveContentLanguage,
 } from '@/lib/content';
 import { absoluteUrl, buildDescription } from '@/lib/seo';
-import { getHomePagePost, HOME_FALLBACK_CONTENT } from '@/lib/server/public-data';
+import { getHomePagePost } from '@/lib/server/public-data';
 import { SITE_CONFIG } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
@@ -71,7 +71,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       <HomePageView
         activeLanguage={activeLanguage}
         defaultLanguage={defaultLanguage}
-        fallbackContent={HOME_FALLBACK_CONTENT}
         post={homePost}
       />
     </>

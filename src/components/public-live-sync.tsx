@@ -44,7 +44,8 @@ function useRefreshOnChange(currentValue: unknown, initialValue: unknown) {
 }
 
 export function HomeLiveSync({ initialPost }: { initialPost: PostRecord | null }) {
-  const currentPost = useQuery(api.posts.getHomePage, {});
+  const currentPostResult = useQuery(api.posts.getHomePage, {});
+  const currentPost = currentPostResult?.published ? currentPostResult : null;
   useRefreshOnChange(currentPost, initialPost);
   return null;
 }

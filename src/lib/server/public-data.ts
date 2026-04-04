@@ -1,11 +1,15 @@
 import { fetchQuery } from 'convex/nextjs';
 import { cache } from 'react';
+import type { PostRecord } from '@/lib/content';
 import { api } from '@/lib/server/convex';
 
-export const HOME_FALLBACK_CONTENT =
-  '# Welcome\n\nThis is the home page. You can edit this content in the admin panel by creating a post with the slug `home`.';
+function asPublishedHomePost(post: PostRecord | null) {
+  return post?.published ? post : null;
+}
 
-export const getHomePagePost = cache(async () => fetchQuery(api.posts.getHomePage, {}));
+export const getHomePagePost = cache(async () =>
+  asPublishedHomePost(await fetchQuery(api.posts.getHomePage, {}))
+);
 
 export const listPublishedPosts = cache(async () => fetchQuery(api.posts.listPublished, {}));
 

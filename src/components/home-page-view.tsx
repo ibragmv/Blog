@@ -6,20 +6,14 @@ import { SITE_CONFIG } from '@/lib/site';
 type HomePageViewProps = {
   activeLanguage: 'ru' | 'en';
   defaultLanguage: 'ru' | 'en';
-  fallbackContent: string;
   post: PostRecord | null;
 };
 
-export function HomePageView({
-  activeLanguage,
-  defaultLanguage,
-  fallbackContent,
-  post,
-}: HomePageViewProps) {
-  const contentRU = post?.contentRU || fallbackContent;
+export function HomePageView({ activeLanguage, defaultLanguage, post }: HomePageViewProps) {
+  const contentRU = post?.contentRU;
   const contentEN = post?.contentEN;
   const hasTranslation = !!contentEN;
-  const currentContent = activeLanguage === 'en' && contentEN ? contentEN : contentRU;
+  const currentContent = activeLanguage === 'en' && contentEN ? contentEN : (contentRU ?? null);
 
   return (
     <div className="grid gap-10 animate-in fade-in duration-500 md:gap-14">
@@ -73,9 +67,17 @@ export function HomePageView({
           </div>
         </aside>
 
-        <div className="min-w-0">
-          <MarkdownContent content={currentContent} />
-        </div>
+        {currentContent ? (
+          <div className="min-w-0">
+            <MarkdownContent content={currentContent} />
+          </div>
+        ) : (
+          <div className="flex min-h-44 items-center justify-center border-y border-[var(--border)] px-6 py-10 text-center sm:min-h-56 sm:py-12">
+            <p className="max-w-lg text-base uppercase tracking-[0.12em] text-[var(--text-secondary)]">
+              [ No public home entry is published ]
+            </p>
+          </div>
+        )}
       </section>
     </div>
   );

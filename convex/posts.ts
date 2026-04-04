@@ -36,6 +36,20 @@ function serializePost(post: Doc<"posts">) {
   };
 }
 
+function selectLatestPost(posts: Doc<"posts">[]) {
+  return posts.reduce<Doc<"posts"> | null>((latestPost, currentPost) => {
+    if (!latestPost) {
+      return currentPost;
+    }
+
+    if (currentPost.updatedAt !== latestPost.updatedAt) {
+      return currentPost.updatedAt > latestPost.updatedAt ? currentPost : latestPost;
+    }
+
+    return currentPost.createdAt > latestPost.createdAt ? currentPost : latestPost;
+  }, null);
+}
+
 function buildPostDocument(args: {
   titleRU: string;
   slug: string;
@@ -90,10 +104,11 @@ export const getPublishedBySlug = query({
   },
   returns: v.union(postValidator, v.null()),
   handler: async (ctx, args) => {
-    const post = await ctx.db
+    const posts = await ctx.db
       .query("posts")
       .withIndex("by_slug", (query) => query.eq("slug", args.slug))
-      .first();
+      .collect();
+    const post = selectLatestPost(posts);
 
     if (!post || !post.published) {
       return null;
@@ -107,10 +122,11 @@ export const getHomePage = query({
   args: {},
   returns: v.union(postValidator, v.null()),
   handler: async (ctx) => {
-    const post = await ctx.db
+    const posts = await ctx.db
       .query("posts")
       .withIndex("by_slug", (query) => query.eq("slug", "home"))
-      .first();
+      .collect();
+    const post = selectLatestPost(posts);
 
     if (!post || !post.published) {
       return null;
