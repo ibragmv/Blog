@@ -11,6 +11,15 @@ const iconMap = {
   default: LinkIcon,
 } as const;
 
+function isKnownIconName(value: string): value is keyof typeof iconMap {
+  return value in iconMap;
+}
+
+function resolveLinkIcon(icon: string) {
+  const normalizedIcon = icon.toLowerCase();
+  return isKnownIconName(normalizedIcon) ? iconMap[normalizedIcon] : iconMap.default;
+}
+
 export function PublicLinks({ links }: { links: LinkRecord[] }) {
   return (
     <div className="grid gap-10 animate-in fade-in duration-500 md:gap-14">
@@ -52,8 +61,7 @@ export function PublicLinks({ links }: { links: LinkRecord[] }) {
           </div>
         ) : (
           links.map((link) => {
-            const Icon =
-              iconMap[link.icon.toLowerCase() as keyof typeof iconMap] || iconMap.default;
+            const Icon = resolveLinkIcon(link.icon);
 
             return (
               <a

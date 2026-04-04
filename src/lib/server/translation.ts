@@ -90,6 +90,11 @@ export async function translateArchiveEntry(
   ];
 
   const results = await Promise.all(jobs.map((job) => runTranslationJob(client, model, job)));
+  const translatedEntry: TranslationResult = {};
 
-  return Object.fromEntries(results) as TranslationResult;
+  for (const [responseKey, value] of results) {
+    translatedEntry[responseKey] = value;
+  }
+
+  return translatedEntry;
 }

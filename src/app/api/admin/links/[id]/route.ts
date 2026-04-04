@@ -1,14 +1,11 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
+import {
+  AdminDeleteSuccessResponseSchema,
+  AdminIdResponseSchema,
+  AdminLinkDraftSchema,
+} from '@/lib/content';
 import { AdminAuthorizationError } from '@/lib/server/admin-auth';
 import { removeAdminLink, saveAdminLink } from '@/lib/server/admin-data';
-
-const adminLinkSchema = z.object({
-  title: z.string(),
-  url: z.string(),
-  icon: z.string(),
-  order: z.number(),
-});
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -16,7 +13,8 @@ type RouteContext = {
 
 export async function PUT(request: Request, context: RouteContext) {
   const { id } = await context.params;
-  const payload = adminLinkSchema.safeParse(await request.json());
+  const requestBody: unknown = await request.json().catch(() => null);
+  const payload = AdminLinkDraftSchema.safeParse(requestBody);
 
   if (!payload.success) {
     return NextResponse.json({ error: 'Invalid request data.' }, { status: 400 });
@@ -24,7 +22,7 @@ export async function PUT(request: Request, context: RouteContext) {
 
   try {
     const savedId = await saveAdminLink(payload.data, id);
-    return NextResponse.json({ id: savedId });
+    return NextResponse.json(AdminIdResponseSchema.parse({ id: savedId }));
   } catch (error) {
     if (error instanceof AdminAuthorizationError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
@@ -40,7 +38,7 @@ export async function DELETE(_: Request, context: RouteContext) {
 
   try {
     await removeAdminLink(id);
-    return NextResponse.json({ success: true });
+    return NextResponse.json(AdminDeleteSuccessResponseSchema.parse({ success: true }));
   } catch (error) {
     if (error instanceof AdminAuthorizationError) {
       return NextResponse.json({ error: error.message }, { status: 401 });

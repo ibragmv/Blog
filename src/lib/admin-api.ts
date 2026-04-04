@@ -1,14 +1,20 @@
-import type {
-  AdminLinkDraft,
-  AdminPostDraft,
-  AdminSession,
-  LinkRecord,
-  PostRecord,
+import { type ZodType, z } from 'zod';
+import type { AdminLinkDraft, AdminPostDraft } from '@/lib/content';
+import {
+  AdminDeleteSuccessResponseSchema,
+  AdminErrorResponseSchema,
+  AdminIdResponseSchema,
+  AdminLinkDraftSchema,
+  AdminPostDraftSchema,
+  AdminSessionSchema,
+  LinkRecordSchema,
+  PostRecordSchema,
 } from '@/lib/content';
 
-type ErrorPayload = {
-  error?: string;
-};
+const AdminLoginPayloadSchema = z.object({
+  email: z.string().trim().min(1),
+  password: z.string().min(1),
+});
 
 export class AdminApiError extends Error {
   status: number;
@@ -20,14 +26,18 @@ export class AdminApiError extends Error {
   }
 }
 
-async function readJsonResponse<T>(response: Response): Promise<T> {
-  const payload = ((await response.json().catch(() => ({}))) as T & ErrorPayload) ?? {};
+async function readJsonResponse<T>(response: Response, schema: ZodType<T>): Promise<T> {
+  const payload: unknown = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new AdminApiError(payload.error || 'Admin request failed.', response.status);
+    const parsedError = AdminErrorResponseSchema.safeParse(payload);
+    throw new AdminApiError(
+      parsedError.success ? parsedError.data.error : 'Admin request failed.',
+      response.status
+    );
   }
 
-  return payload as T;
+  return schema.parse(payload);
 }
 
 export async function getAdminSession() {
@@ -35,19 +45,20 @@ export async function getAdminSession() {
     cache: 'no-store',
   });
 
-  return readJsonResponse<AdminSession>(response);
+  return readJsonResponse(response, AdminSessionSchema);
 }
 
 export async function signInAdmin(payload: { email: string; password: string }) {
+  const requestBody = AdminLoginPayloadSchema.parse(payload);
   const response = await fetch('/api/admin/session', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(requestBody),
   });
 
-  return readJsonResponse<AdminSession>(response);
+  return readJsonResponse(response, AdminSessionSchema);
 }
 
 export async function signOutAdmin() {
@@ -55,7 +66,7 @@ export async function signOutAdmin() {
     method: 'DELETE',
   });
 
-  return readJsonResponse<AdminSession>(response);
+  return readJsonResponse(response, AdminSessionSchema);
 }
 
 export async function getAdminPosts() {
@@ -63,7 +74,7 @@ export async function getAdminPosts() {
     cache: 'no-store',
   });
 
-  return readJsonResponse<PostRecord[]>(response);
+  return readJsonResponse(response, PostRecordSchema.array());
 }
 
 export async function getAdminPost(postId: string) {
@@ -71,31 +82,33 @@ export async function getAdminPost(postId: string) {
     cache: 'no-store',
   });
 
-  return readJsonResponse<PostRecord>(response);
+  return readJsonResponse(response, PostRecordSchema);
 }
 
 export async function createAdminPost(draft: AdminPostDraft) {
+  const requestBody = AdminPostDraftSchema.parse(draft);
   const response = await fetch('/api/admin/posts', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(draft),
+    body: JSON.stringify(requestBody),
   });
 
-  return readJsonResponse<{ id: string }>(response);
+  return readJsonResponse(response, AdminIdResponseSchema);
 }
 
 export async function updateAdminPost(postId: string, draft: AdminPostDraft) {
+  const requestBody = AdminPostDraftSchema.parse(draft);
   const response = await fetch(`/api/admin/posts/${postId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(draft),
+    body: JSON.stringify(requestBody),
   });
 
-  return readJsonResponse<{ id: string }>(response);
+  return readJsonResponse(response, AdminIdResponseSchema);
 }
 
 export async function deleteAdminPost(postId: string) {
@@ -103,7 +116,7 @@ export async function deleteAdminPost(postId: string) {
     method: 'DELETE',
   });
 
-  return readJsonResponse<{ success: true }>(response);
+  return readJsonResponse(response, AdminDeleteSuccessResponseSchema);
 }
 
 export async function getAdminLinks() {
@@ -111,31 +124,33 @@ export async function getAdminLinks() {
     cache: 'no-store',
   });
 
-  return readJsonResponse<LinkRecord[]>(response);
+  return readJsonResponse(response, LinkRecordSchema.array());
 }
 
 export async function createAdminLink(draft: AdminLinkDraft) {
+  const requestBody = AdminLinkDraftSchema.parse(draft);
   const response = await fetch('/api/admin/links', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(draft),
+    body: JSON.stringify(requestBody),
   });
 
-  return readJsonResponse<{ id: string }>(response);
+  return readJsonResponse(response, AdminIdResponseSchema);
 }
 
 export async function updateAdminLink(linkId: string, draft: AdminLinkDraft) {
+  const requestBody = AdminLinkDraftSchema.parse(draft);
   const response = await fetch(`/api/admin/links/${linkId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(draft),
+    body: JSON.stringify(requestBody),
   });
 
-  return readJsonResponse<{ id: string }>(response);
+  return readJsonResponse(response, AdminIdResponseSchema);
 }
 
 export async function deleteAdminLink(linkId: string) {
@@ -143,5 +158,5 @@ export async function deleteAdminLink(linkId: string) {
     method: 'DELETE',
   });
 
-  return readJsonResponse<{ success: true }>(response);
+  return readJsonResponse(response, AdminDeleteSuccessResponseSchema);
 }

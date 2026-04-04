@@ -1,21 +1,12 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
+import { AdminIdResponseSchema, AdminPostDraftSchema, PostRecordSchema } from '@/lib/content';
 import { AdminAuthorizationError } from '@/lib/server/admin-auth';
 import { listAdminPosts, saveAdminPost } from '@/lib/server/admin-data';
-
-const adminPostSchema = z.object({
-  titleRU: z.string(),
-  titleEN: z.string().optional(),
-  slug: z.string(),
-  contentRU: z.string(),
-  contentEN: z.string().optional(),
-  published: z.boolean(),
-});
 
 export async function GET() {
   try {
     const posts = await listAdminPosts();
-    return NextResponse.json(posts);
+    return NextResponse.json(PostRecordSchema.array().parse(posts));
   } catch (error) {
     if (error instanceof AdminAuthorizationError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
@@ -27,7 +18,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const payload = adminPostSchema.safeParse(await request.json());
+  const requestBody: unknown = await request.json().catch(() => null);
+  const payload = AdminPostDraftSchema.safeParse(requestBody);
 
   if (!payload.success) {
     return NextResponse.json({ error: 'Invalid request data.' }, { status: 400 });
@@ -35,7 +27,7 @@ export async function POST(request: Request) {
 
   try {
     const id = await saveAdminPost(payload.data);
-    return NextResponse.json({ id });
+    return NextResponse.json(AdminIdResponseSchema.parse({ id }));
   } catch (error) {
     if (error instanceof AdminAuthorizationError) {
       return NextResponse.json({ error: error.message }, { status: 401 });

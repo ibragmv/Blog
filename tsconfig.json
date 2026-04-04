@@ -27,7 +27,7 @@
         "name": "next"
       }
     ],
-    "strict": false,
+    "strict": true,
     "incremental": true,
     "esModuleInterop": true,
     "strictNullChecks": true

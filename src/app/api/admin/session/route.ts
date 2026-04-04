@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { AdminSessionSchema } from '@/lib/content';
 import { getCurrentAdminSession, signInAdmin, signOutAdmin } from '@/lib/server/admin-auth';
 
 const adminLoginSchema = z.object({
@@ -9,11 +10,12 @@ const adminLoginSchema = z.object({
 
 export async function GET() {
   const session = await getCurrentAdminSession();
-  return NextResponse.json(session);
+  return NextResponse.json(AdminSessionSchema.parse(session));
 }
 
 export async function POST(request: Request) {
-  const payload = adminLoginSchema.safeParse(await request.json());
+  const requestBody: unknown = await request.json().catch(() => null);
+  const payload = adminLoginSchema.safeParse(requestBody);
 
   if (!payload.success) {
     return NextResponse.json({ error: 'Invalid request data.' }, { status: 400 });
@@ -21,7 +23,7 @@ export async function POST(request: Request) {
 
   try {
     const session = await signInAdmin(payload.data.email, payload.data.password);
-    return NextResponse.json(session);
+    return NextResponse.json(AdminSessionSchema.parse(session));
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to sign in.';
     return NextResponse.json({ error: message }, { status: 401 });
@@ -30,5 +32,5 @@ export async function POST(request: Request) {
 
 export async function DELETE() {
   const session = await signOutAdmin();
-  return NextResponse.json(session);
+  return NextResponse.json(AdminSessionSchema.parse(session));
 }
