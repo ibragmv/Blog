@@ -1,6 +1,6 @@
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { DinoGame } from '@/components/dino-game';
+import { DinoGameShell } from '@/components/dino-game-shell';
 
 export default function NotFound() {
   return (
@@ -19,7 +19,7 @@ export default function NotFound() {
       </div>
 
       <div className="mx-auto w-full max-w-4xl">
-        <DinoGame />
+        <DinoGameShell />
       </div>
 
       <div className="flex justify-center">

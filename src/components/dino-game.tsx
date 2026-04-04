@@ -11,12 +11,22 @@ interface GameState {
 }
 
 // Constants
+const GAME_WIDTH = 720;
+const GAME_HEIGHT = 260;
+const DINO_X = 50;
+const DINO_WIDTH = 44;
+const DINO_HEIGHT = 47;
+const GROUND_OFFSET = 30;
+const GROUND_OVERLAP = 10;
 const GRAVITY = 0.6;
 const JUMP_FORCE = -12;
 const INITIAL_SPEED = 6;
 const MAX_SPEED = 13;
 const SPEED_INCREMENT = 0.001;
 const OBSTACLE_SPAWN_RATE = 100; // Base frames
+const CLOUD_SPAWN_RATE = 300; // Base frames
+const FRAME_TIME = 1000 / 60;
+const MAX_DELTA_MS = FRAME_TIME * 2;
 
 // Sprite definitions (x, y, w, h) from the sprite sheet
 const SPRITES = {
@@ -43,9 +53,20 @@ const SPRITES = {
 const SPRITE_SHEET_URL =
   'https://raw.githubusercontent.com/chromium/chromium/main/components/neterror/resources/images/default_200_percent/offline/200-offline-sprite.png';
 
+function createIdleDino() {
+  return {
+    x: DINO_X,
+    y: GAME_HEIGHT - GROUND_OFFSET - DINO_HEIGHT + GROUND_OVERLAP,
+    w: DINO_WIDTH,
+    h: DINO_HEIGHT,
+    dy: 0,
+    grounded: true,
+    frame: 0,
+  };
+}
+
 export function DinoGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const [gameState, setGameState] = useState<GameState>({
     isPlaying: false,
     gameOver: false,
@@ -58,7 +79,7 @@ export function DinoGame() {
   const [assetsLoaded, setAssetsLoaded] = useState(false);
 
   // Game State Refs
-  const dinoRef = useRef({ x: 50, y: 0, w: 44, h: 47, dy: 0, grounded: false, frame: 0 });
+  const dinoRef = useRef(createIdleDino());
   const obstaclesRef = useRef<
     { x: number; y: number; w: number; h: number; type: 'small' | 'large'; spriteIndex: number }[]
   >([]);
@@ -68,7 +89,11 @@ export function DinoGame() {
   const speedRef = useRef(INITIAL_SPEED);
   const frameRef = useRef(0);
   const scoreRef = useRef(0);
+  const displayedScoreRef = useRef(0);
   const requestRef = useRef<number | null>(null);
+  const lastTimestampRef = useRef<number | null>(null);
+  const obstacleSpawnTimerRef = useRef(0);
+  const cloudSpawnTimerRef = useRef(0);
 
   const isPlayingRef = useRef(false);
   const isGameOverRef = useRef(false);
@@ -94,7 +119,7 @@ export function DinoGame() {
       // Clear
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      const groundY = canvas.height - 30;
+      const groundY = canvas.height - GROUND_OFFSET;
 
       // Draw Clouds
       cloudsRef.current.forEach((cloud) => {
@@ -211,100 +236,118 @@ export function DinoGame() {
     });
   }, [drawGame]);
 
-  const gameLoop = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !spriteSheetRef.current) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+  const gameLoop = useCallback(
+    (timestamp: number) => {
+      const canvas = canvasRef.current;
+      if (!canvas || !spriteSheetRef.current) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-    // Update State
-    if (isPlayingRef.current) {
-      frameRef.current++;
-      speedRef.current = Math.min(speedRef.current + SPEED_INCREMENT, MAX_SPEED);
-      scoreRef.current += 0.1 * (speedRef.current / INITIAL_SPEED);
+      // Update State
+      if (isPlayingRef.current) {
+        const previousTimestamp = lastTimestampRef.current ?? timestamp;
+        const deltaMs = Math.min(timestamp - previousTimestamp, MAX_DELTA_MS);
+        const frameDelta = deltaMs / FRAME_TIME;
 
-      // Update Ground
-      groundRef.current.x += speedRef.current;
+        lastTimestampRef.current = timestamp;
+        frameRef.current += frameDelta;
+        speedRef.current = Math.min(speedRef.current + SPEED_INCREMENT * frameDelta, MAX_SPEED);
+        scoreRef.current += 0.1 * (speedRef.current / INITIAL_SPEED) * frameDelta;
 
-      // Update Clouds
-      if (frameRef.current % 300 === 0 && Math.random() > 0.5) {
-        cloudsRef.current.push({
-          x: canvas.width,
-          y: Math.random() * (canvas.height / 2),
+        // Update Ground
+        groundRef.current.x += speedRef.current * frameDelta;
+
+        // Update Clouds
+        cloudSpawnTimerRef.current += frameDelta;
+        if (cloudSpawnTimerRef.current >= CLOUD_SPAWN_RATE) {
+          cloudSpawnTimerRef.current = 0;
+
+          if (Math.random() > 0.5) {
+            cloudsRef.current.push({
+              x: canvas.width,
+              y: Math.random() * (canvas.height / 2),
+            });
+          }
+        }
+        cloudsRef.current.forEach((c) => {
+          c.x -= speedRef.current * 0.2 * frameDelta;
         });
-      }
-      cloudsRef.current.forEach((c) => {
-        c.x -= speedRef.current * 0.2;
-      });
-      cloudsRef.current = cloudsRef.current.filter((c) => c.x > -100);
+        cloudsRef.current = cloudsRef.current.filter((c) => c.x > -100);
 
-      // Update Dino
-      const dino = dinoRef.current;
-      dino.dy += GRAVITY;
-      dino.y += dino.dy;
+        // Update Dino
+        const dino = dinoRef.current;
+        dino.dy += GRAVITY * frameDelta;
+        dino.y += dino.dy * frameDelta;
 
-      const groundY = canvas.height - 30;
-      if (dino.y + dino.h > groundY + 10) {
-        // +10 for visual overlap
-        dino.y = groundY - dino.h + 10;
-        dino.dy = 0;
-        dino.grounded = true;
-      }
+        const groundY = canvas.height - 30;
+        if (dino.y + dino.h > groundY + 10) {
+          // +10 for visual overlap
+          dino.y = groundY - dino.h + 10;
+          dino.dy = 0;
+          dino.grounded = true;
+        }
 
-      // Spawn Obstacles
-      if (
-        frameRef.current % Math.floor(OBSTACLE_SPAWN_RATE / (speedRef.current / INITIAL_SPEED)) ===
-        0
-      ) {
-        if (Math.random() > 0.3) {
-          // Chance to spawn
-          const type = Math.random() > 0.6 ? 'large' : 'small';
-          const spriteList = type === 'small' ? SPRITES.CACTUS_SMALL : SPRITES.CACTUS_LARGE;
-          const spriteIndex = Math.floor(Math.random() * spriteList.length);
-          const sprite = spriteList[spriteIndex];
+        // Spawn Obstacles
+        obstacleSpawnTimerRef.current += frameDelta;
+        const obstacleSpawnThreshold = Math.max(
+          45,
+          OBSTACLE_SPAWN_RATE / (speedRef.current / INITIAL_SPEED)
+        );
+        if (obstacleSpawnTimerRef.current >= obstacleSpawnThreshold) {
+          obstacleSpawnTimerRef.current = 0;
+          if (Math.random() > 0.3) {
+            // Chance to spawn
+            const type = Math.random() > 0.6 ? 'large' : 'small';
+            const spriteList = type === 'small' ? SPRITES.CACTUS_SMALL : SPRITES.CACTUS_LARGE;
+            const spriteIndex = Math.floor(Math.random() * spriteList.length);
+            const sprite = spriteList[spriteIndex];
 
-          obstaclesRef.current.push({
-            x: canvas.width,
-            y: groundY - sprite.h / 2 + 15, // Adjust for ground visual
-            w: sprite.w / 2,
-            h: sprite.h / 2,
-            type,
-            spriteIndex,
-          });
+            obstaclesRef.current.push({
+              x: canvas.width,
+              y: groundY - sprite.h / 2 + 15, // Adjust for ground visual
+              w: sprite.w / 2,
+              h: sprite.h / 2,
+              type,
+              spriteIndex,
+            });
+          }
+        }
+
+        // Update Obstacles
+        for (let i = obstaclesRef.current.length - 1; i >= 0; i--) {
+          const obs = obstaclesRef.current[i];
+          obs.x -= speedRef.current * frameDelta;
+
+          if (obs.x + obs.w < 0) {
+            obstaclesRef.current.splice(i, 1);
+          }
+
+          // Collision (Simple AABB with padding)
+          const padding = 10;
+          if (
+            dino.x + padding < obs.x + obs.w - padding &&
+            dino.x + dino.w - padding > obs.x + padding &&
+            dino.y + padding < obs.y + obs.h - padding &&
+            dino.y + dino.h - padding > obs.y + padding
+          ) {
+            handleGameOver();
+            return;
+          }
+        }
+
+        // Update Score UI
+        const nextScore = Math.floor(scoreRef.current);
+        if (nextScore !== displayedScoreRef.current) {
+          displayedScoreRef.current = nextScore;
+          setGameState((prev) => ({ ...prev, score: Math.floor(scoreRef.current) }));
         }
       }
 
-      // Update Obstacles
-      for (let i = obstaclesRef.current.length - 1; i >= 0; i--) {
-        const obs = obstaclesRef.current[i];
-        obs.x -= speedRef.current;
-
-        if (obs.x + obs.w < 0) {
-          obstaclesRef.current.splice(i, 1);
-        }
-
-        // Collision (Simple AABB with padding)
-        const padding = 10;
-        if (
-          dino.x + padding < obs.x + obs.w - padding &&
-          dino.x + dino.w - padding > obs.x + padding &&
-          dino.y + padding < obs.y + obs.h - padding &&
-          dino.y + dino.h - padding > obs.y + padding
-        ) {
-          handleGameOver();
-          return;
-        }
-      }
-
-      // Update Score UI
-      if (Math.floor(scoreRef.current) % 10 === 0) {
-        setGameState((prev) => ({ ...prev, score: Math.floor(scoreRef.current) }));
-      }
-    }
-
-    drawGame(ctx, canvas, spriteSheetRef.current);
-    requestRef.current = requestAnimationFrame(gameLoop);
-  }, [handleGameOver, drawGame]);
+      drawGame(ctx, canvas, spriteSheetRef.current);
+      requestRef.current = requestAnimationFrame(gameLoop);
+    },
+    [handleGameOver, drawGame]
+  );
 
   const startGame = useCallback(() => {
     if (!assetsLoaded) return;
@@ -314,19 +357,30 @@ export function DinoGame() {
     speedRef.current = INITIAL_SPEED;
     scoreRef.current = 0;
     frameRef.current = 0;
+    displayedScoreRef.current = 0;
+    lastTimestampRef.current = null;
+    obstacleSpawnTimerRef.current = 0;
+    cloudSpawnTimerRef.current = 0;
 
     setGameState((prev) => ({ ...prev, isPlaying: true, gameOver: false, score: 0 }));
 
-    const canvas = canvasRef.current;
-    const startY = canvas ? canvas.height - 30 - 47 + 10 : 150;
+    const startY = GAME_HEIGHT - GROUND_OFFSET - DINO_HEIGHT + GROUND_OVERLAP;
 
-    dinoRef.current = { x: 50, y: startY, w: 44, h: 47, dy: 0, grounded: false, frame: 0 };
+    dinoRef.current = {
+      x: DINO_X,
+      y: startY,
+      w: DINO_WIDTH,
+      h: DINO_HEIGHT,
+      dy: 0,
+      grounded: false,
+      frame: 0,
+    };
     obstaclesRef.current = [];
     cloudsRef.current = [];
     groundRef.current = { x: 0 };
 
     if (requestRef.current !== null) cancelAnimationFrame(requestRef.current);
-    gameLoop();
+    requestRef.current = requestAnimationFrame(gameLoop);
   }, [assetsLoaded, gameLoop]);
 
   const jump = useCallback(() => {
@@ -347,7 +401,7 @@ export function DinoGame() {
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+      if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Enter') {
         e.preventDefault();
         handleAction();
       }
@@ -357,14 +411,6 @@ export function DinoGame() {
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      handleAction();
-    },
-    [handleAction]
-  );
-
-  const handleTouchStart = useCallback(
-    (e: React.TouchEvent<HTMLDivElement>) => {
       e.preventDefault();
       handleAction();
     },
@@ -382,37 +428,27 @@ export function DinoGame() {
     };
   }, []);
 
-  // Resize canvas
   useEffect(() => {
+    if (!assetsLoaded) return;
+
     const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container) return;
+    if (!canvas || !spriteSheetRef.current) return;
 
-    const resizeCanvas = () => {
-      canvas.width = Math.min(container.clientWidth, 600);
-      canvas.height = 150;
+    canvas.width = GAME_WIDTH;
+    canvas.height = GAME_HEIGHT;
+    dinoRef.current = createIdleDino();
 
-      if (!isPlayingRef.current && !isGameOverRef.current && spriteSheetRef.current) {
-        const ctx = canvas.getContext('2d');
-        if (ctx) drawGame(ctx, canvas, spriteSheetRef.current);
-      }
-    };
-
-    resizeCanvas();
-
-    const observer = new ResizeObserver(resizeCanvas);
-    observer.observe(container);
-
-    return () => observer.disconnect();
-  }, [drawGame]);
+    if (!isPlayingRef.current && !isGameOverRef.current) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) drawGame(ctx, canvas, spriteSheetRef.current);
+    }
+  }, [assetsLoaded, drawGame]);
 
   return (
     <div className="w-full flex flex-col items-center gap-4">
       <div
-        ref={containerRef}
-        className="relative w-full max-w-[600px] overflow-hidden rounded-2xl border border-zinc-200 bg-transparent outline-none select-none touch-none dark:border-zinc-800"
+        className="relative w-full max-w-[720px] overflow-hidden rounded-[28px] border border-zinc-200 bg-transparent p-4 outline-none select-none touch-none sm:p-5 dark:border-zinc-800"
         onPointerDown={handlePointerDown}
-        onTouchStart={handleTouchStart}
       >
         {!assetsLoaded && (
           <div className="absolute inset-0 flex items-center justify-center text-zinc-400 text-xs">
@@ -422,7 +458,9 @@ export function DinoGame() {
 
         <canvas
           ref={canvasRef}
-          className="block h-[150px] w-full cursor-pointer touch-none"
+          width={GAME_WIDTH}
+          height={GAME_HEIGHT}
+          className="block h-auto w-full cursor-pointer touch-none"
           style={{ imageRendering: 'pixelated' }}
         />
 
@@ -466,7 +504,7 @@ export function DinoGame() {
       </div>
 
       <p className="text-center font-mono text-[11px] text-zinc-500 dark:text-zinc-400">
-        Controls: tap, click, Space, Enter, W, or Up Arrow
+        Tap anywhere in the frame to jump. Keyboard: Space, Enter, W, or Up Arrow
       </p>
     </div>
   );
