@@ -12,17 +12,14 @@ function serializeSnapshot(value: unknown) {
 
 function useRefreshOnChange(currentValue: unknown, initialValue: unknown) {
   const router = useRouter();
-  const initialSnapshotRef = useRef(serializeSnapshot(initialValue));
+  const initialSnapshot = serializeSnapshot(initialValue);
+  const lastInitialSnapshotRef = useRef(initialSnapshot);
   const refreshPendingRef = useRef(false);
 
-  useEffect(() => {
-    const nextInitialSnapshot = serializeSnapshot(initialValue);
-    initialSnapshotRef.current = nextInitialSnapshot;
-
-    if (serializeSnapshot(currentValue) === nextInitialSnapshot) {
-      refreshPendingRef.current = false;
-    }
-  }, [currentValue, initialValue]);
+  if (lastInitialSnapshotRef.current !== initialSnapshot) {
+    lastInitialSnapshotRef.current = initialSnapshot;
+    refreshPendingRef.current = false;
+  }
 
   useEffect(() => {
     if (currentValue === undefined) {
@@ -31,7 +28,12 @@ function useRefreshOnChange(currentValue: unknown, initialValue: unknown) {
 
     const currentSnapshot = serializeSnapshot(currentValue);
 
-    if (currentSnapshot === initialSnapshotRef.current || refreshPendingRef.current) {
+    if (currentSnapshot === initialSnapshot) {
+      refreshPendingRef.current = false;
+      return;
+    }
+
+    if (refreshPendingRef.current) {
       return;
     }
 
@@ -40,7 +42,7 @@ function useRefreshOnChange(currentValue: unknown, initialValue: unknown) {
     startTransition(() => {
       router.refresh();
     });
-  }, [currentValue, router]);
+  }, [currentValue, initialSnapshot, router]);
 }
 
 export function HomeLiveSync({ initialPost }: { initialPost: PostRecord | null }) {

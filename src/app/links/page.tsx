@@ -4,7 +4,7 @@ import { LinksLiveSync } from '@/components/public-live-sync';
 import { PublicRealtimeProvider } from '@/components/public-realtime-provider';
 import { listPublicLinks } from '@/lib/server/public-data';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: 'Links',

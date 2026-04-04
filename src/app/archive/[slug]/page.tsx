@@ -13,7 +13,7 @@ import {
 import { buildDescription } from '@/lib/seo';
 import { getPublishedPostBySlug, listPublishedPosts } from '@/lib/server/public-data';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 type Props = {
   params: Promise<{ slug: string }>;

@@ -11,7 +11,7 @@ import { absoluteUrl, buildDescription } from '@/lib/seo';
 import { getHomePagePost } from '@/lib/server/public-data';
 import { SITE_CONFIG } from '@/lib/site';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 type HomePageProps = {
   searchParams: Promise<{ lang?: string }>;
