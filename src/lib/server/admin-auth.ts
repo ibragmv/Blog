@@ -1,6 +1,7 @@
 import { fetchMutation, fetchQuery } from 'convex/nextjs';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { ADMIN_SESSION_EXPIRED_MESSAGE } from '@/lib/admin-auth-shared';
 import type { AdminSession } from '@/lib/content';
 import {
   ADMIN_SESSION_COOKIE_NAME,
@@ -12,11 +13,10 @@ import {
 
 type VerifiedAdminSession = {
   email: string;
-  sessionToken: string;
 };
 
 export class AdminAuthorizationError extends Error {
-  constructor(message = 'Admin session is invalid or expired.') {
+  constructor(message = ADMIN_SESSION_EXPIRED_MESSAGE) {
     super(message);
     this.name = 'AdminAuthorizationError';
   }
@@ -29,7 +29,7 @@ function buildUnauthenticatedSession(): AdminSession {
   };
 }
 
-async function getVerifiedAdminSession(): Promise<VerifiedAdminSession | null> {
+async function getStoredAdminSession(): Promise<{ email: string; sessionToken: string } | null> {
   const cookieStore = await cookies();
   const sessionToken = cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value;
 
@@ -63,7 +63,7 @@ function getAdminCredentials() {
 }
 
 export async function getCurrentAdminSession(): Promise<AdminSession> {
-  const session = await getVerifiedAdminSession();
+  const session = await getStoredAdminSession();
 
   if (!session) {
     return buildUnauthenticatedSession();
@@ -76,13 +76,25 @@ export async function getCurrentAdminSession(): Promise<AdminSession> {
 }
 
 export async function requireAdminSession(): Promise<VerifiedAdminSession> {
-  const session = await getVerifiedAdminSession();
+  const session = await getStoredAdminSession();
 
   if (!session) {
     throw new AdminAuthorizationError();
   }
 
-  return session;
+  return {
+    email: session.email,
+  };
+}
+
+export async function requireAdminSessionToken(): Promise<string> {
+  const session = await getStoredAdminSession();
+
+  if (!session) {
+    throw new AdminAuthorizationError();
+  }
+
+  return session.sessionToken;
 }
 
 export async function requireAdminSessionOrRedirect(nextPath = '/admin') {

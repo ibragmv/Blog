@@ -9,7 +9,8 @@ import { AdminNotice } from '@/components/admin-notice';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
 import { LinksManager } from '@/components/links-manager';
 import { PageLoader } from '@/components/page-loader';
-import { AdminApiError, deleteAdminPost, getAdminPosts } from '@/lib/admin-api';
+import { deleteAdminPost, getAdminPosts } from '@/lib/admin-api';
+import { isAdminSessionExpiredError } from '@/lib/admin-client-auth';
 import type { PostRecord } from '@/lib/content';
 import { formatShortUtcDate } from '@/lib/dates';
 
@@ -18,7 +19,7 @@ export function AdminDashboard() {
   const [posts, setPosts] = useState<PostRecord[] | null>(null);
   const [postsError, setPostsError] = useState<string | null>(null);
   const router = useRouter();
-  const { isAuthenticated, isLoading, signOut } = useAdminAuth();
+  const { handleUnauthorized, isAuthenticated, isLoading, signOut } = useAdminAuth();
 
   useEffect(() => {
     if (!isAuthenticated || activeTab !== 'posts') {
@@ -40,9 +41,8 @@ export function AdminDashboard() {
           return;
         }
 
-        if (error instanceof AdminApiError && error.status === 401) {
-          router.replace('/login?next=/admin');
-          router.refresh();
+        if (isAdminSessionExpiredError(error)) {
+          handleUnauthorized('/admin');
           return;
         }
 
@@ -53,7 +53,7 @@ export function AdminDashboard() {
     return () => {
       cancelled = true;
     };
-  }, [activeTab, isAuthenticated, router]);
+  }, [activeTab, handleUnauthorized, isAuthenticated]);
 
   const handleDelete = async (id: string) => {
     setPostsError(null);
@@ -62,9 +62,8 @@ export function AdminDashboard() {
       await deleteAdminPost(id);
       setPosts((currentPosts) => currentPosts?.filter((post) => post.id !== id) ?? []);
     } catch (error) {
-      if (error instanceof AdminApiError && error.status === 401) {
-        router.replace('/login?next=/admin');
-        router.refresh();
+      if (isAdminSessionExpiredError(error)) {
+        handleUnauthorized('/admin');
         return;
       }
 

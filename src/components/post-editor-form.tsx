@@ -9,7 +9,8 @@ import { AdminNotice } from '@/components/admin-notice';
 import { MarkdownEditor } from '@/components/markdown-editor';
 import { PageLoader } from '@/components/page-loader';
 import { AdminApiError, createAdminPost, getAdminPost, updateAdminPost } from '@/lib/admin-api';
-import { TranslationApiError, translatePost } from '@/services/translation';
+import { isAdminSessionExpiredError } from '@/lib/admin-client-auth';
+import { translatePost } from '@/services/translation';
 
 type PostEditorFormProps = { mode: 'create'; postId?: never } | { mode: 'edit'; postId: string };
 
@@ -17,7 +18,7 @@ export function PostEditorForm(props: PostEditorFormProps) {
   const router = useRouter();
   const isEditing = props.mode === 'edit';
   const editPostId = props.mode === 'edit' ? props.postId : null;
-  const { isAuthenticated, isLoading } = useAdminAuth();
+  const { handleUnauthorized, isAuthenticated, isLoading } = useAdminAuth();
   const [isPostLoading, setIsPostLoading] = useState(isEditing);
 
   const [titleRU, setTitleRU] = useState('');
@@ -59,17 +60,14 @@ export function PostEditorForm(props: PostEditorFormProps) {
           return;
         }
 
-        if (error instanceof AdminApiError) {
-          if (error.status === 404) {
-            router.replace('/admin');
-            return;
-          }
+        if (error instanceof AdminApiError && error.status === 404) {
+          router.replace('/admin');
+          return;
+        }
 
-          if (error.status === 401) {
-            router.replace(`/login?next=${encodeURIComponent(`/admin/edit/${editPostId}`)}`);
-            router.refresh();
-            return;
-          }
+        if (isAdminSessionExpiredError(error)) {
+          handleUnauthorized(adminEditorPath);
+          return;
         }
 
         router.replace('/admin');
@@ -83,7 +81,7 @@ export function PostEditorForm(props: PostEditorFormProps) {
     return () => {
       cancelled = true;
     };
-  }, [editPostId, isAuthenticated, isEditing, router]);
+  }, [adminEditorPath, editPostId, handleUnauthorized, isAuthenticated, isEditing, router]);
 
   const generateSlug = (text: string) =>
     text
@@ -116,9 +114,8 @@ export function PostEditorForm(props: PostEditorFormProps) {
       setTitleEN(translation.titleEN ?? titleRU);
       setContentEN(translation.contentEN ?? contentRU);
     } catch (error) {
-      if (error instanceof TranslationApiError && error.status === 401) {
-        router.replace(`/login?next=${encodeURIComponent(adminEditorPath)}`);
-        router.refresh();
+      if (isAdminSessionExpiredError(error)) {
+        handleUnauthorized(adminEditorPath);
         return;
       }
 
@@ -186,9 +183,8 @@ export function PostEditorForm(props: PostEditorFormProps) {
       router.push('/admin');
       router.refresh();
     } catch (error) {
-      if (error instanceof AdminApiError && error.status === 401) {
-        router.replace('/login?next=/admin');
-        router.refresh();
+      if (isAdminSessionExpiredError(error)) {
+        handleUnauthorized(adminEditorPath);
         return;
       }
 

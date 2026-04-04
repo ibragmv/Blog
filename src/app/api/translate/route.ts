@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { ADMIN_SESSION_EXPIRED_MESSAGE } from '@/lib/admin-auth-shared';
 import { AdminAuthorizationError, requireAdminSession } from '@/lib/server/admin-auth';
+import { ADMIN_SESSION_COOKIE_NAME } from '@/lib/server/convex';
 import {
   TranslationServiceUnavailableError,
   translateArchiveEntry,
@@ -24,8 +26,13 @@ const translateSchema = z
     message: 'Provide a non-empty title or content to translate.',
   });
 
-function createErrorResponse(status: number, code: TranslationErrorCode, message: string) {
-  return NextResponse.json(
+function createErrorResponse(
+  status: number,
+  code: TranslationErrorCode,
+  message: string,
+  clearSession = false
+) {
+  const response = NextResponse.json(
     {
       error: {
         code,
@@ -34,6 +41,12 @@ function createErrorResponse(status: number, code: TranslationErrorCode, message
     },
     { status }
   );
+
+  if (clearSession) {
+    response.cookies.delete(ADMIN_SESSION_COOKIE_NAME);
+  }
+
+  return response;
 }
 
 export async function POST(request: Request) {
@@ -41,7 +54,7 @@ export async function POST(request: Request) {
     await requireAdminSession();
   } catch (error) {
     if (error instanceof AdminAuthorizationError) {
-      return createErrorResponse(401, 'UNAUTHORIZED', 'Unauthorized.');
+      return createErrorResponse(401, 'UNAUTHORIZED', ADMIN_SESSION_EXPIRED_MESSAGE, true);
     }
 
     console.error('Unexpected admin session error during translation auth.', error);

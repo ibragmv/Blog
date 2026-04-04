@@ -1,19 +1,14 @@
 import { NextResponse } from 'next/server';
 import { AdminIdResponseSchema, AdminPostDraftSchema, PostRecordSchema } from '@/lib/content';
-import { AdminAuthorizationError } from '@/lib/server/admin-auth';
 import { listAdminPosts, saveAdminPost } from '@/lib/server/admin-data';
+import { createAdminRouteErrorResponse } from '@/lib/server/admin-route';
 
 export async function GET() {
   try {
     const posts = await listAdminPosts();
     return NextResponse.json(PostRecordSchema.array().parse(posts));
   } catch (error) {
-    if (error instanceof AdminAuthorizationError) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
-    }
-
-    const message = error instanceof Error ? error.message : 'Failed to load posts.';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return createAdminRouteErrorResponse(error, 'Failed to load posts.', 500);
   }
 }
 
@@ -29,11 +24,6 @@ export async function POST(request: Request) {
     const id = await saveAdminPost(payload.data);
     return NextResponse.json(AdminIdResponseSchema.parse({ id }));
   } catch (error) {
-    if (error instanceof AdminAuthorizationError) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
-    }
-
-    const message = error instanceof Error ? error.message : 'Failed to save post.';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return createAdminRouteErrorResponse(error, 'Failed to save post.', 400);
   }
 }

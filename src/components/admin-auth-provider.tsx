@@ -1,11 +1,14 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { createContext, type ReactNode, useContext, useState } from 'react';
 import { getAdminSession, signInAdmin, signOutAdmin } from '@/lib/admin-api';
+import { getAdminLoginPath } from '@/lib/admin-client-auth';
 import type { AdminSession } from '@/lib/content';
 
 type AdminAuthContextValue = {
   email: string | null;
+  handleUnauthorized: (nextPath: string) => void;
   isAuthenticated: boolean;
   isLoading: boolean;
   refreshSession: () => Promise<void>;
@@ -31,9 +34,19 @@ export function AdminAuthProvider({
 }) {
   const [session, setSession] = useState(() => normalizeSession(initialSession));
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const applySession = (nextSession: AdminSession) => {
     setSession(normalizeSession(nextSession));
+  };
+
+  const handleUnauthorized = (nextPath: string) => {
+    applySession({
+      authenticated: false,
+      email: null,
+    });
+    router.replace(getAdminLoginPath(nextPath));
+    router.refresh();
   };
 
   const refreshSession = async () => {
@@ -78,6 +91,7 @@ export function AdminAuthProvider({
     <AdminAuthContext.Provider
       value={{
         email: session.email,
+        handleUnauthorized,
         isAuthenticated: session.isAuthenticated,
         isLoading,
         refreshSession,

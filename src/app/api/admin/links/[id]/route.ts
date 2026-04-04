@@ -4,8 +4,8 @@ import {
   AdminIdResponseSchema,
   AdminLinkDraftSchema,
 } from '@/lib/content';
-import { AdminAuthorizationError } from '@/lib/server/admin-auth';
 import { removeAdminLink, saveAdminLink } from '@/lib/server/admin-data';
+import { createAdminRouteErrorResponse } from '@/lib/server/admin-route';
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -24,12 +24,7 @@ export async function PUT(request: Request, context: RouteContext) {
     const savedId = await saveAdminLink(payload.data, id);
     return NextResponse.json(AdminIdResponseSchema.parse({ id: savedId }));
   } catch (error) {
-    if (error instanceof AdminAuthorizationError) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
-    }
-
-    const message = error instanceof Error ? error.message : 'Failed to save link.';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return createAdminRouteErrorResponse(error, 'Failed to save link.', 400);
   }
 }
 
@@ -40,11 +35,6 @@ export async function DELETE(_: Request, context: RouteContext) {
     await removeAdminLink(id);
     return NextResponse.json(AdminDeleteSuccessResponseSchema.parse({ success: true }));
   } catch (error) {
-    if (error instanceof AdminAuthorizationError) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
-    }
-
-    const message = error instanceof Error ? error.message : 'Failed to delete link.';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return createAdminRouteErrorResponse(error, 'Failed to delete link.', 400);
   }
 }

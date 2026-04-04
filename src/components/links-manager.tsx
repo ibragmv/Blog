@@ -12,19 +12,13 @@ import {
   Save,
   Twitter,
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/components/admin-auth-provider';
 import { AdminNotice } from '@/components/admin-notice';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
-import {
-  AdminApiError,
-  createAdminLink,
-  deleteAdminLink,
-  getAdminLinks,
-  updateAdminLink,
-} from '@/lib/admin-api';
+import { createAdminLink, deleteAdminLink, getAdminLinks, updateAdminLink } from '@/lib/admin-api';
+import { isAdminSessionExpiredError } from '@/lib/admin-client-auth';
 import type { LinkRecord } from '@/lib/content';
 import { formatDisplayOrder } from '@/lib/utils';
 
@@ -46,8 +40,7 @@ function getNextLinkOrder(links: LinkRecord[] | null) {
 }
 
 export function LinksManager() {
-  const router = useRouter();
-  const { isAuthenticated } = useAdminAuth();
+  const { handleUnauthorized, isAuthenticated } = useAdminAuth();
   const [links, setLinks] = useState<LinkRecord[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -79,9 +72,8 @@ export function LinksManager() {
           return;
         }
 
-        if (error instanceof AdminApiError && error.status === 401) {
-          router.replace('/login?next=/admin');
-          router.refresh();
+        if (isAdminSessionExpiredError(error)) {
+          handleUnauthorized('/admin');
           return;
         }
 
@@ -92,7 +84,7 @@ export function LinksManager() {
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated, router]);
+  }, [handleUnauthorized, isAuthenticated]);
 
   useEffect(() => {
     if (isEditing || !links) {
@@ -127,9 +119,8 @@ export function LinksManager() {
       await deleteAdminLink(id);
       setLinks((currentLinks) => currentLinks?.filter((link) => link.id !== id) ?? []);
     } catch (err: unknown) {
-      if (err instanceof AdminApiError && err.status === 401) {
-        router.replace('/login?next=/admin');
-        router.refresh();
+      if (isAdminSessionExpiredError(err)) {
+        handleUnauthorized('/admin');
         return;
       }
 
@@ -160,9 +151,8 @@ export function LinksManager() {
       setLinks(nextLinks);
       resetForm();
     } catch (err: unknown) {
-      if (err instanceof AdminApiError && err.status === 401) {
-        router.replace('/login?next=/admin');
-        router.refresh();
+      if (isAdminSessionExpiredError(err)) {
+        handleUnauthorized('/admin');
         return;
       }
 

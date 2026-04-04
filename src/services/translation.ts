@@ -1,3 +1,4 @@
+import { ADMIN_SESSION_EXPIRED_MESSAGE } from '@/lib/admin-auth-shared';
 import type {
   TranslationErrorCode,
   TranslationErrorResponse,
@@ -20,7 +21,7 @@ export class TranslationApiError extends Error {
 
 function getFallbackErrorMessage(status: number) {
   if (status === 401) {
-    return 'Your admin session has expired. Sign in again.';
+    return ADMIN_SESSION_EXPIRED_MESSAGE;
   }
 
   if (status === 400) {

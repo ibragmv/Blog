@@ -5,8 +5,8 @@ import {
   AdminPostDraftSchema,
   PostRecordSchema,
 } from '@/lib/content';
-import { AdminAuthorizationError } from '@/lib/server/admin-auth';
 import { getAdminPostById, removeAdminPost, saveAdminPost } from '@/lib/server/admin-data';
+import { createAdminRouteErrorResponse } from '@/lib/server/admin-route';
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -24,12 +24,7 @@ export async function GET(_: Request, context: RouteContext) {
 
     return NextResponse.json(PostRecordSchema.parse(post));
   } catch (error) {
-    if (error instanceof AdminAuthorizationError) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
-    }
-
-    const message = error instanceof Error ? error.message : 'Failed to load post.';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return createAdminRouteErrorResponse(error, 'Failed to load post.', 400);
   }
 }
 
@@ -46,12 +41,7 @@ export async function PUT(request: Request, context: RouteContext) {
     const savedId = await saveAdminPost(payload.data, id);
     return NextResponse.json(AdminIdResponseSchema.parse({ id: savedId }));
   } catch (error) {
-    if (error instanceof AdminAuthorizationError) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
-    }
-
-    const message = error instanceof Error ? error.message : 'Failed to save post.';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return createAdminRouteErrorResponse(error, 'Failed to save post.', 400);
   }
 }
 
@@ -62,11 +52,6 @@ export async function DELETE(_: Request, context: RouteContext) {
     await removeAdminPost(id);
     return NextResponse.json(AdminDeleteSuccessResponseSchema.parse({ success: true }));
   } catch (error) {
-    if (error instanceof AdminAuthorizationError) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
-    }
-
-    const message = error instanceof Error ? error.message : 'Failed to delete post.';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return createAdminRouteErrorResponse(error, 'Failed to delete post.', 400);
   }
 }
