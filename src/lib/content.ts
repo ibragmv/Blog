@@ -27,6 +27,26 @@ export function getDefaultContentLanguage(
   return post?.titleEN && post.contentEN ? 'en' : 'ru';
 }
 
+export function parseContentLanguage(value?: string | string[] | null): ContentLanguage | null {
+  if (value === 'en' || value === 'ru') {
+    return value;
+  }
+
+  return null;
+}
+
+export function resolveContentLanguage(
+  requestedLanguage: ContentLanguage | null,
+  defaultLanguage: ContentLanguage,
+  hasTranslation: boolean
+): ContentLanguage {
+  if (!hasTranslation) {
+    return defaultLanguage;
+  }
+
+  return requestedLanguage ?? defaultLanguage;
+}
+
 export type LinkRecord = {
   id: string;
   title: string;

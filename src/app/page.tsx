@@ -1,17 +1,25 @@
-import { api } from '@convex/_generated/api';
-import { fetchQuery, preloadQuery } from 'convex/nextjs';
 import type { Metadata } from 'next';
 import { HomePageView } from '@/components/home-page-view';
-import { getPrimaryPostContent } from '@/lib/content';
+import { HomeLiveSync } from '@/components/public-live-sync';
+import { PublicRealtimeProvider } from '@/components/public-realtime-provider';
+import {
+  getDefaultContentLanguage,
+  parseContentLanguage,
+  resolveContentLanguage,
+} from '@/lib/content';
 import { absoluteUrl, buildDescription } from '@/lib/seo';
+import { getHomePagePost, HOME_FALLBACK_CONTENT } from '@/lib/server/public-data';
 import { SITE_CONFIG } from '@/lib/site';
 
-const HOME_FALLBACK_CONTENT =
-  '# Welcome\n\nThis is the home page. You can edit this content in the admin panel by creating a post with the slug `home`.';
+export const dynamic = 'force-dynamic';
+
+type HomePageProps = {
+  searchParams: Promise<{ lang?: string }>;
+};
 
 export async function generateMetadata(): Promise<Metadata> {
-  const homePost = await fetchQuery(api.posts.getHomePage, {});
-  const description = buildDescription(homePost ? getPrimaryPostContent(homePost) : undefined);
+  const homePost = await getHomePagePost();
+  const description = buildDescription(homePost?.contentEN || homePost?.contentRU);
   const ogImage = absoluteUrl('/opengraph-image');
 
   return {
@@ -45,10 +53,27 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function HomePage() {
-  const preloadedHomePost = await preloadQuery(api.posts.getHomePage, {});
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const [{ lang }, homePost] = await Promise.all([searchParams, getHomePagePost()]);
+  const defaultLanguage = getDefaultContentLanguage(homePost);
+  const hasTranslation = !!homePost?.contentEN;
+  const activeLanguage = resolveContentLanguage(
+    parseContentLanguage(lang),
+    defaultLanguage,
+    hasTranslation
+  );
 
   return (
-    <HomePageView preloadedHomePost={preloadedHomePost} fallbackContent={HOME_FALLBACK_CONTENT} />
+    <>
+      <PublicRealtimeProvider>
+        <HomeLiveSync initialPost={homePost} />
+      </PublicRealtimeProvider>
+      <HomePageView
+        activeLanguage={activeLanguage}
+        defaultLanguage={defaultLanguage}
+        fallbackContent={HOME_FALLBACK_CONTENT}
+        post={homePost}
+      />
+    </>
   );
 }

@@ -1,23 +1,33 @@
-import { api } from '@convex/_generated/api';
-import { fetchQuery, preloadedQueryResult, preloadQuery } from 'convex/nextjs';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ArchivePostView } from '@/components/archive-post-view';
-import { getPrimaryPostContent, getPrimaryPostTitle } from '@/lib/content';
+import { ArchivePostLiveSync } from '@/components/public-live-sync';
+import { PublicRealtimeProvider } from '@/components/public-realtime-provider';
+import {
+  getDefaultContentLanguage,
+  getPrimaryPostContent,
+  getPrimaryPostTitle,
+  parseContentLanguage,
+  resolveContentLanguage,
+} from '@/lib/content';
 import { buildDescription } from '@/lib/seo';
+import { getPublishedPostBySlug, listPublishedPosts } from '@/lib/server/public-data';
+
+export const dynamic = 'force-dynamic';
 
 type Props = {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ lang?: string }>;
 };
 
 export async function generateStaticParams() {
-  const posts = await fetchQuery(api.posts.listPublished, {});
+  const posts = await listPublishedPosts();
   return posts.map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const post = await fetchQuery(api.posts.getPublishedBySlug, { slug });
+  const post = await getPublishedPostBySlug(slug);
 
   if (!post) {
     return {
@@ -65,14 +75,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function ArchivePostPage({ params }: Props) {
+export default async function ArchivePostPage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const preloadedPost = await preloadQuery(api.posts.getPublishedBySlug, { slug });
-  const post = preloadedQueryResult(preloadedPost);
+  const [{ lang }, post] = await Promise.all([searchParams, getPublishedPostBySlug(slug)]);
 
   if (!post) {
     notFound();
   }
 
-  return <ArchivePostView preloadedPost={preloadedPost} />;
+  const defaultLanguage = getDefaultContentLanguage(post);
+  const hasTranslation = !!post.titleEN && !!post.contentEN;
+  const activeLanguage = resolveContentLanguage(
+    parseContentLanguage(lang),
+    defaultLanguage,
+    hasTranslation
+  );
+
+  return (
+    <>
+      <PublicRealtimeProvider>
+        <ArchivePostLiveSync initialPost={post} slug={slug} />
+      </PublicRealtimeProvider>
+      <ArchivePostView
+        activeLanguage={activeLanguage}
+        defaultLanguage={defaultLanguage}
+        post={post}
+      />
+    </>
+  );
 }

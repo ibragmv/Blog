@@ -3,7 +3,6 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import { Layout } from '@/components/layout';
-import { PublicProviders } from '@/components/public-providers';
 import { ThemeProvider } from '@/components/theme-provider';
 import { absoluteUrl } from '@/lib/seo';
 import { getSiteUrl, SITE_CONFIG } from '@/lib/site';
@@ -173,11 +172,9 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${spaceMono.variable} ${doto.variable}`}
     >
       <body className="font-sans">
-        <PublicProviders>
-          <ThemeProvider defaultTheme="system" storageKey="archive-theme">
-            <Layout currentYear={new Date().getFullYear()}>{children}</Layout>
-          </ThemeProvider>
-        </PublicProviders>
+        <ThemeProvider defaultTheme="system" storageKey="archive-theme">
+          <Layout currentYear={new Date().getFullYear()}>{children}</Layout>
+        </ThemeProvider>
         <Analytics />
         <SpeedInsights />
       </body>

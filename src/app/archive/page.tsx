@@ -1,7 +1,10 @@
-import { api } from '@convex/_generated/api';
-import { preloadQuery } from 'convex/nextjs';
 import type { Metadata } from 'next';
 import { ArchiveIndex } from '@/components/archive-index';
+import { ArchiveListLiveSync } from '@/components/public-live-sync';
+import { PublicRealtimeProvider } from '@/components/public-realtime-provider';
+import { listPublishedPosts } from '@/lib/server/public-data';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Archive',
@@ -12,6 +15,14 @@ export const metadata: Metadata = {
 };
 
 export default async function ArchivePage() {
-  const preloadedPosts = await preloadQuery(api.posts.listPublished, {});
-  return <ArchiveIndex preloadedPosts={preloadedPosts} />;
+  const posts = await listPublishedPosts();
+
+  return (
+    <>
+      <PublicRealtimeProvider>
+        <ArchiveListLiveSync initialPosts={posts} />
+      </PublicRealtimeProvider>
+      <ArchiveIndex posts={posts} />
+    </>
+  );
 }

@@ -1,22 +1,14 @@
 'use client';
 
-import type { api } from '@convex/_generated/api';
-import type { Preloaded } from 'convex/react';
-import { usePreloadedQuery } from 'convex/react';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { useDeferredValue, useState } from 'react';
-import { getPrimaryPostContent, getPrimaryPostTitle } from '@/lib/content';
+import { getPrimaryPostContent, getPrimaryPostTitle, type PostRecord } from '@/lib/content';
 import { formatLongUtcDate } from '@/lib/dates';
 import { buildDescription } from '@/lib/seo';
 import { formatDisplayOrder } from '@/lib/utils';
 
-export function ArchiveIndex({
-  preloadedPosts,
-}: {
-  preloadedPosts: Preloaded<typeof api.posts.listPublished>;
-}) {
-  const posts = usePreloadedQuery(preloadedPosts);
+export function ArchiveIndex({ posts }: { posts: PostRecord[] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const normalizedQuery = deferredSearchQuery.trim().toLowerCase();

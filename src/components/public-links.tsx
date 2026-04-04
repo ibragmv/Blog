@@ -1,9 +1,5 @@
-'use client';
-
-import type { api } from '@convex/_generated/api';
-import type { Preloaded } from 'convex/react';
-import { usePreloadedQuery } from 'convex/react';
 import { Github, Globe, Linkedin, Link as LinkIcon, Mail, Twitter } from 'lucide-react';
+import type { LinkRecord } from '@/lib/content';
 import { formatDisplayOrder } from '@/lib/utils';
 
 const iconMap = {
@@ -15,13 +11,7 @@ const iconMap = {
   default: LinkIcon,
 } as const;
 
-export function PublicLinks({
-  preloadedLinks,
-}: {
-  preloadedLinks: Preloaded<typeof api.links.listPublic>;
-}) {
-  const links = usePreloadedQuery(preloadedLinks);
-
+export function PublicLinks({ links }: { links: LinkRecord[] }) {
   return (
     <div className="grid gap-10 animate-in fade-in duration-500 md:gap-14">
       <section className="grid gap-8 border-b border-[var(--border)] pb-10 md:gap-10 md:pb-12 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] lg:items-end">

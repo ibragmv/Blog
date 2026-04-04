@@ -1,7 +1,10 @@
-import { api } from '@convex/_generated/api';
-import { preloadQuery } from 'convex/nextjs';
 import type { Metadata } from 'next';
 import { PublicLinks } from '@/components/public-links';
+import { LinksLiveSync } from '@/components/public-live-sync';
+import { PublicRealtimeProvider } from '@/components/public-realtime-provider';
+import { listPublicLinks } from '@/lib/server/public-data';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Links',
@@ -12,6 +15,14 @@ export const metadata: Metadata = {
 };
 
 export default async function LinksPage() {
-  const preloadedLinks = await preloadQuery(api.links.listPublic, {});
-  return <PublicLinks preloadedLinks={preloadedLinks} />;
+  const links = await listPublicLinks();
+
+  return (
+    <>
+      <PublicRealtimeProvider>
+        <LinksLiveSync initialLinks={links} />
+      </PublicRealtimeProvider>
+      <PublicLinks links={links} />
+    </>
+  );
 }

@@ -1,34 +1,25 @@
-'use client';
-
-import type { api } from '@convex/_generated/api';
-import type { Preloaded } from 'convex/react';
-import { usePreloadedQuery } from 'convex/react';
-import { useEffect, useState } from 'react';
-import { LanguageToggle } from '@/components/language-toggle';
-import { LazyMarkdownRenderer } from '@/components/lazy-markdown';
-import { getDefaultContentLanguage } from '@/lib/content';
+import { ContentLanguageToggle } from '@/components/content-language-toggle';
+import { MarkdownContent } from '@/components/markdown-content';
+import type { PostRecord } from '@/lib/content';
 import { SITE_CONFIG } from '@/lib/site';
 
 type HomePageViewProps = {
-  preloadedHomePost: Preloaded<typeof api.posts.getHomePage>;
+  activeLanguage: 'ru' | 'en';
+  defaultLanguage: 'ru' | 'en';
   fallbackContent: string;
+  post: PostRecord | null;
 };
 
-export function HomePageView({ preloadedHomePost, fallbackContent }: HomePageViewProps) {
-  const post = usePreloadedQuery(preloadedHomePost);
+export function HomePageView({
+  activeLanguage,
+  defaultLanguage,
+  fallbackContent,
+  post,
+}: HomePageViewProps) {
   const contentRU = post?.contentRU || fallbackContent;
   const contentEN = post?.contentEN;
   const hasTranslation = !!contentEN;
-  const defaultLanguage = getDefaultContentLanguage(
-    post ? { titleEN: post.titleEN, contentEN: post.contentEN } : { titleEN: undefined, contentEN }
-  );
-  const [language, setLanguage] = useState<'ru' | 'en'>('en');
-  const activeLanguage = hasTranslation ? language : defaultLanguage;
   const currentContent = activeLanguage === 'en' && contentEN ? contentEN : contentRU;
-
-  useEffect(() => {
-    setLanguage(defaultLanguage);
-  }, [defaultLanguage]);
 
   return (
     <div className="grid gap-10 animate-in fade-in duration-500 md:gap-14">
@@ -60,7 +51,7 @@ export function HomePageView({ preloadedHomePost, fallbackContent }: HomePageVie
 
           {hasTranslation ? (
             <div className="flex justify-start lg:justify-end">
-              <LanguageToggle value={language} onChange={setLanguage} />
+              <ContentLanguageToggle defaultLanguage={defaultLanguage} value={activeLanguage} />
             </div>
           ) : null}
         </div>
@@ -83,7 +74,7 @@ export function HomePageView({ preloadedHomePost, fallbackContent }: HomePageVie
         </aside>
 
         <div className="min-w-0">
-          <LazyMarkdownRenderer content={currentContent} preload />
+          <MarkdownContent content={currentContent} />
         </div>
       </section>
     </div>

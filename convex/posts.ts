@@ -112,7 +112,11 @@ export const getHomePage = query({
       .withIndex("by_slug", (query) => query.eq("slug", "home"))
       .first();
 
-    return post ? serializePost(post) : null;
+    if (!post || !post.published) {
+      return null;
+    }
+
+    return serializePost(post);
   },
 });
 
