@@ -1,5 +1,5 @@
 import type { ImageResponseOptions } from 'next/server';
-import { getDotoFontData } from '@/lib/og-fonts';
+import { getOgFontData, OG_FONT_FAMILY } from '@/lib/og-fonts';
 import { SITE_CONFIG } from '@/lib/site';
 
 export const OG_IMAGE_SIZE = {
@@ -39,8 +39,8 @@ export async function getOgImageOptions(): Promise<ImageResponseOptions> {
     ...OG_IMAGE_SIZE,
     fonts: [
       {
-        name: 'Doto',
-        data: await getDotoFontData(),
+        name: OG_FONT_FAMILY,
+        data: await getOgFontData(),
         style: 'normal',
         weight: 400,
       },
@@ -168,7 +168,7 @@ export function renderOgPreview({ title }: RenderOgPreviewOptions) {
               maxWidth: 860,
               textAlign: 'center',
               color: '#ffffff',
-              fontFamily: 'Doto',
+              fontFamily: OG_FONT_FAMILY,
               fontSize: previewTitleSize,
               lineHeight: 0.9,
               letterSpacing: '-0.075em',
