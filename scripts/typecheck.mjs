@@ -49,3 +49,5 @@ try {
 } finally {
   rmSync(tempTsconfigPath, { force: true });
 }
+
+run('bunx', ['tsc', '--noEmit', '--pretty', 'false', '--project', 'convex/tsconfig.json']);

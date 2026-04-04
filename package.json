@@ -13,12 +13,14 @@
     "start": "next start",
     "clean": "rm -rf .next .turbo .vercel tsconfig.tsbuildinfo",
     "typecheck": "bun scripts/typecheck.mjs",
-    "lint": "biome check .",
+    "lint": "biome check . && bun run lint:convex",
+    "lint:convex": "eslint convex --max-warnings=0",
     "fix": "biome check --write .",
     "format": "biome format --write .",
     "analyze": "next build --turbopack --experimental-analyze",
     "check": "turbo run lint typecheck build --continue --ui=stream",
-    "deploy": "convex deploy --typecheck=disable"
+    "check:convex": "bun run lint:convex && bun run typecheck",
+    "deploy": "bun run check:convex && convex deploy"
   },
   "trustedDependencies": [
     "protobufjs"
@@ -43,11 +45,14 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@convex-dev/eslint-plugin": "^0.0.1-alpha.4",
     "@tailwindcss/postcss": "^4.1.14",
     "@biomejs/biome": "^2.4.6",
     "@types/node": "^22.14.0",
+    "eslint": "^9.37.0",
     "tailwindcss": "^4.1.14",
     "turbo": "^2.8.13",
+    "typescript-eslint": "^8.46.0",
     "typescript": "~5.8.2"
   }
 }

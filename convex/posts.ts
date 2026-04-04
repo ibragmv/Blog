@@ -1,10 +1,12 @@
-import { mutation, query } from "./_generated/server";
-import type { Doc } from "./_generated/dataModel";
-import { requireAdminSession } from "./auth";
-import { ConvexError, v } from "convex/values";
+import { ConvexError, v } from 'convex/values';
+import type { Doc } from './_generated/dataModel';
+import { mutation, query } from './_generated/server';
+import { requireAdminSession } from './auth';
+
+const HOME_SLUG = 'home';
 
 const postValidator = v.object({
-  id: v.id("posts"),
+  id: v.id('posts'),
   titleRU: v.string(),
   titleEN: v.optional(v.string()),
   slug: v.string(),
@@ -21,7 +23,11 @@ function normalizeOptionalString(value?: string) {
   return trimmed ? trimmed : undefined;
 }
 
-function serializePost(post: Doc<"posts">) {
+function normalizeSlug(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function serializePost(post: Doc<'posts'>) {
   return {
     id: post._id,
     titleRU: post.titleRU,
@@ -36,32 +42,23 @@ function serializePost(post: Doc<"posts">) {
   };
 }
 
-function selectLatestPost(posts: Doc<"posts">[]) {
-  return posts.reduce<Doc<"posts"> | null>((latestPost, currentPost) => {
-    if (!latestPost) {
-      return currentPost;
-    }
-
-    if (currentPost.updatedAt !== latestPost.updatedAt) {
-      return currentPost.updatedAt > latestPost.updatedAt ? currentPost : latestPost;
-    }
-
-    return currentPost.createdAt > latestPost.createdAt ? currentPost : latestPost;
-  }, null);
-}
-
-function buildPostDocument(args: {
-  titleRU: string;
-  slug: string;
-  contentRU: string;
-  titleEN?: string;
-  contentEN?: string;
-  published: boolean;
-  isPage?: boolean;
-}, createdAt: number, updatedAt: number) {
-  const normalizedSlug = args.slug.trim().toLowerCase();
+function buildPostDocument(
+  args: {
+    titleRU: string;
+    slug: string;
+    contentRU: string;
+    titleEN?: string;
+    contentEN?: string;
+    published: boolean;
+    isPage?: boolean;
+  },
+  createdAt: number,
+  updatedAt: number
+) {
+  const normalizedSlug = normalizeSlug(args.slug);
   const titleEN = normalizeOptionalString(args.titleEN);
   const contentEN = normalizeOptionalString(args.contentEN);
+  const isHomePage = normalizedSlug === HOME_SLUG;
 
   return {
     titleRU: args.titleRU.trim(),
@@ -70,10 +67,23 @@ function buildPostDocument(args: {
     createdAt,
     updatedAt,
     published: args.published,
-    isPage: args.isPage ?? normalizedSlug === "home",
+    isPage: isHomePage || args.isPage === true,
     ...(titleEN !== undefined ? { titleEN } : {}),
     ...(contentEN !== undefined ? { contentEN } : {}),
   };
+}
+
+function isSamePostDocument(post: Doc<'posts'>, candidate: ReturnType<typeof buildPostDocument>) {
+  return (
+    post.titleRU === candidate.titleRU &&
+    post.titleEN === candidate.titleEN &&
+    post.slug === candidate.slug &&
+    post.contentRU === candidate.contentRU &&
+    post.contentEN === candidate.contentEN &&
+    post.createdAt === candidate.createdAt &&
+    post.published === candidate.published &&
+    post.isPage === candidate.isPage
+  );
 }
 
 export const listPublished = query({
@@ -83,16 +93,14 @@ export const listPublished = query({
   returns: v.array(postValidator),
   handler: async (ctx, args) => {
     const postsQuery = ctx.db
-      .query("posts")
-      .withIndex("by_published_and_isPage_and_createdAt", (query) =>
-        query.eq("published", true).eq("isPage", false),
+      .query('posts')
+      .withIndex('by_published_and_isPage_and_createdAt', (query) =>
+        query.eq('published', true).eq('isPage', false)
       )
-      .order("desc");
+      .order('desc');
 
     const posts =
-      args.limit !== undefined
-        ? await postsQuery.take(args.limit)
-        : await postsQuery.collect();
+      args.limit !== undefined ? await postsQuery.take(args.limit) : await postsQuery.collect();
 
     return posts.map(serializePost);
   },
@@ -104,17 +112,15 @@ export const getPublishedBySlug = query({
   },
   returns: v.union(postValidator, v.null()),
   handler: async (ctx, args) => {
-    const posts = await ctx.db
-      .query("posts")
-      .withIndex("by_slug", (query) => query.eq("slug", args.slug))
-      .collect();
-    const post = selectLatestPost(posts);
+    const post = await ctx.db
+      .query('posts')
+      .withIndex('by_published_and_isPage_and_slug_and_updatedAt_and_createdAt', (query) =>
+        query.eq('published', true).eq('isPage', false).eq('slug', normalizeSlug(args.slug))
+      )
+      .order('desc')
+      .first();
 
-    if (!post || !post.published) {
-      return null;
-    }
-
-    return serializePost(post);
+    return post ? serializePost(post) : null;
   },
 });
 
@@ -122,17 +128,15 @@ export const getHomePage = query({
   args: {},
   returns: v.union(postValidator, v.null()),
   handler: async (ctx) => {
-    const posts = await ctx.db
-      .query("posts")
-      .withIndex("by_slug", (query) => query.eq("slug", "home"))
-      .collect();
-    const post = selectLatestPost(posts);
+    const post = await ctx.db
+      .query('posts')
+      .withIndex('by_published_and_isPage_and_slug_and_updatedAt_and_createdAt', (query) =>
+        query.eq('published', true).eq('isPage', true).eq('slug', HOME_SLUG)
+      )
+      .order('desc')
+      .first();
 
-    if (!post || !post.published) {
-      return null;
-    }
-
-    return serializePost(post);
+    return post ? serializePost(post) : null;
   },
 });
 
@@ -144,7 +148,7 @@ export const listAdmin = query({
   handler: async (ctx, args) => {
     await requireAdminSession(ctx, args.sessionToken);
 
-    const posts = await ctx.db.query("posts").withIndex("by_createdAt").order("desc").collect();
+    const posts = await ctx.db.query('posts').withIndex('by_createdAt').order('desc').collect();
     return posts.map(serializePost);
   },
 });
@@ -152,12 +156,12 @@ export const listAdmin = query({
 export const getAdminById = query({
   args: {
     sessionToken: v.string(),
-    postId: v.id("posts"),
+    postId: v.id('posts'),
   },
   returns: v.union(postValidator, v.null()),
   handler: async (ctx, args) => {
     await requireAdminSession(ctx, args.sessionToken);
-    const post = await ctx.db.get("posts", args.postId);
+    const post = await ctx.db.get('posts', args.postId);
     return post ? serializePost(post) : null;
   },
 });
@@ -165,7 +169,7 @@ export const getAdminById = query({
 export const save = mutation({
   args: {
     sessionToken: v.string(),
-    postId: v.optional(v.id("posts")),
+    postId: v.optional(v.id('posts')),
     titleRU: v.string(),
     slug: v.string(),
     contentRU: v.string(),
@@ -174,70 +178,84 @@ export const save = mutation({
     published: v.boolean(),
     isPage: v.optional(v.boolean()),
   },
-  returns: v.id("posts"),
+  returns: v.id('posts'),
   handler: async (ctx, args) => {
     await requireAdminSession(ctx, args.sessionToken);
 
-    if (!args.titleRU.trim() || !args.slug.trim() || !args.contentRU.trim()) {
+    const normalizedSlug = normalizeSlug(args.slug);
+
+    if (!args.titleRU.trim() || !normalizedSlug || !args.contentRU.trim()) {
       throw new ConvexError({
-        code: "INVALID_INPUT",
-        message: "Russian title, slug, and Russian content are required.",
+        code: 'INVALID_INPUT',
+        message: 'Russian title, slug, and Russian content are required.',
       });
     }
 
-    const normalizedSlug = args.slug.trim().toLowerCase();
+    if (normalizedSlug === HOME_SLUG && args.isPage === false) {
+      throw new ConvexError({
+        code: 'INVALID_INPUT',
+        message: 'The home post must always be saved as a page.',
+      });
+    }
+
     const conflictingPost = (
       await ctx.db
-        .query("posts")
-        .withIndex("by_slug", (query) => query.eq("slug", normalizedSlug))
-        .collect()
+        .query('posts')
+        .withIndex('by_slug_and_updatedAt_and_createdAt', (query) =>
+          query.eq('slug', normalizedSlug)
+        )
+        .order('desc')
+        .take(args.postId ? 2 : 1)
     ).find((post) => post._id !== args.postId);
 
     if (conflictingPost) {
       throw new ConvexError({
-        code: "SLUG_TAKEN",
-        message: "Another post already uses this slug.",
+        code: 'SLUG_TAKEN',
+        message: 'Another post already uses this slug.',
       });
     }
 
     if (args.postId) {
-      const existingPost = await ctx.db.get("posts", args.postId);
+      const existingPost = await ctx.db.get('posts', args.postId);
 
       if (!existingPost) {
         throw new ConvexError({
-          code: "NOT_FOUND",
-          message: "Post not found.",
+          code: 'NOT_FOUND',
+          message: 'Post not found.',
         });
       }
 
-      await ctx.db.replace(
-        "posts",
-        args.postId,
-        buildPostDocument(args, existingPost.createdAt, Date.now()),
-      );
+      const nextPost = buildPostDocument(args, existingPost.createdAt, Date.now());
+
+      if (isSamePostDocument(existingPost, nextPost)) {
+        return args.postId;
+      }
+
+      await ctx.db.replace('posts', args.postId, nextPost);
 
       return args.postId;
     }
 
-    return await ctx.db.insert("posts", buildPostDocument(args, Date.now(), Date.now()));
+    const now = Date.now();
+    return await ctx.db.insert('posts', buildPostDocument(args, now, now));
   },
 });
 
 export const remove = mutation({
   args: {
     sessionToken: v.string(),
-    postId: v.id("posts"),
+    postId: v.id('posts'),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
     await requireAdminSession(ctx, args.sessionToken);
-    const post = await ctx.db.get("posts", args.postId);
+    const post = await ctx.db.get('posts', args.postId);
 
     if (!post) {
       return null;
     }
 
-    await ctx.db.delete("posts", args.postId);
+    await ctx.db.delete('posts', args.postId);
     return null;
   },
 });

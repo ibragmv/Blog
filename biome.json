@@ -8,6 +8,8 @@
   "files": {
     "ignoreUnknown": true,
     "includes": [
+      "convex/**/*.ts",
+      "!convex/_generated",
       "scripts/**/*.mjs",
       "src/**/*.ts",
       "src/**/*.tsx",
@@ -18,6 +20,7 @@
       "postcss.config.mjs",
       ".gitignore",
       "biome.json",
+      "eslint.config.mjs",
       "package.json",
       "turbo.json",
       "tsconfig.json"

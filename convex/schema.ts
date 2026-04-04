@@ -1,5 +1,5 @@
-import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { defineSchema, defineTable } from 'convex/server';
+import { v } from 'convex/values';
 
 export default defineSchema({
   posts: defineTable({
@@ -13,9 +13,16 @@ export default defineSchema({
     published: v.boolean(),
     isPage: v.boolean(),
   })
-    .index("by_slug", ["slug"])
-    .index("by_createdAt", ["createdAt"])
-    .index("by_published_and_isPage_and_createdAt", ["published", "isPage", "createdAt"]),
+    .index('by_createdAt', ['createdAt'])
+    .index('by_slug_and_updatedAt_and_createdAt', ['slug', 'updatedAt', 'createdAt'])
+    .index('by_published_and_isPage_and_slug_and_updatedAt_and_createdAt', [
+      'published',
+      'isPage',
+      'slug',
+      'updatedAt',
+      'createdAt',
+    ])
+    .index('by_published_and_isPage_and_createdAt', ['published', 'isPage', 'createdAt']),
 
   links: defineTable({
     title: v.string(),
@@ -23,7 +30,7 @@ export default defineSchema({
     icon: v.string(),
     order: v.number(),
     createdAt: v.number(),
-  }).index("by_order", ["order"]),
+  }).index('by_order_and_createdAt', ['order', 'createdAt']),
 
   sessions: defineTable({
     email: v.string(),
@@ -31,6 +38,6 @@ export default defineSchema({
     expiresAt: v.number(),
     createdAt: v.number(),
   })
-    .index("by_tokenHash", ["tokenHash"])
-    .index("by_expiresAt", ["expiresAt"]),
+    .index('by_tokenHash', ['tokenHash'])
+    .index('by_expiresAt', ['expiresAt']),
 });
