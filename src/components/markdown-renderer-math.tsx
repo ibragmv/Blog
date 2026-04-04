@@ -14,6 +14,7 @@ export function MarkdownRendererMath({ content, className }: MarkdownRendererPro
       <Markdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex]}
+        skipHtml
         components={markdownComponents}
       >
         {content}

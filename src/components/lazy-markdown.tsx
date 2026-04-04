@@ -24,13 +24,9 @@ const rendererLoaders = {
     import('./markdown-renderer-math').then((module) => ({
       default: module.MarkdownRendererMath,
     })),
-  raw: () =>
-    import('./markdown-renderer-raw').then((module) => ({
-      default: module.MarkdownRendererRaw,
-    })),
-  rich: () =>
-    import('./markdown-renderer-rich').then((module) => ({
-      default: module.MarkdownRendererRich,
+  codeMath: () =>
+    import('./markdown-renderer-code-math').then((module) => ({
+      default: module.MarkdownRendererCodeMath,
     })),
 } satisfies Record<string, MarkdownRendererLoader>;
 
@@ -40,10 +36,10 @@ const lazyRendererCache = new Map<
 >();
 
 function getRendererKey(content: string) {
-  const { hasCode, hasMath, hasRawHtml } = getMarkdownFeatures(content);
+  const { hasCode, hasMath } = getMarkdownFeatures(content);
 
-  if ((hasCode && hasMath) || (hasCode && hasRawHtml) || (hasMath && hasRawHtml)) {
-    return 'rich' as const;
+  if (hasCode && hasMath) {
+    return 'codeMath' as const;
   }
 
   if (hasCode) {
@@ -52,10 +48,6 @@ function getRendererKey(content: string) {
 
   if (hasMath) {
     return 'math' as const;
-  }
-
-  if (hasRawHtml) {
-    return 'raw' as const;
   }
 
   return 'base' as const;

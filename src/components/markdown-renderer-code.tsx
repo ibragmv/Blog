@@ -13,6 +13,7 @@ export function MarkdownRendererCode({ content, className }: MarkdownRendererPro
       <Markdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight]}
+        skipHtml
         components={markdownComponents}
       >
         {content}

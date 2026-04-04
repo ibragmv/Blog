@@ -11,7 +11,7 @@ export type { MarkdownRendererProps } from './markdown-shared';
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
   return (
     <MarkdownContainer className={className}>
-      <Markdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+      <Markdown remarkPlugins={[remarkGfm]} skipHtml components={markdownComponents}>
         {content}
       </Markdown>
     </MarkdownContainer>
