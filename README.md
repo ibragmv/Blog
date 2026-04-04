@@ -162,20 +162,17 @@ Before starting the app, create a private `.env` with real values for your activ
 ```bash
 bun run dev          # start Next.js in dev mode with Turbopack
 bun run build        # create a production build with Turbopack
-bun run start        # run the production build
-bun run lint         # biome check + Convex ESLint
-bun run lint:convex  # Convex-specific ESLint rules
+bun run start        # serve the production build
+bun run lint         # Biome check + Convex ESLint
 bun run typecheck    # next typegen + TypeScript checks
-bun run check        # turbo pipeline: lint + typecheck + build
-bun run check:convex # Convex lint + typecheck shortcut for Convex deployment safety
-bun run format       # biome format --write
-bun run fix          # biome check --write
-bun run analyze      # production build with Turbopack analyzer
+bun run check        # Turbo pipeline: lint + typecheck + build
+bun run fix          # apply Biome safe fixes
+bun run format       # format files with Biome
 bun run clean        # remove local build artifacts
-bun run deploy       # run Convex checks, then deploy Convex functions only
+bun run deploy       # Turbo-guarded Convex deploy
 ```
 
-`bun run lint` already includes Convex linting through `bun run lint:convex`. `bun run deploy` is for Convex functions and does not deploy the Next.js app to Vercel.
+`bun run lint` already includes Convex linting through `bun run lint:convex`. `bun run deploy` affects only Convex functions and does not deploy the Next.js app to Vercel.
 
 ## Project Shape
 
@@ -192,6 +189,7 @@ Required checks:
 ```bash
 bun run lint
 bun run typecheck
+bun run check
 ```
 
 Recommended smoke test:

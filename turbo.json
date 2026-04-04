@@ -33,7 +33,8 @@
       "dependsOn": ["^lint"],
       "inputs": [
         "biome.json",
-        "next.config.ts",
+        "convex/**",
+        "eslint.config.mjs",
         "package.json",
         "scripts/**",
         "src/**",
@@ -44,6 +45,7 @@
     "typecheck": {
       "dependsOn": ["^typecheck"],
       "inputs": [
+        "convex/**",
         "next-env.d.ts",
         "next.config.ts",
         "package.json",
