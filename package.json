@@ -4,31 +4,37 @@
   "version": "0.0.0",
   "type": "module",
   "packageManager": "bun@1.2.21",
+  "workspaces": [
+    "packages/*"
+  ],
   "engines": {
     "bun": ">=1.2.21"
   },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
+    "release": "turbo run build",
     "start": "next start",
     "typecheck": "bun scripts/typecheck.mjs",
-    "lint": "biome check . && bun run lint:convex",
-    "lint:convex": "eslint convex --max-warnings=0",
-    "check": "turbo run lint typecheck build --continue --ui=stream",
+    "lint": "biome check . && bun run convex",
+    "convex": "eslint convex --max-warnings=0",
+    "verify": "turbo run lint typecheck build --continue --ui=stream",
     "fix": "biome check --write .",
     "format": "biome format --write .",
-    "clean": "rm -rf .next .turbo .vercel tsconfig.tsbuildinfo",
+    "clean": "turbo run clean && rm -rf .turbo .vercel",
     "deploy": "turbo run lint typecheck --continue --ui=stream && convex deploy"
   },
   "trustedDependencies": [
     "protobufjs"
   ],
   "dependencies": {
+    "@archive/core": "workspace:*",
     "@google/genai": "^1.43.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "clsx": "^2.1.1",
     "convex": "^1.34.1",
+    "highlight.js": "^11.11.1",
     "katex": "^0.16.33",
     "lucide-react": "^0.546.0",
     "next": "^16.0.0",
@@ -47,6 +53,8 @@
     "@convex-dev/eslint-plugin": "^0.0.1-alpha.4",
     "@tailwindcss/postcss": "^4.1.14",
     "@types/node": "^22.14.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "eslint": "^9.37.0",
     "tailwindcss": "^4.1.14",
     "turbo": "^2.8.13",

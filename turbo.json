@@ -9,50 +9,47 @@
     "postcss.config.mjs",
     "scripts/**",
     "tsconfig.json",
-    "turbo.json"
+    "turbo.json",
+    "vercel.json"
   ],
   "globalEnv": ["CI", "NODE_ENV"],
   "tasks": {
-    "build": {
+    "//#build": {
       "dependsOn": ["^build"],
-      "inputs": [
-        "convex/**",
-        "next-env.d.ts",
-        "next.config.ts",
-        "package.json",
-        "postcss.config.mjs",
-        "public/**",
-        "scripts/**",
-        "src/**",
-        "tsconfig.json"
-      ],
+      "inputs": ["$TURBO_DEFAULT$"],
       "outputs": [".next/**", "!.next/cache/**"],
       "env": ["CONVEX_DEPLOYMENT", "GEMINI_MODEL", "NEXT_PUBLIC_CONVEX_URL", "NEXT_PUBLIC_SITE_URL"]
     },
+    "//#lint": {
+      "dependsOn": ["^lint"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "//#typecheck": {
+      "dependsOn": ["^typecheck"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "//#dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "//#clean": {
+      "cache": false
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": ["dist/**"]
+    },
     "lint": {
       "dependsOn": ["^lint"],
-      "inputs": [
-        "biome.json",
-        "convex/**",
-        "eslint.config.mjs",
-        "package.json",
-        "scripts/**",
-        "src/**",
-        "tsconfig.json"
-      ],
+      "inputs": ["$TURBO_DEFAULT$"],
       "outputs": []
     },
     "typecheck": {
       "dependsOn": ["^typecheck"],
-      "inputs": [
-        "convex/**",
-        "next-env.d.ts",
-        "next.config.ts",
-        "package.json",
-        "scripts/**",
-        "src/**",
-        "tsconfig.json"
-      ],
+      "inputs": ["$TURBO_DEFAULT$"],
       "outputs": []
     },
     "dev": {

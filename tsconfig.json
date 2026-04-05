@@ -18,6 +18,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
+      "@archive/core": ["./packages/core/src/index.ts"],
+      "@archive/core/*": ["./packages/core/src/*"],
       "@convex/*": ["./convex/*"]
     },
     "allowImportingTsExtensions": true,
@@ -34,12 +36,13 @@
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "convex/**/*.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     ".next/types/**/*.d.ts",
     ".next/dev/types/**/*.d.ts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "packages/*/dist"]
 }

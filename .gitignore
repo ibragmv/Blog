@@ -8,8 +8,10 @@
 # Dependencies & Build Output
 ###############################################################################
 node_modules/
+packages/*/node_modules/
 build/
 dist/
+packages/*/dist/
 .next/
 .turbo/
 .convex/

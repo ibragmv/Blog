@@ -10,6 +10,9 @@
     "includes": [
       "convex/**/*.ts",
       "!convex/_generated",
+      "packages/**/*.ts",
+      "packages/**/package.json",
+      "packages/**/tsconfig*.json",
       "scripts/**/*.mjs",
       "src/**/*.ts",
       "src/**/*.tsx",
@@ -23,7 +26,8 @@
       "eslint.config.mjs",
       "package.json",
       "turbo.json",
-      "tsconfig.json"
+      "tsconfig.json",
+      "vercel.json"
     ]
   },
   "formatter": {

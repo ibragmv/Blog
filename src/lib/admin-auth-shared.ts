@@ -1,1 +1,1 @@
-export const ADMIN_SESSION_EXPIRED_MESSAGE = 'Your admin session has expired. Sign in again.';
+export { ADMIN_SESSION_EXPIRED_MESSAGE } from '@archive/core/admin-auth-shared';

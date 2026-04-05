@@ -1,126 +1,113 @@
 # Ibragim Ibragimov Archive
 
-Editorial archive built with Next.js App Router, Convex, Bun, Turbo, and Turbopack.
+Editorial archive built with Next.js, Convex, Bun, and a root-first Turborepo setup.
 
-The architecture is split on purpose:
+The public site lives in the repository root. Shared domain logic lives in `packages/core`. The result is a monorepo without fake `apps/*` nesting and without decorative Turbo config.
 
-- the public site is intentionally live on top of Convex
-- the admin surface is intentionally routed through Next.js server handlers
-- translation stays server-only and optional
+## Overview
 
-This is not an accidental hybrid. It is the operating model of the app.
+This project includes:
 
-## What The App Does
-
-- `/` renders the homepage from the `home` page record
-- `/archive` lists published essays and notes
-- `/archive/[slug]` renders a full article page with SEO and OG output
-- `/links` exposes curated public links
-- `/login` and `/admin` power the private editorial workflow
-- `/api/translate` translates editor content when Gemini is configured
+- a public archive homepage
+- an archive index and article pages
+- a links page
+- a private admin area
+- server-side translation helpers for editorial workflow
+- Convex-backed content, sessions, and mutations
 
 ## Stack
 
-- Next.js 16 App Router with React 19
-- Bun as the package manager and runtime entrypoint
-- Turbopack for development and production builds
-- Turbo for orchestration across lint, typecheck, and build
-- Convex for content, links, sessions, public reads, and admin data mutations
-- Tailwind CSS 4 for styling
-- Biome for repo linting and formatting
-- ESLint with Convex rules for Convex function linting
-- Google Gemini for optional RU -> EN translation inside admin
+- Next.js 16 App Router
+- React 19
+- Bun
+- Turbopack
+- Turborepo
+- Convex
+- Tailwind CSS 4
+- Biome
+- ESLint
+- Zod
+- Gemini API for optional translation
 
-## Architecture
+## Repository Layout
 
-### Public Runtime: intentionally live through Convex
+```text
+.
+├── convex/          # Convex schema, queries, mutations, auth helpers
+├── fonts/           # Local fonts used by the app and OG images
+├── packages/
+│   └── core/        # Shared domain package for the monorepo
+├── public/          # Static public assets
+├── scripts/         # Local development scripts
+├── src/             # Next.js app, components, server helpers
+├── package.json     # Root app + workspace config
+├── turbo.json       # Turborepo task graph
+└── vercel.json      # Vercel build commands
+```
 
-The public surface uses Convex as a deliberate realtime layer, not as an implementation leftover.
+## Why `packages/core` Exists
 
-Public pages fetch their initial data on the server through `fetchQuery`, render as normal Next.js pages, and then attach a small client-side live sync bridge:
+`packages/core` is the shared internal package for the repo.
 
-- server render: `src/lib/server/public-data.ts`
-- client provider: `src/components/public-realtime-provider.tsx`
-- live refresh bridge: `src/components/public-live-sync.tsx`
+It contains:
 
-Each public route keeps its SEO-friendly server render, but also subscribes to the corresponding public Convex query. When published content changes, the client detects divergence from the server snapshot and triggers `router.refresh()`.
+- content schemas and shared types
+- site config and URL helpers
+- date helpers
+- translation schemas
+- admin auth shared constants
+- path normalization helpers
+- small shared utilities like `cn()`
 
-That choice is intentional because it gives the archive a better publishing model:
+In plain terms: it is the shared library of the project.
 
-- newly published edits appear on the public site without waiting for a redeploy
-- homepage, archive list, article pages, and links stay current with the source of truth
-- the app avoids webhook glue, manual cache busting, and stale editorial windows
-- Convex is only exposed for public read models, not for privileged admin writes
+It also gives Turborepo a real internal workspace dependency, so the repo has an actual task graph instead of one root package pretending to be a monorepo.
 
-So the public site remains statically cacheable where useful, but it is also operationally live when content changes.
+## Monorepo Model
 
-### Admin API: server boundary after the refactor
+This repository is intentionally root-first:
 
-The admin side no longer treats the browser as a privileged Convex client.
+- the app stays in the root
+- the shared package lives in `packages/core`
+- Turbo orchestrates both the root app and the workspace package
 
-The current request path is:
+Current Turbo graph:
 
-`admin UI -> /api/admin/* route handlers -> server auth/data helpers -> Convex functions`
+- root task namespace: `//`
+- shared package: `@archive/core`
+- root build task: `//#build`
+- package build task: `@archive/core#build`
+- root build depends on workspace build through topological `^build`
 
-Key pieces:
+That means Turbo can lint, typecheck, build, and cache the shared package and the root app as one system.
 
-- browser client wrappers: `src/lib/admin-api.ts`
-- route handlers: `src/app/api/admin/**`
-- auth/session helpers: `src/lib/server/admin-auth.ts`
-- admin data bridge: `src/lib/server/admin-data.ts`
-- Convex functions: `convex/posts.ts`, `convex/links.ts`, `convex/sessions.ts`
+## Scripts
 
-This refactor makes the boundaries explicit:
+All user-facing scripts are short and single-purpose.
 
-- the browser talks only to Next.js route handlers for admin work
-- route handlers validate payloads and normalize error responses
-- session state is stored in an httpOnly cookie in Next.js
-- the raw session token is never trusted directly inside the browser
-- Convex receives `sessionToken` only from trusted server code
-- Convex stores only the token hash in the `sessions` table
+```bash
+bun run dev       # start local dev server
+bun run build     # direct Next.js production build
+bun run release   # Turborepo production build for the full repo
+bun run start     # run the production server
+bun run lint      # lint the root app
+bun run convex    # lint Convex code
+bun run typecheck # type-check the root app
+bun run verify    # turbo lint + typecheck + build
+bun run fix       # apply Biome fixes
+bun run format    # format files
+bun run clean     # clean build output and turbo artifacts
+bun run deploy    # verify turbo tasks, then deploy Convex
+```
 
-Practically, that means:
+## Environment
 
-- public reads can stay live and low-friction
-- admin writes stay behind a server-controlled authorization boundary
-- auth, validation, and error shaping are centralized in one place
+Private environment files are ignored by [`.gitignore`](/Users/ibragimibragimov/Eldenlord/Blog/.gitignore).
 
-### Session Model
+- template file: [`.env.example`](/Users/ibragimibragimov/Eldenlord/Blog/.env.example)
+- local secrets file: [`.env`](/Users/ibragimibragimov/Eldenlord/Blog/.env)
 
-Admin credentials come from environment variables:
-
-- `ADMIN_EMAIL`
-- `ADMIN_PASSWORD`
-
-Successful sign-in creates a random session token, hashes it with SHA-256, stores the hash in Convex, and sets the unhashed token only in the `archive_admin_session` httpOnly cookie. Session records live in the `sessions` table and expire after seven days.
-
-### Translation Boundary
-
-`/api/translate` is intentionally separate from Convex mutations.
-
-Translation is a server-only helper for the editor:
-
-- requires a valid admin session
-- reads `GEMINI_API_KEY` only on the server
-- uses `GEMINI_MODEL` when provided, otherwise falls back to `gemini-2.5-flash`
-
-That keeps third-party API usage out of the public runtime and out of the committed env template.
-
-## Data Model
-
-Schema lives in [convex/schema.ts](/Users/ibragimibragimov/Eldenlord/Blog/convex/schema.ts).
-
-- `posts` stores articles and page-like content such as the homepage
-- `links` stores ordered public links
-- `sessions` stores hashed admin sessions with expiration timestamps
-
-Public Convex queries are read-only and scoped to published content. Admin Convex queries and mutations require a validated `sessionToken`.
-
-## Environment Contract
-
-Private env files are ignored by [`.gitignore`](/Users/ibragimibragimov/Eldenlord/Blog/.gitignore). The committed template is [`.env.example`](/Users/ibragimibragimov/Eldenlord/Blog/.env.example). Real secrets belong only in private [`.env`](/Users/ibragimibragimov/Eldenlord/Blog/.env).
-
-### Safe to commit in `.env.example`
+### Safe to keep in `.env.example`
 
 ```env
 NEXT_PUBLIC_SITE_URL="https://your-domain.example"
@@ -138,16 +125,6 @@ NODE_OPTIONS="--no-deprecation"
 GEMINI_API_KEY="your-real-gemini-api-key"
 ```
 
-Contract notes:
-
-- `NEXT_PUBLIC_SITE_URL` drives canonical URLs, sitemap output, and OG metadata
-- `CONVEX_DEPLOYMENT` is required for Convex CLI commands such as `convex deploy`
-- `NEXT_PUBLIC_CONVEX_URL` is required by the public Convex client and live sync provider
-- `ADMIN_EMAIL` and `ADMIN_PASSWORD` are required for `/login` and `/admin`
-- `GEMINI_MODEL` is optional and defaults to `gemini-2.5-flash`
-- `GEMINI_API_KEY` is optional overall, but required for `/api/translate`
-- API keys are intentionally omitted from `.env.example`
-
 ## Local Development
 
 ```bash
@@ -155,48 +132,136 @@ bun install
 bun run dev
 ```
 
-Before starting the app, create a private `.env` with real values for your active Convex deployment, admin credentials, and optional Gemini key.
+Before starting the app, make sure your local `.env` has valid Convex values, admin credentials, and optional Gemini credentials.
 
-## Scripts
+## Build And Verification
 
-```bash
-bun run dev          # start Next.js in dev mode with Turbopack
-bun run build        # create a production build with Turbopack
-bun run start        # serve the production build
-bun run lint         # Biome check + Convex ESLint
-bun run typecheck    # next typegen + TypeScript checks
-bun run check        # Turbo pipeline: lint + typecheck + build
-bun run fix          # apply Biome safe fixes
-bun run format       # format files with Biome
-bun run clean        # remove local build artifacts
-bun run deploy       # Turbo-guarded Convex deploy
-```
-
-`bun run lint` already includes Convex linting through `bun run lint:convex`. `bun run deploy` affects only Convex functions and does not deploy the Next.js app to Vercel.
-
-## Project Shape
-
-- [src/app](/Users/ibragimibragimov/Eldenlord/Blog/src/app) contains routes, metadata, route handlers, and OG image entries
-- [src/components](/Users/ibragimibragimov/Eldenlord/Blog/src/components) contains public and admin UI
-- [src/lib](/Users/ibragimibragimov/Eldenlord/Blog/src/lib) contains SEO helpers, server utilities, API clients, and domain logic
-- [convex](/Users/ibragimibragimov/Eldenlord/Blog/convex) contains schema, public queries, admin mutations, auth helpers, and generated types
-- [scripts](/Users/ibragimibragimov/Eldenlord/Blog/scripts) contains local development helpers
-
-## Verification
-
-Required checks:
+Standard local checks:
 
 ```bash
 bun run lint
 bun run typecheck
-bun run check
+bun run build
 ```
 
-Recommended smoke test:
+Full monorepo verification:
 
-- `http://localhost:3000/`
-- `http://localhost:3000/archive`
-- `http://localhost:3000/archive/[slug]`
-- `http://localhost:3000/links`
-- `http://localhost:3000/login`
-- `http://localhost:3000/admin`
+```bash
+bun run verify
+```
+
+Full monorepo production build:
+
+```bash
+bun run release
+```
+
+## Vercel Build Contract
+
+Vercel is configured to build through Turbo, not through a direct `next build`.
+
+See [vercel.json](/Users/ibragimibragimov/Eldenlord/Blog/vercel.json):
+
+```json
+{
+  "installCommand": "bun install --frozen-lockfile",
+  "buildCommand": "bun run release"
+}
+```
+
+That matters because `bun run release` runs Turbo across the root app and `@archive/core`, which gives you:
+
+- a real workspace build graph
+- consistent task ordering
+- reusable Turbo cache artifacts
+- proper monorepo build logs in CI and Vercel
+
+## Architecture
+
+### Public Runtime
+
+The public site uses Convex as a deliberate realtime content layer.
+
+Pages are server-rendered through Convex reads and then connected to a lightweight live refresh bridge.
+
+Key files:
+
+- `src/lib/server/public-data.ts`
+- `src/components/public-realtime-provider.tsx`
+- `src/components/public-live-sync.tsx`
+
+### Admin Boundary
+
+The admin UI does not talk to privileged Convex mutations directly from the browser.
+
+Request flow:
+
+```text
+Admin UI -> /api/admin/* -> server auth/data helpers -> Convex functions
+```
+
+Key files:
+
+- `src/lib/admin-api.ts`
+- `src/lib/server/admin-auth.ts`
+- `src/lib/server/admin-data.ts`
+- `src/app/api/admin/**`
+- `convex/posts.ts`
+- `convex/links.ts`
+- `convex/sessions.ts`
+
+### Session Model
+
+Admin login uses:
+
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+
+A successful login creates a random session token, stores only its hash in Convex, and places the raw token in an `httpOnly` cookie.
+
+### Translation Boundary
+
+Translation stays server-side.
+
+- route: `/api/translate`
+- key: `GEMINI_API_KEY`
+- model override: `GEMINI_MODEL`
+
+## Routes
+
+Main routes:
+
+- `/`
+- `/archive`
+- `/archive/[slug]`
+- `/links`
+- `/login`
+- `/admin`
+
+Admin and API routes are handled inside `src/app/api/**` and `src/app/admin/**`.
+
+## Deployment Notes
+
+This project does not deploy the Next.js app directly from local scripts.
+
+- `deploy` is for Convex deployment after verification
+- Vercel build uses `bun run release`
+- the root app and `packages/core` are built together by Turbo
+
+## Quick Start
+
+```bash
+bun install
+cp .env.example .env
+bun run verify
+bun run dev
+```
+
+## Status
+
+Current repo contract is consistent:
+
+- root app in `/`
+- shared workspace package in `packages/core`
+- Turbo task graph active and verified
+- `release` and `verify` are the canonical monorepo commands
