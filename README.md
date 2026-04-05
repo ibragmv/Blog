@@ -125,6 +125,27 @@ NODE_OPTIONS="--no-deprecation"
 GEMINI_API_KEY="your-real-gemini-api-key"
 ```
 
+## Turbo Environment Handling
+
+Turbo uses strict environment scoping.
+
+In this repo:
+
+- `NEXT_PUBLIC_SITE_URL`
+- `NEXT_PUBLIC_CONVEX_URL`
+- `GEMINI_MODEL`
+
+are treated as build-relevant environment variables and participate in Turbo hashing.
+
+These values are passed through without being used as cache keys:
+
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+- `CONVEX_DEPLOYMENT`
+- `GEMINI_API_KEY`
+
+This keeps Vercel builds honest without invalidating the whole cache just because a secret changed.
+
 ## Local Development
 
 ```bash

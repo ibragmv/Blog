@@ -12,7 +12,19 @@
     "turbo.json",
     "vercel.json"
   ],
-  "globalEnv": ["CI", "NODE_ENV"],
+  "globalEnv": [
+    "CI",
+    "NODE_ENV",
+    "GEMINI_MODEL",
+    "NEXT_PUBLIC_CONVEX_URL",
+    "NEXT_PUBLIC_SITE_URL"
+  ],
+  "globalPassThroughEnv": [
+    "ADMIN_EMAIL",
+    "ADMIN_PASSWORD",
+    "CONVEX_DEPLOYMENT",
+    "GEMINI_API_KEY"
+  ],
   "tasks": {
     "//#build": {
       "dependsOn": ["^build"],
