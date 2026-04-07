@@ -23,6 +23,7 @@ The application now lives in [`apps/web`](/Users/ibragimibragimov/Eldenlord/Blog
 ├── apps/
 │   └── web/                  # Next.js application workspace
 ├── convex/                   # Convex schema, queries, mutations, auth
+├── convex/_generated/        # Local/generated Convex types (not committed)
 ├── scripts/                  # Root Turbo task wrappers for repo-level tasks
 ├── .github/workflows/ci.yml  # Turbo-aware CI
 ├── .env.example             # Safe environment template
@@ -104,16 +105,16 @@ That means `bun run verify` exercises the real production graph:
 Main variables:
 
 - `NEXT_PUBLIC_SITE_URL` - canonical site URL
-- `CONVEX_DEPLOYMENT` - Convex deployment used by CLI/runtime
+- `CONVEX_DEPLOY_KEY` - private Convex deploy key for CI, Vercel, and headless deploys
 - `NEXT_PUBLIC_CONVEX_URL` - public Convex endpoint used by the web app
 - `ADMIN_EMAIL` - admin login email
 - `ADMIN_PASSWORD` - admin login password
 - `GEMINI_MODEL` - optional translation model
 - `GEMINI_API_KEY` - optional private key for translation features, stored only in `.env`
 
-[`.gitignore`](/Users/ibragimibragimov/Eldenlord/Blog/.gitignore) already ignores private `.env` files and keeps only `.env.example` tracked.
+[`.gitignore`](/Users/ibragimibragimov/Eldenlord/Blog/.gitignore) already ignores private `.env` files, keeps only `.env.example` tracked, and excludes `convex/_generated` from version control.
 
-Important: the canonical way to run the project is from the repository root. Root scripts orchestrate both the app workspace and Convex checks consistently, and the `apps/web` runtime scripts explicitly load the repository-root `.env*` files so local development keeps seeing the same Convex/database configuration after the move away from a root-level app.
+Important: the canonical way to run the project is from the repository root. Root scripts orchestrate both the app workspace and Convex checks consistently, `apps/web` runtime scripts explicitly load the repository-root `.env*` files, and Convex code generation now runs automatically before app dev/build/typecheck so a fresh clone does not need committed `_generated` artifacts.
 
 ## Quick Start
 
@@ -160,6 +161,9 @@ bun run typecheck:web
 bun run graph:build
 bun run ls:affected
 bun run devtools
+
+# explicit Convex type generation
+bun run convex:codegen
 ```
 
 ## Cache Policy
@@ -192,21 +196,22 @@ Repo-level pass-through environment includes:
 
 - `ADMIN_EMAIL`
 - `ADMIN_PASSWORD`
-- `CONVEX_DEPLOYMENT`
+- `CONVEX_DEPLOY_KEY`
 - `GEMINI_API_KEY`
 - `GEMINI_MODEL`
 
 ## Vercel
 
-Vercel should build this repository through Turbo, not by calling the Next.js app directly.
+Vercel should build this repository through Convex so backend deploy, generated types, and app build stay in one contract.
 
 Expected setup:
 
-- Vercel project root directory: `apps/web`
-- Vercel build command: `turbo build`
+- Vercel project root directory: repository root
+- Vercel build command: `bunx convex deploy --cmd "bun run build:web" --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL`
 - Vercel install command: `bun install --frozen-lockfile`
+- Vercel production environment variables: `CONVEX_DEPLOY_KEY`, `NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_SITE_URL`, admin secrets, and optional Gemini secrets
 
-[`vercel.json`](/Users/ibragimibragimov/Eldenlord/Blog/vercel.json) reflects that contract so Vercel can keep Turborepo-aware build summaries instead of bypassing the graph through `bun run release`.
+[`vercel.json`](/Users/ibragimibragimov/Eldenlord/Blog/vercel.json) reflects that contract so Vercel deploys Convex first and then builds the Next.js app with the correct public URL injected into the build.
 
 ## CI
 
@@ -226,7 +231,7 @@ The workflow validates the monorepo from the root exactly the same way local pro
 
 Public data and realtime features use Convex when `NEXT_PUBLIC_CONVEX_URL` is available.
 
-For CI and headless build environments, the public data layer degrades safely instead of failing the build when the public Convex URL is missing. This keeps the production build check valid without forcing GitHub Actions to know your live Convex endpoint.
+For CI and headless build environments, Convex type generation is run locally from source before app build and typecheck. Production deploy environments should still provide `CONVEX_DEPLOY_KEY` so Convex can publish functions and inject the correct runtime URL during deployment.
 
 ## Verification Standard
 

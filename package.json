@@ -15,6 +15,7 @@
     "build": "bunx turbo run build --filter=@archive/web --ui=stream",
     "release": "bun run build",
     "start": "bunx turbo run start --filter=@archive/web --ui=stream",
+    "convex:codegen": "bun scripts/convex-codegen.mjs",
     "typecheck": "bun scripts/turbo-task.mjs typecheck",
     "typecheck:affected": "bunx turbo run typecheck --affected --ui=stream",
     "typecheck:web": "bunx turbo run typecheck --filter=@archive/web --ui=stream",
@@ -32,7 +33,7 @@
     "devtools": "bunx turbo devtools",
     "graph:build": "bunx turbo run build --graph",
     "ls:affected": "bunx turbo ls --affected",
-    "deploy": "bun run verify && bunx convex deploy"
+    "deploy": "bun run verify && bun scripts/convex-deploy.mjs"
   },
   "trustedDependencies": [
     "protobufjs"

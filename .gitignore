@@ -9,6 +9,7 @@
 ###############################################################################
 node_modules/
 apps/*/node_modules/
+convex/_generated/
 build/
 dist/
 apps/*/dist/

@@ -7,6 +7,8 @@ import {
   warnOnConvexServiceUnavailable,
 } from '@/lib/server/convex-errors';
 
+const CONVEX_RETRY_DELAYS_MS = [250, 500, 1_000];
+
 function hasPublicConvexUrl() {
   return Boolean(process.env.NEXT_PUBLIC_CONVEX_URL);
 }
@@ -15,21 +17,53 @@ function asPublishedHomePost(post: PostRecord | null) {
   return post?.published ? post : null;
 }
 
+function wait(delayMs: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, delayMs);
+  });
+}
+
+async function runPublicQuery<T>(scope: string, query: () => Promise<T>, fallback: T): Promise<T> {
+  let lastUnavailableError: unknown;
+
+  try {
+    return await query();
+  } catch (error) {
+    if (!isConvexServiceUnavailableError(error)) {
+      throw error;
+    }
+
+    lastUnavailableError = error;
+  }
+
+  for (const delayMs of CONVEX_RETRY_DELAYS_MS) {
+    await wait(delayMs);
+
+    try {
+      return await query();
+    } catch (error) {
+      if (!isConvexServiceUnavailableError(error)) {
+        throw error;
+      }
+
+      lastUnavailableError = error;
+    }
+  }
+
+  warnOnConvexServiceUnavailable(scope, lastUnavailableError);
+  return fallback;
+}
+
 export const getHomePagePost = cache(async () => {
   if (!hasPublicConvexUrl()) {
     return null;
   }
 
-  try {
-    return asPublishedHomePost(await fetchQuery(api.posts.getHomePage, {}));
-  } catch (error) {
-    if (isConvexServiceUnavailableError(error)) {
-      warnOnConvexServiceUnavailable('public-data:getHomePagePost', error);
-      return null;
-    }
-
-    throw error;
-  }
+  return runPublicQuery(
+    'public-data:getHomePagePost',
+    async () => asPublishedHomePost(await fetchQuery(api.posts.getHomePage, {})),
+    null
+  );
 });
 
 export const listPublishedPosts = cache(async () => {
@@ -37,16 +71,11 @@ export const listPublishedPosts = cache(async () => {
     return [];
   }
 
-  try {
-    return await fetchQuery(api.posts.listPublished, {});
-  } catch (error) {
-    if (isConvexServiceUnavailableError(error)) {
-      warnOnConvexServiceUnavailable('public-data:listPublishedPosts', error);
-      return [];
-    }
-
-    throw error;
-  }
+  return runPublicQuery(
+    'public-data:listPublishedPosts',
+    () => fetchQuery(api.posts.listPublished, {}),
+    []
+  );
 });
 
 export const getPublishedPostBySlug = cache(async (slug: string) => {
@@ -54,16 +83,11 @@ export const getPublishedPostBySlug = cache(async (slug: string) => {
     return null;
   }
 
-  try {
-    return await fetchQuery(api.posts.getPublishedBySlug, { slug });
-  } catch (error) {
-    if (isConvexServiceUnavailableError(error)) {
-      warnOnConvexServiceUnavailable(`public-data:getPublishedPostBySlug:${slug}`, error);
-      return null;
-    }
-
-    throw error;
-  }
+  return runPublicQuery(
+    `public-data:getPublishedPostBySlug:${slug}`,
+    () => fetchQuery(api.posts.getPublishedBySlug, { slug }),
+    null
+  );
 });
 
 export const listPublicLinks = cache(async () => {
@@ -71,14 +95,9 @@ export const listPublicLinks = cache(async () => {
     return [];
   }
 
-  try {
-    return await fetchQuery(api.links.listPublic, {});
-  } catch (error) {
-    if (isConvexServiceUnavailableError(error)) {
-      warnOnConvexServiceUnavailable('public-data:listPublicLinks', error);
-      return [];
-    }
-
-    throw error;
-  }
+  return runPublicQuery(
+    'public-data:listPublicLinks',
+    () => fetchQuery(api.links.listPublic, {}),
+    []
+  );
 });

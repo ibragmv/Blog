@@ -4,8 +4,10 @@ import path from 'node:path';
 import { loadRootEnv } from './with-root-env.mjs';
 
 const cwd = process.cwd();
+const convexCodegenScript = path.resolve(cwd, '../../scripts/convex-codegen.mjs');
 
 loadRootEnv();
+run('bun', [convexCodegenScript]);
 
 function run(command, args) {
   const result = spawnSync(command, args, {
@@ -18,7 +20,6 @@ function run(command, args) {
     process.exit(result.status ?? 1);
   }
 }
-
 run('bunx', ['next', 'typegen']);
 
 const tsconfigPath = path.join(cwd, 'tsconfig.json');

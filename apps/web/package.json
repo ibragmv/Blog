@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "bun scripts/with-root-env.mjs bunx next dev --turbopack",
-    "build": "bun scripts/with-root-env.mjs bunx next build --turbopack",
+    "dev": "bun scripts/dev.mjs",
+    "build": "bun scripts/build.mjs",
     "release": "bunx turbo build --ui=stream",
     "start": "bun scripts/with-root-env.mjs bunx next start",
     "lint": "biome check src package.json tsconfig.json next.config.ts postcss.config.mjs scripts",
