@@ -1,36 +1,24 @@
 {
-  "$schema": "https://turbo.build/schema.json",
+  "$schema": "https://turborepo.com/schema.json",
   "globalDependencies": [
-    ".env*",
+    ".env.example",
     "biome.json",
     "bun.lock",
+    "eslint.config.mjs",
     "next.config.ts",
     "package.json",
     "postcss.config.mjs",
-    "scripts/**",
     "tsconfig.json",
     "turbo.json",
     "vercel.json"
   ],
-  "globalEnv": [
-    "CI",
-    "NODE_ENV",
-    "GEMINI_MODEL",
-    "NEXT_PUBLIC_CONVEX_URL",
-    "NEXT_PUBLIC_SITE_URL"
-  ],
-  "globalPassThroughEnv": [
-    "ADMIN_EMAIL",
-    "ADMIN_PASSWORD",
-    "CONVEX_DEPLOYMENT",
-    "GEMINI_API_KEY"
-  ],
+  "globalEnv": ["CI", "NODE_ENV"],
   "tasks": {
     "//#build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**"],
-      "env": ["CONVEX_DEPLOYMENT", "GEMINI_MODEL", "NEXT_PUBLIC_CONVEX_URL", "NEXT_PUBLIC_SITE_URL"]
+      "env": ["GEMINI_MODEL", "NEXT_PUBLIC_CONVEX_URL", "NEXT_PUBLIC_SITE_URL"]
     },
     "//#lint": {
       "dependsOn": ["^lint"],
@@ -39,12 +27,34 @@
     },
     "//#typecheck": {
       "dependsOn": ["^typecheck"],
-      "inputs": ["$TURBO_DEFAULT$"],
-      "outputs": []
+      "inputs": ["$TURBO_DEFAULT$", "scripts/typecheck.mjs"],
+      "outputs": [".next/types/**", ".next/dev/types/**"]
     },
     "//#dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "passThroughEnv": [
+        "ADMIN_EMAIL",
+        "ADMIN_PASSWORD",
+        "CONVEX_DEPLOYMENT",
+        "GEMINI_API_KEY",
+        "GEMINI_MODEL",
+        "NEXT_PUBLIC_CONVEX_URL",
+        "NEXT_PUBLIC_SITE_URL"
+      ]
+    },
+    "//#start": {
+      "cache": false,
+      "persistent": true,
+      "passThroughEnv": [
+        "ADMIN_EMAIL",
+        "ADMIN_PASSWORD",
+        "CONVEX_DEPLOYMENT",
+        "GEMINI_API_KEY",
+        "GEMINI_MODEL",
+        "NEXT_PUBLIC_CONVEX_URL",
+        "NEXT_PUBLIC_SITE_URL"
+      ]
     },
     "//#clean": {
       "cache": false
@@ -65,6 +75,10 @@
       "outputs": []
     },
     "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "start": {
       "cache": false,
       "persistent": true
     },

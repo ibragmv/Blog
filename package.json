@@ -11,18 +11,28 @@
     "bun": ">=1.2.21"
   },
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "release": "turbo run build",
-    "start": "next start",
-    "typecheck": "bun scripts/typecheck.mjs",
-    "lint": "biome check . && bun run convex",
+    "dev": "bun scripts/turbo-task.mjs dev",
+    "build": "bun scripts/turbo-task.mjs build",
+    "release": "bun run build",
+    "start": "bun scripts/turbo-task.mjs start",
+    "typecheck": "bun scripts/turbo-task.mjs typecheck",
+    "typecheck:affected": "bunx turbo run typecheck --affected --ui=stream",
+    "typecheck:core": "bunx turbo run typecheck --filter=@archive/core --ui=stream",
+    "lint": "bun scripts/turbo-task.mjs lint",
+    "lint:affected": "bunx turbo run lint --affected --ui=stream",
+    "lint:core": "bunx turbo run lint --filter=@archive/core --ui=stream",
     "convex": "eslint convex --max-warnings=0",
-    "verify": "turbo run lint typecheck build --continue --ui=stream",
+    "verify": "bunx turbo run lint typecheck build --continue --ui=stream",
+    "verify:affected": "bunx turbo run lint typecheck build --affected --continue --ui=stream",
     "fix": "biome check --write .",
     "format": "biome format --write .",
-    "clean": "turbo run clean && rm -rf .turbo .vercel",
-    "deploy": "turbo run lint typecheck --continue --ui=stream && convex deploy"
+    "clean": "bun scripts/turbo-task.mjs clean",
+    "build:affected": "bunx turbo run build --affected --ui=stream",
+    "build:core": "bunx turbo run build --filter=@archive/core --ui=stream",
+    "devtools": "bunx turbo devtools",
+    "graph:build": "bunx turbo run build --filter=// --graph",
+    "ls:affected": "bunx turbo ls --affected",
+    "deploy": "bun run verify && bunx convex deploy"
   },
   "trustedDependencies": [
     "protobufjs"

@@ -1,288 +1,230 @@
 # Ibragim Ibragimov Archive
 
-Editorial archive built with Next.js, Convex, Bun, and a root-first Turborepo setup.
+Root-first editorial archive built with Next.js 16, Bun, Convex, and Turborepo.
 
-The public site lives in the repository root. Shared domain logic lives in `packages/core`. The result is a monorepo without fake `apps/*` nesting and without decorative Turbo config.
-
-## Overview
-
-This project includes:
-
-- a public archive homepage
-- an archive index and article pages
-- a links page
-- a private admin area
-- server-side translation helpers for editorial workflow
-- Convex-backed content, sessions, and mutations
+The public app lives in the repository root. Shared domain code lives in [`packages/core`](/Users/ibragimibragimov/Eldenlord/Blog/packages/core/package.json). Turbo orchestrates both as one graph instead of treating the monorepo as a release-only wrapper.
 
 ## Stack
 
 - Next.js 16 App Router
 - React 19
-- Bun
-- Turbopack
+- Bun workspaces
 - Turborepo
 - Convex
 - Tailwind CSS 4
 - Biome
 - ESLint
-- Zod
-- Gemini API for optional translation
+- TypeScript
 
-## Repository Layout
+## Repository Shape
 
 ```text
 .
-├── convex/          # Convex schema, queries, mutations, auth helpers
-├── fonts/           # Local fonts used by the app and OG images
-├── packages/
-│   └── core/        # Shared domain package for the monorepo
-├── public/          # Static public assets
-├── scripts/         # Local development scripts
-├── src/             # Next.js app, components, server helpers
-├── package.json     # Root app + workspace config
-├── turbo.json       # Turborepo task graph
-└── vercel.json      # Vercel build commands
+├── .github/workflows/ci.yml   # Turbo-aware CI
+├── convex/                    # Convex schema, auth, queries, mutations
+├── packages/core/             # Shared internal domain package
+├── scripts/                   # Local wrappers for Turbo-first root tasks
+├── src/                       # Root Next.js application
+├── package.json               # Root app + workspace scripts
+├── turbo.json                 # Task graph, cache policy, env contract
+└── vercel.json                # Build contract only, not a deploy workflow
 ```
 
-## Why `packages/core` Exists
+## Turbo Graph
 
-`packages/core` is the shared internal package for the repo.
+This repository is intentionally root-first.
 
-It contains:
+- Root app: `//`
+- Shared package: `@archive/core`
+- Root tasks: `//#dev`, `//#build`, `//#lint`, `//#typecheck`, `//#start`, `//#clean`
+- Workspace tasks: `@archive/core#build`, `@archive/core#lint`, `@archive/core#typecheck`, `@archive/core#clean`
 
-- content schemas and shared types
-- site config and URL helpers
-- date helpers
-- translation schemas
-- admin auth shared constants
-- path normalization helpers
-- small shared utilities like `cn()`
+Build, lint, and typecheck all run topologically:
 
-In plain terms: it is the shared library of the project.
+```text
+@archive/core#build      -> //#build
+@archive/core#lint       -> //#lint
+@archive/core#typecheck  -> //#typecheck
+```
 
-It also gives Turborepo a real internal workspace dependency, so the repo has an actual task graph instead of one root package pretending to be a monorepo.
+The important detail is the root wrapper in [`scripts/turbo-task.mjs`](/Users/ibragimibragimov/Eldenlord/Blog/scripts/turbo-task.mjs):
 
-## Monorepo Model
+- `bun run build` starts `bunx turbo run build --filter=//`
+- when Turbo executes the root task internally, the wrapper detects `TURBO_HASH` and runs the real command directly
+- this keeps `bun run build` Turbo-first without creating recursive `turbo -> bun run build -> turbo` loops
 
-This repository is intentionally root-first:
-
-- the app stays in the root
-- the shared package lives in `packages/core`
-- Turbo orchestrates both the root app and the workspace package
-
-Current Turbo graph:
-
-- root task namespace: `//`
-- shared package: `@archive/core`
-- root build task: `//#build`
-- package build task: `@archive/core#build`
-- root build depends on workspace build through topological `^build`
-
-That means Turbo can lint, typecheck, build, and cache the shared package and the root app as one system.
-
-## Scripts
-
-All user-facing scripts are short and single-purpose.
+## Daily Commands
 
 ```bash
-bun run dev       # start local dev server
-bun run build     # direct Next.js production build
-bun run release   # Turborepo production build for the full repo
-bun run start     # run the production server
-bun run lint      # lint the root app
-bun run convex    # lint Convex code
-bun run typecheck # type-check the root app
-bun run verify    # turbo lint + typecheck + build
-bun run fix       # apply Biome fixes
-bun run format    # format files
-bun run clean     # clean build output and turbo artifacts
-bun run deploy    # verify turbo tasks, then deploy Convex
+bun install
+
+# local development
+bun run dev
+
+# full root app flow through Turbo
+bun run lint
+bun run typecheck
+bun run build
+bun run verify
+
+# incremental CI-style flow
+bun run verify:affected
+
+# targeted workspace operations
+bun run build:core
+bun run lint:core
+bun run typecheck:core
+
+# graph and diagnostics
+bun run graph:build
+bun run ls:affected
+bun run devtools
 ```
 
-## Environment
+## Cache Policy
 
-Private environment files are ignored by [`.gitignore`](/Users/ibragimibragimov/Eldenlord/Blog/.gitignore).
+Turbo is configured to cache only tasks that benefit from deterministic replay.
 
-- template file: [`.env.example`](/Users/ibragimibragimov/Eldenlord/Blog/.env.example)
-- local secrets file: [`.env`](/Users/ibragimibragimov/Eldenlord/Blog/.env)
+Cached:
 
-### Safe to keep in `.env.example`
+- `//#build`
+- `//#lint`
+- `//#typecheck`
+- `@archive/core#build`
+- `@archive/core#lint`
+- `@archive/core#typecheck`
 
-```env
-NEXT_PUBLIC_SITE_URL="https://your-domain.example"
-CONVEX_DEPLOYMENT="prod:your-production-deployment"
-NEXT_PUBLIC_CONVEX_URL="https://your-production-deployment.convex.cloud"
-ADMIN_EMAIL="admin@example.com"
-ADMIN_PASSWORD="change-me"
-GEMINI_MODEL="gemini-2.5-flash"
-NODE_OPTIONS="--no-deprecation"
-```
+Not cached:
 
-### Private-only in `.env`
+- `//#dev`
+- `//#start`
+- `//#clean`
+- `dev`
+- `start`
+- `clean`
 
-```env
-GEMINI_API_KEY="your-real-gemini-api-key"
-```
+Root typecheck declares [`.next/types/**`](/Users/ibragimibragimov/Eldenlord/Blog/.next/types) and [`.next/dev/types/**`](/Users/ibragimibragimov/Eldenlord/Blog/.next/dev/types) as outputs because `next typegen` generates those artifacts before `tsc` runs. That keeps the cache model honest instead of pretending the task is output-free.
 
-## Turbo Environment Handling
+## Environment Contract
 
-Turbo uses strict environment scoping.
+Global cache inputs:
 
-In this repo:
+- [`.env.example`](/Users/ibragimibragimov/Eldenlord/Blog/.env.example)
+- [`biome.json`](/Users/ibragimibragimov/Eldenlord/Blog/biome.json)
+- [`bun.lock`](/Users/ibragimibragimov/Eldenlord/Blog/bun.lock)
+- [`eslint.config.mjs`](/Users/ibragimibragimov/Eldenlord/Blog/eslint.config.mjs)
+- [`next.config.ts`](/Users/ibragimibragimov/Eldenlord/Blog/next.config.ts)
+- [`package.json`](/Users/ibragimibragimov/Eldenlord/Blog/package.json)
+- [`postcss.config.mjs`](/Users/ibragimibragimov/Eldenlord/Blog/postcss.config.mjs)
+- [`tsconfig.json`](/Users/ibragimibragimov/Eldenlord/Blog/tsconfig.json)
+- [`turbo.json`](/Users/ibragimibragimov/Eldenlord/Blog/turbo.json)
+- [`vercel.json`](/Users/ibragimibragimov/Eldenlord/Blog/vercel.json)
 
-- `NEXT_PUBLIC_SITE_URL`
-- `NEXT_PUBLIC_CONVEX_URL`
+Global hashed environment:
+
+- `CI`
+- `NODE_ENV`
+
+Root build hashed environment:
+
 - `GEMINI_MODEL`
+- `NEXT_PUBLIC_CONVEX_URL`
+- `NEXT_PUBLIC_SITE_URL`
 
-are treated as build-relevant environment variables and participate in Turbo hashing.
-
-These values are passed through without being used as cache keys:
+Root `dev` and `start` pass runtime-only environment through Turbo without caching:
 
 - `ADMIN_EMAIL`
 - `ADMIN_PASSWORD`
 - `CONVEX_DEPLOYMENT`
 - `GEMINI_API_KEY`
+- `GEMINI_MODEL`
+- `NEXT_PUBLIC_CONVEX_URL`
+- `NEXT_PUBLIC_SITE_URL`
 
-This keeps Vercel builds honest without invalidating the whole cache just because a secret changed.
+Important: `.env` is no longer a global Turbo dependency. Only the root build task hashes `.env*`. That means changing a secret does not unnecessarily invalidate `@archive/core` lint and typecheck caches.
 
-## Local Development
+## Remote Cache
+
+Local cache works out of the box in [`.turbo/`](/Users/ibragimibragimov/Eldenlord/Blog/.turbo).
+
+Remote cache is intentionally wired by environment, not by hardcoded config:
+
+- `TURBO_TEAM`
+- `TURBO_TOKEN`
+
+If those variables are present in CI or in your shell, Turbo uses remote cache automatically. If they are absent, the repo still works with local cache only.
+
+## CI
+
+GitHub Actions lives in [`.github/workflows/ci.yml`](/Users/ibragimibragimov/Eldenlord/Blog/.github/workflows/ci.yml).
+
+Behavior:
+
+- `pull_request`: `bun install --frozen-lockfile`, then `bun run verify:affected`
+- `push` to `main`: `bun install --frozen-lockfile`, then `bun run verify`
+- `fetch-depth: 0` is required so Turbo can compute the affected graph correctly
+- `TURBO_SCM_BASE` and `TURBO_SCM_HEAD` are set on pull requests for explicit git comparison
+- remote cache is optional and picked up through `TURBO_TEAM` and `TURBO_TOKEN`
+
+CI does not deploy anything. There is no direct deploy step to Vercel in the repository workflow.
+
+## Filters
+
+The repo now uses filters in real workflows instead of mentioning them abstractly.
+
+Examples:
 
 ```bash
-bun install
-bun run dev
+# root app and its internal dependencies
+bunx turbo run build --filter=//
+
+# only the shared package
+bunx turbo run lint --filter=@archive/core
+
+# changed packages and their dependents
+bunx turbo run lint typecheck build --affected
 ```
 
-Before starting the app, make sure your local `.env` has valid Convex values, admin credentials, and optional Gemini credentials.
+## `turbo prune` Strategy
 
-## Build And Verification
+`turbo prune` is intentionally not part of the default workflow here.
 
-Standard local checks:
+Reason:
+
+- the application is root-first and lives at `//`
+- current Turborepo pruning is package-scope oriented
+- pruning the root app in this repository does not produce a meaningful production subset strategy today
+
+For this repo, `--affected` plus targeted filters gives practical value now. `turbo prune` would be decorative rather than operational.
+
+## Local Environment
+
+Copy the structure from [`.env.example`](/Users/ibragimibragimov/Eldenlord/Blog/.env.example) into a private `.env`.
+
+Safe template values already documented:
+
+- `NEXT_PUBLIC_SITE_URL`
+- `CONVEX_DEPLOYMENT`
+- `NEXT_PUBLIC_CONVEX_URL`
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+- `GEMINI_MODEL`
+- `NODE_OPTIONS`
+
+Private secrets must stay only in `.env`:
+
+- `GEMINI_API_KEY`
+
+[`.gitignore`](/Users/ibragimibragimov/Eldenlord/Blog/.gitignore) already ignores `.env*` and explicitly keeps only `.env.example` tracked.
+
+## Verification Standard
+
+Before shipping changes, run:
 
 ```bash
 bun run lint
 bun run typecheck
-bun run build
-```
-
-Full monorepo verification:
-
-```bash
 bun run verify
 ```
 
-Full monorepo production build:
-
-```bash
-bun run release
-```
-
-## Vercel Build Contract
-
-Vercel is configured to build through Turbo, not through a direct `next build`.
-
-See [vercel.json](/Users/ibragimibragimov/Eldenlord/Blog/vercel.json):
-
-```json
-{
-  "installCommand": "bun install --frozen-lockfile",
-  "buildCommand": "bun run release"
-}
-```
-
-That matters because `bun run release` runs Turbo across the root app and `@archive/core`, which gives you:
-
-- a real workspace build graph
-- consistent task ordering
-- reusable Turbo cache artifacts
-- proper monorepo build logs in CI and Vercel
-
-## Architecture
-
-### Public Runtime
-
-The public site uses Convex as a deliberate realtime content layer.
-
-Pages are server-rendered through Convex reads and then connected to a lightweight live refresh bridge.
-
-Key files:
-
-- `src/lib/server/public-data.ts`
-- `src/components/public-realtime-provider.tsx`
-- `src/components/public-live-sync.tsx`
-
-### Admin Boundary
-
-The admin UI does not talk to privileged Convex mutations directly from the browser.
-
-Request flow:
-
-```text
-Admin UI -> /api/admin/* -> server auth/data helpers -> Convex functions
-```
-
-Key files:
-
-- `src/lib/admin-api.ts`
-- `src/lib/server/admin-auth.ts`
-- `src/lib/server/admin-data.ts`
-- `src/app/api/admin/**`
-- `convex/posts.ts`
-- `convex/links.ts`
-- `convex/sessions.ts`
-
-### Session Model
-
-Admin login uses:
-
-- `ADMIN_EMAIL`
-- `ADMIN_PASSWORD`
-
-A successful login creates a random session token, stores only its hash in Convex, and places the raw token in an `httpOnly` cookie.
-
-### Translation Boundary
-
-Translation stays server-side.
-
-- route: `/api/translate`
-- key: `GEMINI_API_KEY`
-- model override: `GEMINI_MODEL`
-
-## Routes
-
-Main routes:
-
-- `/`
-- `/archive`
-- `/archive/[slug]`
-- `/links`
-- `/login`
-- `/admin`
-
-Admin and API routes are handled inside `src/app/api/**` and `src/app/admin/**`.
-
-## Deployment Notes
-
-This project does not deploy the Next.js app directly from local scripts.
-
-- `deploy` is for Convex deployment after verification
-- Vercel build uses `bun run release`
-- the root app and `packages/core` are built together by Turbo
-
-## Quick Start
-
-```bash
-bun install
-cp .env.example .env
-bun run verify
-bun run dev
-```
-
-## Status
-
-Current repo contract is consistent:
-
-- root app in `/`
-- shared workspace package in `packages/core`
-- Turbo task graph active and verified
-- `release` and `verify` are the canonical monorepo commands
+That is the production path for this repository.
