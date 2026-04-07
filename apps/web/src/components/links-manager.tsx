@@ -17,8 +17,20 @@ import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/components/admin-auth-provider';
 import { AdminNotice } from '@/components/admin-notice';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
-import { createAdminLink, deleteAdminLink, getAdminLinks, updateAdminLink } from '@/lib/admin-api';
-import { isAdminSessionExpiredError } from '@/lib/admin-client-auth';
+import {
+  createAdminLink,
+  deleteAdminLink,
+  getAdminLinks,
+  isAdminRequestAbortError,
+  updateAdminLink,
+} from '@/lib/admin-api';
+import {
+  ADMIN_SERVICE_UNAVAILABLE_TITLE,
+  getAdminServiceUnavailableMessage,
+  isAdminServiceUnavailableError,
+  isAdminSessionExpiredError,
+} from '@/lib/admin-client-auth';
+import { useAdminNoticePreview } from '@/lib/admin-notice-preview';
 import type { LinkRecord } from '@/lib/content';
 import { formatDisplayOrder } from '@/lib/utils';
 
@@ -43,8 +55,10 @@ export function LinksManager() {
   const { handleUnauthorized, isAuthenticated } = useAdminAuth();
   const [links, setLinks] = useState<LinkRecord[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isServiceUnavailable, setIsServiceUnavailable] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const previewNotice = useAdminNoticePreview();
 
   // Form State
   const [title, setTitle] = useState('');
@@ -58,17 +72,18 @@ export function LinksManager() {
       return;
     }
 
-    let cancelled = false;
+    const controller = new AbortController();
     setErrorMessage(null);
+    setIsServiceUnavailable(false);
 
-    getAdminLinks()
+    getAdminLinks({ signal: controller.signal })
       .then((nextLinks) => {
-        if (!cancelled) {
+        if (!controller.signal.aborted) {
           setLinks(nextLinks);
         }
       })
       .catch((error) => {
-        if (cancelled) {
+        if (controller.signal.aborted || isAdminRequestAbortError(error)) {
           return;
         }
 
@@ -77,12 +92,20 @@ export function LinksManager() {
           return;
         }
 
-        setErrorMessage(error instanceof Error ? error.message : 'Failed to load links.');
+        const isUnavailable = isAdminServiceUnavailableError(error);
+        setIsServiceUnavailable(isUnavailable);
+        setErrorMessage(
+          isUnavailable
+            ? getAdminServiceUnavailableMessage(error)
+            : error instanceof Error
+              ? error.message
+              : 'Failed to load links.'
+        );
         setLinks([]);
       });
 
     return () => {
-      cancelled = true;
+      controller.abort();
     };
   }, [handleUnauthorized, isAuthenticated]);
 
@@ -114,6 +137,7 @@ export function LinksManager() {
 
   const handleDelete = async (id: string) => {
     setErrorMessage(null);
+    setIsServiceUnavailable(false);
 
     try {
       await deleteAdminLink(id);
@@ -124,7 +148,15 @@ export function LinksManager() {
         return;
       }
 
-      setErrorMessage(err instanceof Error ? err.message : 'Failed to delete link.');
+      const isUnavailable = isAdminServiceUnavailableError(err);
+      setIsServiceUnavailable(isUnavailable);
+      setErrorMessage(
+        isUnavailable
+          ? getAdminServiceUnavailableMessage(err)
+          : err instanceof Error
+            ? err.message
+            : 'Failed to delete link.'
+      );
     }
   };
 
@@ -133,6 +165,7 @@ export function LinksManager() {
 
     setIsSubmitting(true);
     setErrorMessage(null);
+    setIsServiceUnavailable(false);
     const linkData = {
       title,
       url,
@@ -156,7 +189,15 @@ export function LinksManager() {
         return;
       }
 
-      setErrorMessage(err instanceof Error ? err.message : 'Failed to save link.');
+      const isUnavailable = isAdminServiceUnavailableError(err);
+      setIsServiceUnavailable(isUnavailable);
+      setErrorMessage(
+        isUnavailable
+          ? getAdminServiceUnavailableMessage(err)
+          : err instanceof Error
+            ? err.message
+            : 'Failed to save link.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -186,7 +227,15 @@ export function LinksManager() {
         )}
       </div>
 
-      {errorMessage ? <AdminNotice>{errorMessage}</AdminNotice> : null}
+      {previewNotice ? (
+        <AdminNotice title={previewNotice.title}>{previewNotice.message}</AdminNotice>
+      ) : null}
+
+      {errorMessage ? (
+        <AdminNotice title={isServiceUnavailable ? ADMIN_SERVICE_UNAVAILABLE_TITLE : undefined}>
+          {errorMessage}
+        </AdminNotice>
+      ) : null}
 
       {isEditing && (
         <form

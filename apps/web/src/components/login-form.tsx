@@ -5,15 +5,23 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/components/admin-auth-provider';
 import { AdminNotice } from '@/components/admin-notice';
+import {
+  ADMIN_SERVICE_UNAVAILABLE_TITLE,
+  getAdminServiceUnavailableMessage,
+  isAdminServiceUnavailableError,
+} from '@/lib/admin-client-auth';
+import { useAdminNoticePreview } from '@/lib/admin-notice-preview';
 import { normalizeNextPath } from '@/lib/normalize-next-path';
 
 export function LoginForm({ redirectTo }: { redirectTo: string }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
   const router = useRouter();
   const { isAuthenticated, isLoading, signIn } = useAdminAuth();
   const normalizedRedirectTo = normalizeNextPath(redirectTo);
+  const previewNotice = useAdminNoticePreview();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -25,13 +33,21 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
+    setErrorTitle(undefined);
 
     try {
       await signIn(email, password);
       router.replace(normalizedRedirectTo);
       router.refresh();
     } catch (loginError) {
-      const message = loginError instanceof Error ? loginError.message : 'Unknown error';
+      const message = isAdminServiceUnavailableError(loginError)
+        ? getAdminServiceUnavailableMessage(loginError)
+        : loginError instanceof Error
+          ? loginError.message
+          : 'Unknown error';
+      setErrorTitle(
+        isAdminServiceUnavailableError(loginError) ? ADMIN_SERVICE_UNAVAILABLE_TITLE : undefined
+      );
       setError(message);
     }
   };
@@ -71,7 +87,11 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
           />
         </div>
 
-        {error ? <AdminNotice>{error}</AdminNotice> : null}
+        {previewNotice ? (
+          <AdminNotice title={previewNotice.title}>{previewNotice.message}</AdminNotice>
+        ) : null}
+
+        {error ? <AdminNotice title={errorTitle}>{error}</AdminNotice> : null}
 
         <button
           type="submit"

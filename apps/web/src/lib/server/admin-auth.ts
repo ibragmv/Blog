@@ -10,6 +10,12 @@ import {
   createAdminSessionToken,
   hashAdminSessionToken,
 } from '@/lib/server/convex';
+import {
+  ConvexServiceUnavailableError,
+  isConvexServiceUnavailableError,
+  toConvexServiceUnavailableError,
+  warnOnConvexServiceUnavailable,
+} from '@/lib/server/convex-errors';
 
 type VerifiedAdminSession = {
   email: string;
@@ -37,9 +43,18 @@ async function getStoredAdminSession(): Promise<{ email: string; sessionToken: s
     return null;
   }
 
-  const session = await fetchQuery(api.sessions.getByTokenHash, {
-    tokenHash: hashAdminSessionToken(sessionToken),
-  });
+  let session: { email: string; expiresAt: number } | null | undefined;
+
+  try {
+    session = await fetchQuery(api.sessions.getByTokenHash, {
+      tokenHash: hashAdminSessionToken(sessionToken),
+    });
+  } catch (error) {
+    throw toConvexServiceUnavailableError(
+      error,
+      'Admin session storage is temporarily unavailable. Please try again.'
+    );
+  }
 
   if (!session || session.expiresAt <= Date.now()) {
     return null;
@@ -63,7 +78,18 @@ function getAdminCredentials() {
 }
 
 export async function getCurrentAdminSession(): Promise<AdminSession> {
-  const session = await getStoredAdminSession();
+  let session: Awaited<ReturnType<typeof getStoredAdminSession>>;
+
+  try {
+    session = await getStoredAdminSession();
+  } catch (error) {
+    if (error instanceof ConvexServiceUnavailableError) {
+      warnOnConvexServiceUnavailable('admin-auth:getCurrentAdminSession', error);
+      return buildUnauthenticatedSession();
+    }
+
+    throw error;
+  }
 
   if (!session) {
     return buildUnauthenticatedSession();
@@ -119,11 +145,18 @@ export async function signInAdmin(email: string, password: string): Promise<Admi
 
   const sessionToken = createAdminSessionToken();
 
-  await fetchMutation(api.sessions.create, {
-    tokenHash: hashAdminSessionToken(sessionToken),
-    email: credentials.email,
-    expiresAt: Date.now() + ADMIN_SESSION_MAX_AGE_MS,
-  });
+  try {
+    await fetchMutation(api.sessions.create, {
+      tokenHash: hashAdminSessionToken(sessionToken),
+      email: credentials.email,
+      expiresAt: Date.now() + ADMIN_SESSION_MAX_AGE_MS,
+    });
+  } catch (error) {
+    throw toConvexServiceUnavailableError(
+      error,
+      'Unable to create an admin session right now. Please try again.'
+    );
+  }
 
   const cookieStore = await cookies();
   cookieStore.set(ADMIN_SESSION_COOKIE_NAME, sessionToken, {
@@ -145,9 +178,17 @@ export async function signOutAdmin(): Promise<AdminSession> {
   const sessionToken = cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value;
 
   if (sessionToken) {
-    await fetchMutation(api.sessions.removeByTokenHash, {
-      tokenHash: hashAdminSessionToken(sessionToken),
-    });
+    try {
+      await fetchMutation(api.sessions.removeByTokenHash, {
+        tokenHash: hashAdminSessionToken(sessionToken),
+      });
+    } catch (error) {
+      if (isConvexServiceUnavailableError(error)) {
+        warnOnConvexServiceUnavailable('admin-auth:signOutAdmin', error);
+      } else {
+        throw error;
+      }
+    }
   }
 
   cookieStore.delete(ADMIN_SESSION_COOKIE_NAME);

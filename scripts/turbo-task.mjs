@@ -3,33 +3,36 @@ import { spawnSync } from 'node:child_process';
 const [, , taskName, ...forwardedArgs] = process.argv;
 
 const turboTasks = {
-  build: {
-    direct: [['bunx', 'next', 'build', '--turbopack']],
-    turbo: ['bunx', 'turbo', 'run', 'build', '--filter=//', '--ui=stream'],
-  },
   clean: {
-    direct: [['rm', '-rf', '.next']],
+    direct: [['rm', '-rf', '.turbo', '.vercel']],
     turbo: ['bunx', 'turbo', 'run', 'clean', '--continue', '--ui=stream'],
-    afterTurbo: [['rm', '-rf', '.turbo', '.vercel']],
-  },
-  dev: {
-    direct: [['bunx', 'next', 'dev', '--turbopack']],
-    turbo: ['bunx', 'turbo', 'run', 'dev', '--filter=//', '--ui=stream'],
   },
   lint: {
     direct: [
-      ['bunx', 'biome', 'check', '.'],
+      [
+        'bunx',
+        'biome',
+        'check',
+        '.env.example',
+        '.github',
+        '.gitignore',
+        'README.md',
+        'biome.json',
+        'convex.json',
+        'eslint.config.mjs',
+        'package.json',
+        'scripts',
+        'tsconfig.json',
+        'turbo.json',
+        'vercel.json',
+      ],
       ['bun', 'run', 'convex'],
     ],
-    turbo: ['bunx', 'turbo', 'run', 'lint', '--filter=//', '--ui=stream'],
-  },
-  start: {
-    direct: [['bunx', 'next', 'start']],
-    turbo: ['bunx', 'turbo', 'run', 'start', '--filter=//', '--ui=stream'],
+    turbo: ['bunx', 'turbo', 'run', 'lint', '--continue', '--ui=stream'],
   },
   typecheck: {
-    direct: [['bun', 'scripts/typecheck.mjs']],
-    turbo: ['bunx', 'turbo', 'run', 'typecheck', '--filter=//', '--ui=stream'],
+    direct: [['bun', 'scripts/typecheck-root.mjs']],
+    turbo: ['bunx', 'turbo', 'run', 'typecheck', '--continue', '--ui=stream'],
   },
 };
 
@@ -66,7 +69,3 @@ if (isTurboRuntime) {
 }
 
 run(targetTask.turbo[0], [...targetTask.turbo.slice(1), ...forwardedArgs]);
-
-if (targetTask.afterTurbo) {
-  runCommands(targetTask.afterTurbo);
-}

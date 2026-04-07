@@ -3,6 +3,7 @@ import type { FunctionArgs, FunctionReference, FunctionReturnType } from 'convex
 import type { AdminLinkDraft, AdminPostDraft } from '@/lib/content';
 import { requireAdminSessionToken } from '@/lib/server/admin-auth';
 import { api, parseConvexId } from '@/lib/server/convex';
+import { toConvexServiceUnavailableError } from '@/lib/server/convex-errors';
 
 type AdminFunctionRef = FunctionReference<'query'> | FunctionReference<'mutation'>;
 type AdminFunctionArgs<Func extends AdminFunctionRef> = Omit<FunctionArgs<Func>, 'sessionToken'>;
@@ -13,10 +14,17 @@ async function fetchAdminQuery<Query extends FunctionReference<'query'>>(
 ): Promise<FunctionReturnType<Query>> {
   const sessionToken = await requireAdminSessionToken();
 
-  return fetchQuery(query, {
-    ...args,
-    sessionToken,
-  } as FunctionArgs<Query>);
+  try {
+    return await fetchQuery(query, {
+      ...args,
+      sessionToken,
+    } as FunctionArgs<Query>);
+  } catch (error) {
+    throw toConvexServiceUnavailableError(
+      error,
+      'Admin data is temporarily unavailable. Please try again.'
+    );
+  }
 }
 
 async function fetchAdminMutation<Mutation extends FunctionReference<'mutation'>>(
@@ -25,10 +33,17 @@ async function fetchAdminMutation<Mutation extends FunctionReference<'mutation'>
 ): Promise<FunctionReturnType<Mutation>> {
   const sessionToken = await requireAdminSessionToken();
 
-  return fetchMutation(mutation, {
-    ...args,
-    sessionToken,
-  } as FunctionArgs<Mutation>);
+  try {
+    return await fetchMutation(mutation, {
+      ...args,
+      sessionToken,
+    } as FunctionArgs<Mutation>);
+  } catch (error) {
+    throw toConvexServiceUnavailableError(
+      error,
+      'Admin data is temporarily unavailable. Please try again.'
+    );
+  }
 }
 
 export async function listAdminPosts() {

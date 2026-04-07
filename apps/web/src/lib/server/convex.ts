@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { api } from '../../../convex/_generated/api';
-import type { Id, TableNames } from '../../../convex/_generated/dataModel';
+import { api } from '@convex/_generated/api';
+import type { Id, TableNames } from '@convex/_generated/dataModel';
 
 export const ADMIN_SESSION_COOKIE_NAME = 'archive_admin_session';
 export const ADMIN_SESSION_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 7;

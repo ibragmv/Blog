@@ -1,0 +1,34 @@
+{
+  "name": "@archive/web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun scripts/with-root-env.mjs bunx next dev --turbopack",
+    "build": "bun scripts/with-root-env.mjs bunx next build --turbopack",
+    "start": "bun scripts/with-root-env.mjs bunx next start",
+    "lint": "biome check src package.json tsconfig.json next.config.ts postcss.config.mjs scripts",
+    "typecheck": "bun scripts/typecheck.mjs",
+    "clean": "rm -rf .next .turbo"
+  },
+  "dependencies": {
+    "@google/genai": "^1.43.0",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
+    "clsx": "^2.1.1",
+    "convex": "^1.34.1",
+    "highlight.js": "^11.11.1",
+    "katex": "^0.16.33",
+    "lucide-react": "^0.546.0",
+    "next": "^16.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
+    "tailwind-merge": "^3.5.0",
+    "zod": "^4.3.6"
+  }
+}

@@ -26,6 +26,10 @@ export class AdminApiError extends Error {
   }
 }
 
+type AdminRequestOptions = {
+  signal?: AbortSignal;
+};
+
 async function readJsonResponse<T>(response: Response, schema: ZodType<T>): Promise<T> {
   const payload: unknown = await response.json().catch(() => ({}));
 
@@ -40,9 +44,20 @@ async function readJsonResponse<T>(response: Response, schema: ZodType<T>): Prom
   return schema.parse(payload);
 }
 
-export async function getAdminSession() {
+function withAdminRequestOptions(options?: AdminRequestOptions): Pick<RequestInit, 'signal'> {
+  return {
+    signal: options?.signal,
+  };
+}
+
+export function isAdminRequestAbortError(error: unknown) {
+  return error instanceof Error && error.name === 'AbortError';
+}
+
+export async function getAdminSession(options?: AdminRequestOptions) {
   const response = await fetch('/api/admin/session', {
     cache: 'no-store',
+    ...withAdminRequestOptions(options),
   });
 
   return readJsonResponse(response, AdminSessionSchema);
@@ -69,17 +84,19 @@ export async function signOutAdmin() {
   return readJsonResponse(response, AdminSessionSchema);
 }
 
-export async function getAdminPosts() {
+export async function getAdminPosts(options?: AdminRequestOptions) {
   const response = await fetch('/api/admin/posts', {
     cache: 'no-store',
+    ...withAdminRequestOptions(options),
   });
 
   return readJsonResponse(response, PostRecordSchema.array());
 }
 
-export async function getAdminPost(postId: string) {
+export async function getAdminPost(postId: string, options?: AdminRequestOptions) {
   const response = await fetch(`/api/admin/posts/${postId}`, {
     cache: 'no-store',
+    ...withAdminRequestOptions(options),
   });
 
   return readJsonResponse(response, PostRecordSchema);
@@ -119,9 +136,10 @@ export async function deleteAdminPost(postId: string) {
   return readJsonResponse(response, AdminDeleteSuccessResponseSchema);
 }
 
-export async function getAdminLinks() {
+export async function getAdminLinks(options?: AdminRequestOptions) {
   const response = await fetch('/api/admin/links', {
     cache: 'no-store',
+    ...withAdminRequestOptions(options),
   });
 
   return readJsonResponse(response, LinkRecordSchema.array());

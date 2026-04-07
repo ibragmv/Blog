@@ -20,6 +20,26 @@ function isTheme(value: string | null): value is Theme {
   return value === 'dark' || value === 'light' || value === 'system';
 }
 
+function getStorage(storageKey: string) {
+  try {
+    if (typeof window === 'undefined' || !('localStorage' in window)) {
+      return null;
+    }
+
+    const storage = window.localStorage;
+
+    if (!storage) {
+      return null;
+    }
+
+    // Some embedded webviews expose localStorage inconsistently and can throw on access.
+    storage.getItem(storageKey);
+    return storage;
+  } catch {
+    return null;
+  }
+}
+
 export function ThemeProvider({
   children,
   defaultTheme = 'system',
@@ -28,7 +48,13 @@ export function ThemeProvider({
   const [theme, setThemeState] = useState<Theme>(defaultTheme);
 
   useEffect(() => {
-    const storedTheme = window.localStorage.getItem(storageKey);
+    const storage = getStorage(storageKey);
+
+    if (!storage) {
+      return;
+    }
+
+    const storedTheme = storage.getItem(storageKey);
 
     if (isTheme(storedTheme)) {
       setThemeState(storedTheme);
@@ -61,7 +87,7 @@ export function ThemeProvider({
   const value = {
     theme,
     setTheme: (nextTheme: Theme) => {
-      window.localStorage.setItem(storageKey, nextTheme);
+      getStorage(storageKey)?.setItem(storageKey, nextTheme);
       setThemeState(nextTheme);
     },
   };

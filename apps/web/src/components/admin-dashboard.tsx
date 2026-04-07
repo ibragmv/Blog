@@ -9,35 +9,45 @@ import { AdminNotice } from '@/components/admin-notice';
 import { ConfirmDeleteButton } from '@/components/confirm-delete-button';
 import { LinksManager } from '@/components/links-manager';
 import { PageLoader } from '@/components/page-loader';
-import { deleteAdminPost, getAdminPosts } from '@/lib/admin-api';
-import { isAdminSessionExpiredError } from '@/lib/admin-client-auth';
+import { deleteAdminPost, getAdminPosts, isAdminRequestAbortError } from '@/lib/admin-api';
+import {
+  ADMIN_SERVICE_UNAVAILABLE_TITLE,
+  getAdminServiceUnavailableMessage,
+  isAdminServiceUnavailableError,
+  isAdminSessionExpiredError,
+} from '@/lib/admin-client-auth';
+import { useAdminNoticePreview } from '@/lib/admin-notice-preview';
 import type { PostRecord } from '@/lib/content';
 import { formatShortUtcDate } from '@/lib/dates';
 
 export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'posts' | 'links'>('posts');
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const [posts, setPosts] = useState<PostRecord[] | null>(null);
   const [postsError, setPostsError] = useState<string | null>(null);
+  const [isPostsServiceUnavailable, setIsPostsServiceUnavailable] = useState(false);
   const router = useRouter();
   const { handleUnauthorized, isAuthenticated, isLoading, signOut } = useAdminAuth();
+  const previewNotice = useAdminNoticePreview();
 
   useEffect(() => {
-    if (!isAuthenticated || activeTab !== 'posts') {
+    if (!isAuthenticated || isSigningOut || activeTab !== 'posts') {
       return;
     }
 
-    let cancelled = false;
+    const controller = new AbortController();
     setPosts(null);
     setPostsError(null);
+    setIsPostsServiceUnavailable(false);
 
-    getAdminPosts()
+    getAdminPosts({ signal: controller.signal })
       .then((nextPosts) => {
-        if (!cancelled) {
+        if (!controller.signal.aborted) {
           setPosts(nextPosts);
         }
       })
       .catch((error) => {
-        if (cancelled) {
+        if (controller.signal.aborted || isAdminRequestAbortError(error)) {
           return;
         }
 
@@ -46,17 +56,26 @@ export function AdminDashboard() {
           return;
         }
 
-        setPostsError(error instanceof Error ? error.message : 'Failed to load posts.');
+        const isServiceUnavailable = isAdminServiceUnavailableError(error);
+        setIsPostsServiceUnavailable(isServiceUnavailable);
+        setPostsError(
+          isServiceUnavailable
+            ? getAdminServiceUnavailableMessage(error)
+            : error instanceof Error
+              ? error.message
+              : 'Failed to load posts.'
+        );
         setPosts([]);
       });
 
     return () => {
-      cancelled = true;
+      controller.abort();
     };
-  }, [activeTab, handleUnauthorized, isAuthenticated]);
+  }, [activeTab, handleUnauthorized, isAuthenticated, isSigningOut]);
 
   const handleDelete = async (id: string) => {
     setPostsError(null);
+    setIsPostsServiceUnavailable(false);
 
     try {
       await deleteAdminPost(id);
@@ -67,17 +86,32 @@ export function AdminDashboard() {
         return;
       }
 
-      setPostsError(error instanceof Error ? error.message : 'Failed to delete post.');
+      const isServiceUnavailable = isAdminServiceUnavailableError(error);
+      setIsPostsServiceUnavailable(isServiceUnavailable);
+      setPostsError(
+        isServiceUnavailable
+          ? getAdminServiceUnavailableMessage(error)
+          : error instanceof Error
+            ? error.message
+            : 'Failed to delete post.'
+      );
     }
   };
 
   const handleLogout = async () => {
-    await signOut();
-    router.push('/login');
-    router.refresh();
+    setIsSigningOut(true);
+    setPostsError(null);
+
+    try {
+      await signOut();
+      router.replace('/login');
+      router.refresh();
+    } finally {
+      setIsSigningOut(false);
+    }
   };
 
-  if (isLoading || (isAuthenticated && activeTab === 'posts' && posts === null)) {
+  if (isLoading || isSigningOut || (isAuthenticated && activeTab === 'posts' && posts === null)) {
     return <PageLoader className="h-64" />;
   }
 
@@ -128,7 +162,17 @@ export function AdminDashboard() {
         </button>
       </div>
 
-      {activeTab === 'posts' && postsError ? <AdminNotice>{postsError}</AdminNotice> : null}
+      {previewNotice ? (
+        <AdminNotice title={previewNotice.title}>{previewNotice.message}</AdminNotice>
+      ) : null}
+
+      {activeTab === 'posts' && postsError ? (
+        <AdminNotice
+          title={isPostsServiceUnavailable ? ADMIN_SERVICE_UNAVAILABLE_TITLE : undefined}
+        >
+          {postsError}
+        </AdminNotice>
+      ) : null}
 
       {activeTab === 'posts' ? (
         <>

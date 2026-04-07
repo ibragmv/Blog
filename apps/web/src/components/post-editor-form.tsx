@@ -8,8 +8,20 @@ import { useAdminAuth } from '@/components/admin-auth-provider';
 import { AdminNotice } from '@/components/admin-notice';
 import { MarkdownEditor } from '@/components/markdown-editor';
 import { PageLoader } from '@/components/page-loader';
-import { AdminApiError, createAdminPost, getAdminPost, updateAdminPost } from '@/lib/admin-api';
-import { isAdminSessionExpiredError } from '@/lib/admin-client-auth';
+import {
+  AdminApiError,
+  createAdminPost,
+  getAdminPost,
+  isAdminRequestAbortError,
+  updateAdminPost,
+} from '@/lib/admin-api';
+import {
+  ADMIN_SERVICE_UNAVAILABLE_TITLE,
+  getAdminServiceUnavailableMessage,
+  isAdminServiceUnavailableError,
+  isAdminSessionExpiredError,
+} from '@/lib/admin-client-auth';
+import { useAdminNoticePreview } from '@/lib/admin-notice-preview';
 import { translatePost } from '@/services/translation';
 
 type PostEditorFormProps = { mode: 'create'; postId?: never } | { mode: 'edit'; postId: string };
@@ -30,7 +42,10 @@ export function PostEditorForm(props: PostEditorFormProps) {
   const [loading, setLoading] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitServiceUnavailable, setIsSubmitServiceUnavailable] = useState(false);
   const [translationError, setTranslationError] = useState<string | null>(null);
+  const [isTranslationServiceUnavailable, setIsTranslationServiceUnavailable] = useState(false);
+  const previewNotice = useAdminNoticePreview();
 
   const adminEditorPath = isEditing && editPostId ? `/admin/edit/${editPostId}` : '/admin/new';
 
@@ -39,12 +54,12 @@ export function PostEditorForm(props: PostEditorFormProps) {
       return;
     }
 
-    let cancelled = false;
+    const controller = new AbortController();
     setIsPostLoading(true);
 
-    getAdminPost(editPostId)
+    getAdminPost(editPostId, { signal: controller.signal })
       .then((post) => {
-        if (cancelled) {
+        if (controller.signal.aborted) {
           return;
         }
 
@@ -56,7 +71,7 @@ export function PostEditorForm(props: PostEditorFormProps) {
         setPublished(post.published);
       })
       .catch((error) => {
-        if (cancelled) {
+        if (controller.signal.aborted || isAdminRequestAbortError(error)) {
           return;
         }
 
@@ -73,13 +88,13 @@ export function PostEditorForm(props: PostEditorFormProps) {
         router.replace('/admin');
       })
       .finally(() => {
-        if (!cancelled) {
+        if (!controller.signal.aborted) {
           setIsPostLoading(false);
         }
       });
 
     return () => {
-      cancelled = true;
+      controller.abort();
     };
   }, [adminEditorPath, editPostId, handleUnauthorized, isAuthenticated, isEditing, router]);
 
@@ -104,6 +119,7 @@ export function PostEditorForm(props: PostEditorFormProps) {
 
     setTranslating(true);
     setTranslationError(null);
+    setIsTranslationServiceUnavailable(false);
 
     try {
       const translation = await translatePost({
@@ -119,7 +135,15 @@ export function PostEditorForm(props: PostEditorFormProps) {
         return;
       }
 
-      setTranslationError(error instanceof Error ? error.message : 'An unknown error occurred');
+      const isUnavailable = isAdminServiceUnavailableError(error);
+      setIsTranslationServiceUnavailable(isUnavailable);
+      setTranslationError(
+        isUnavailable
+          ? getAdminServiceUnavailableMessage(error)
+          : error instanceof Error
+            ? error.message
+            : 'An unknown error occurred'
+      );
     } finally {
       setTranslating(false);
     }
@@ -130,6 +154,7 @@ export function PostEditorForm(props: PostEditorFormProps) {
 
     setLoading(true);
     setSubmitError(null);
+    setIsSubmitServiceUnavailable(false);
 
     let finalTitleEN = titleEN;
     let finalContentEN = contentEN;
@@ -140,10 +165,13 @@ export function PostEditorForm(props: PostEditorFormProps) {
             title: finalTitleEN ? undefined : titleRU,
             content: finalContentEN ? undefined : contentRU,
           }).catch((translationFailure) => {
+            setIsTranslationServiceUnavailable(isAdminServiceUnavailableError(translationFailure));
             setTranslationError(
-              translationFailure instanceof Error
-                ? translationFailure.message
-                : 'Auto-translation failed.'
+              isAdminServiceUnavailableError(translationFailure)
+                ? getAdminServiceUnavailableMessage(translationFailure)
+                : translationFailure instanceof Error
+                  ? translationFailure.message
+                  : 'Auto-translation failed.'
             );
             return null;
           })
@@ -188,7 +216,13 @@ export function PostEditorForm(props: PostEditorFormProps) {
         return;
       }
 
-      const message = error instanceof Error ? error.message : 'An unknown error occurred';
+      const isUnavailable = isAdminServiceUnavailableError(error);
+      setIsSubmitServiceUnavailable(isUnavailable);
+      const message = isUnavailable
+        ? getAdminServiceUnavailableMessage(error)
+        : error instanceof Error
+          ? error.message
+          : 'An unknown error occurred';
       setSubmitError(message);
     } finally {
       setLoading(false);
@@ -210,6 +244,10 @@ export function PostEditorForm(props: PostEditorFormProps) {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {previewNotice ? (
+          <AdminNotice title={previewNotice.title}>{previewNotice.message}</AdminNotice>
+        ) : null}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label htmlFor="titleRU" className="block text-sm font-medium text-zinc-400">
@@ -270,7 +308,10 @@ export function PostEditorForm(props: PostEditorFormProps) {
           </div>
 
           {translationError ? (
-            <AdminNotice className="mb-4" title="Error:">
+            <AdminNotice
+              className="mb-4"
+              title={isTranslationServiceUnavailable ? ADMIN_SERVICE_UNAVAILABLE_TITLE : 'Error:'}
+            >
               {translationError}
             </AdminNotice>
           ) : null}
@@ -313,7 +354,13 @@ export function PostEditorForm(props: PostEditorFormProps) {
           </label>
 
           <div className="flex flex-col items-end gap-2">
-            {submitError ? <AdminNotice>{submitError}</AdminNotice> : null}
+            {submitError ? (
+              <AdminNotice
+                title={isSubmitServiceUnavailable ? ADMIN_SERVICE_UNAVAILABLE_TITLE : undefined}
+              >
+                {submitError}
+              </AdminNotice>
+            ) : null}
 
             <button
               type="submit"

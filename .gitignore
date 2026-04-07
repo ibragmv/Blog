@@ -8,12 +8,14 @@
 # Dependencies & Build Output
 ###############################################################################
 node_modules/
-packages/*/node_modules/
+apps/*/node_modules/
 build/
 dist/
-packages/*/dist/
+apps/*/dist/
 .next/
+apps/*/.next/
 .turbo/
+apps/*/.turbo/
 .convex/
 *.tsbuildinfo
 

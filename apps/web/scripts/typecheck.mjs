@@ -1,8 +1,11 @@
 import { spawnSync } from 'node:child_process';
 import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { loadRootEnv } from './with-root-env.mjs';
 
 const cwd = process.cwd();
+
+loadRootEnv();
 
 function run(command, args) {
   const result = spawnSync(command, args, {
@@ -49,5 +52,3 @@ try {
 } finally {
   rmSync(tempTsconfigPath, { force: true });
 }
-
-run('bunx', ['tsc', '--noEmit', '--pretty', 'false', '--project', 'convex/tsconfig.json']);

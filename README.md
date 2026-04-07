@@ -1,32 +1,8 @@
 # Ibragim Ibragimov Archive
 
-Personal editorial archive built with Next.js, Convex, Bun, and Turborepo.
+Personal editorial archive built with Next.js, Convex, Bun, and a production-grade Turborepo workflow.
 
-This repository contains the public website, a private admin panel, and the shared domain package used by both. The project is designed for publishing essays, notes, archive entries, and curated links with bilingual content support and live updates from Convex.
-
-## What This Project Is
-
-The archive has three main user-facing areas:
-
-- `/` - homepage with the current featured text
-- `/archive` - published archive entries
-- `/links` - public links page
-
-There is also a private editorial area:
-
-- `/login` - admin authentication
-- `/admin` - manage posts and links
-
-Content is stored in Convex. The site renders public pages with Next.js App Router and updates public/admin views in near real time through Convex.
-
-## Core Features
-
-- Public reading experience for essays, notes, and long-form writing
-- Bilingual post model with Russian and optional English content
-- Private admin panel for managing posts and links
-- Real-time sync for homepage, archive list, and links
-- Markdown rendering with code highlighting and math support
-- Shared internal package for domain logic used across the app
+The application now lives in [`apps/web`](/Users/ibragimibragimov/Eldenlord/Blog/apps/web/package.json). The repository root is the monorepo orchestrator for Turbo, CI, Convex, shared tooling, and environment management.
 
 ## Stack
 
@@ -44,35 +20,74 @@ Content is stored in Convex. The site renders public pages with Next.js App Rout
 
 ```text
 .
-├── src/                 # Next.js application
-├── convex/              # Convex schema, queries, mutations, auth
-├── packages/core/       # Shared domain package
-├── scripts/             # Root task wrappers and tooling helpers
-├── .env.example         # Safe environment template
-├── package.json         # Root scripts and workspace config
-└── turbo.json           # Task graph for the repo
+├── apps/
+│   └── web/                  # Next.js application workspace
+├── convex/                   # Convex schema, queries, mutations, auth
+├── scripts/                  # Root Turbo task wrappers for repo-level tasks
+├── .github/workflows/ci.yml  # Turbo-aware CI
+├── .env.example             # Safe environment template
+├── package.json             # Workspace root orchestrator
+├── turbo.json               # Task graph and cache policy
+└── vercel.json              # Build contract only
 ```
 
-Important directories inside the app:
+Important directories inside the app workspace:
 
-- `src/app` - routes, metadata, app shell
-- `src/components` - UI for public pages and admin flows
-- `src/lib` - shared client/server utilities
-- `src/lib/server` - server-side data and auth helpers
+- `apps/web/src/app` - routes, metadata, app shell
+- `apps/web/src/components` - UI for public pages and admin flows
+- `apps/web/src/lib` - shared application utilities
+- `apps/web/src/lib/server` - server-side data and auth helpers
+- `apps/web/public` - public assets
+- `apps/web/fonts` - local fonts used by the app and OG images
 
-## How The Project Is Organized
+## Why The App Lives In `apps/web`
 
-The repository is root-first:
+The repository used to keep the Next.js app in the root and a `packages/core` workspace beside it.
 
-- the main application lives in the repository root
-- `packages/core` contains shared domain utilities such as site config, content helpers, dates, and translation helpers
-- Turbo runs build, lint, and typecheck across the root app and workspace package as one graph
+That structure worked, but it forced Turbo to rely on root-special-case tasks for both orchestration and application runtime. After reviewing the graph, `packages/core` turned out to be an app-only abstraction layer rather than a genuinely shared workspace boundary.
 
-Convex data model currently includes:
+So the repository was simplified:
 
-- `posts` - archive entries and page-like content
-- `links` - ordered public links
-- `sessions` - admin sessions
+- the Next.js app moved to `apps/web`
+- `packages/core` was removed
+- app-only utilities were inlined into `apps/web/src/lib`
+- the root now does what a workspace root should do: orchestrate tasks, CI, env, and Convex
+
+This is a better fit for a Turbo-first monorepo.
+
+## Turbo Graph
+
+Current meaningful tasks:
+
+- root repo tasks: `//#lint`, `//#typecheck`, `//#clean`
+- app tasks: `@archive/web#dev`, `@archive/web#build`, `@archive/web#start`, `@archive/web#lint`, `@archive/web#typecheck`, `@archive/web#clean`
+
+Repository responsibilities are split deliberately:
+
+- root `lint` checks repo files, scripts, and Convex linting
+- root `typecheck` checks Convex TypeScript
+- app `lint` checks `apps/web`
+- app `typecheck` runs Next type generation plus app TypeScript
+- app `build` is the production Next.js build
+
+That means `bun run verify` exercises the real production graph:
+
+```text
+//#lint
+//#typecheck
+@archive/web#lint
+@archive/web#typecheck
+@archive/web#build
+```
+
+## Core Features
+
+- Public reading experience for essays, notes, and long-form writing
+- Bilingual post model with Russian and optional English content
+- Private admin panel for managing posts and links
+- Real-time sync for homepage, archive list, and links
+- Markdown rendering with code highlighting and math support
+- Convex-backed content and session handling
 
 ## Requirements
 
@@ -82,7 +97,7 @@ Convex data model currently includes:
 
 ## Environment Setup
 
-1. Copy [`.env.example`](/Users/ibragimibragimov/Eldenlord/Blog/.env.example) to `.env`.
+1. Copy [`.env.example`](/Users/ibragimibragimov/Eldenlord/Blog/.env.example) to `.env` in the repository root.
 2. Fill in the values for your environment.
 3. Keep secrets only in `.env`.
 
@@ -90,13 +105,15 @@ Main variables:
 
 - `NEXT_PUBLIC_SITE_URL` - canonical site URL
 - `CONVEX_DEPLOYMENT` - Convex deployment used by CLI/runtime
-- `NEXT_PUBLIC_CONVEX_URL` - public Convex endpoint used by the Next.js app
+- `NEXT_PUBLIC_CONVEX_URL` - public Convex endpoint used by the web app
 - `ADMIN_EMAIL` - admin login email
 - `ADMIN_PASSWORD` - admin login password
 - `GEMINI_MODEL` - optional translation model
 - `GEMINI_API_KEY` - optional private key for translation features, stored only in `.env`
 
 [`.gitignore`](/Users/ibragimibragimov/Eldenlord/Blog/.gitignore) already ignores private `.env` files and keeps only `.env.example` tracked.
+
+Important: the canonical way to run the project is from the repository root. Root scripts orchestrate both the app workspace and Convex checks consistently, and the `apps/web` runtime scripts explicitly load the repository-root `.env*` files so local development keeps seeing the same Convex/database configuration after the move away from a root-level app.
 
 ## Quick Start
 
@@ -115,6 +132,8 @@ Useful local routes:
 - `http://localhost:3000/login`
 - `http://localhost:3000/admin`
 
+For local admin UX review, you can preview the service-unavailable notice without breaking Convex by opening `http://localhost:3000/login?__admin_notice=service-unavailable` or `http://localhost:3000/admin?__admin_notice=service-unavailable`. The preview works only outside production builds.
+
 ## Daily Commands
 
 ```bash
@@ -132,11 +151,70 @@ bun run lint:affected
 bun run typecheck:affected
 bun run verify:affected
 
-# shared package only
-bun run build:core
-bun run lint:core
-bun run typecheck:core
+# app-only targeting
+bun run build:web
+bun run lint:web
+bun run typecheck:web
+
+# graph and diagnostics
+bun run graph:build
+bun run ls:affected
+bun run devtools
 ```
+
+## Cache Policy
+
+Turbo caches deterministic work and avoids caching long-running or destructive tasks.
+
+Cached:
+
+- `//#lint`
+- `//#typecheck`
+- `@archive/web#lint`
+- `@archive/web#typecheck`
+- `@archive/web#build`
+
+Not cached:
+
+- `@archive/web#dev`
+- `@archive/web#start`
+- `//#clean`
+- `@archive/web#clean`
+
+App build hashing includes:
+
+- `.env*`
+- `GEMINI_MODEL`
+- `NEXT_PUBLIC_CONVEX_URL`
+- `NEXT_PUBLIC_SITE_URL`
+
+Repo-level pass-through environment includes:
+
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+- `CONVEX_DEPLOYMENT`
+- `GEMINI_API_KEY`
+- `GEMINI_MODEL`
+
+## CI
+
+GitHub Actions lives in [`.github/workflows/ci.yml`](/Users/ibragimibragimov/Eldenlord/Blog/.github/workflows/ci.yml).
+
+Behavior:
+
+- `pull_request`: `bun install --frozen-lockfile`, then `bun run verify:affected`
+- `push` to `main`: `bun install --frozen-lockfile`, then `bun run verify`
+- `fetch-depth: 0` is enabled for affected graph detection
+- remote cache is optional through `TURBO_TEAM` and `TURBO_TOKEN`
+- CI does not deploy anything directly to Vercel
+
+The workflow validates the monorepo from the root exactly the same way local production verification does.
+
+## Notes About Convex And CI
+
+Public data and realtime features use Convex when `NEXT_PUBLIC_CONVEX_URL` is available.
+
+For CI and headless build environments, the public data layer degrades safely instead of failing the build when the public Convex URL is missing. This keeps the production build check valid without forcing GitHub Actions to know your live Convex endpoint.
 
 ## Verification Standard
 
@@ -148,21 +226,4 @@ bun run typecheck
 bun run verify
 ```
 
-This repository treats linting and type safety as part of the normal development flow, not as optional cleanup.
-
-## Notes About Running The Repo
-
-- `bun run dev` starts the root Next.js app through the Turbo task wrapper
-- `bun run build`, `bun run lint`, and `bun run typecheck` also go through Turbo
-- the app depends on Convex-backed data, so a missing or invalid Convex environment will break public/admin data flows
-- CI verifies the repository but does not perform direct Vercel deployment from this repo
-
-## In Short
-
-This project is a production-style personal publishing archive with:
-
-- a public reading surface
-- a private editorial admin panel
-- Convex as the data/auth backend
-- Bun + Turbo for workspace orchestration
-- strict lint/typecheck standards before release
+This repository treats linting, type safety, and Turbo graph health as part of normal development flow, not optional cleanup.

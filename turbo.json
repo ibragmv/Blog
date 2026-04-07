@@ -2,12 +2,12 @@
   "$schema": "https://turborepo.com/schema.json",
   "globalDependencies": [
     ".env.example",
+    ".github/workflows/**",
     "biome.json",
     "bun.lock",
+    "convex.json",
     "eslint.config.mjs",
-    "next.config.ts",
     "package.json",
-    "postcss.config.mjs",
     "tsconfig.json",
     "turbo.json",
     "vercel.json"
@@ -21,73 +21,69 @@
     "GEMINI_MODEL"
   ],
   "tasks": {
-    "//#build": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**"],
-      "env": ["GEMINI_MODEL", "NEXT_PUBLIC_CONVEX_URL", "NEXT_PUBLIC_SITE_URL"]
-    },
     "//#lint": {
-      "dependsOn": ["^lint"],
-      "inputs": ["$TURBO_DEFAULT$"],
+      "inputs": [
+        ".env.example",
+        ".github/**",
+        ".gitignore",
+        "README.md",
+        "biome.json",
+        "convex/**",
+        "convex.json",
+        "eslint.config.mjs",
+        "package.json",
+        "scripts/**",
+        "turbo.json",
+        "tsconfig.json",
+        "vercel.json"
+      ],
       "outputs": []
     },
     "//#typecheck": {
-      "dependsOn": ["^typecheck"],
-      "inputs": ["$TURBO_DEFAULT$", "scripts/typecheck.mjs"],
-      "outputs": [".next/types/**", ".next/dev/types/**"]
-    },
-    "//#dev": {
-      "cache": false,
-      "persistent": true,
-      "passThroughEnv": [
-        "ADMIN_EMAIL",
-        "ADMIN_PASSWORD",
-        "CONVEX_DEPLOYMENT",
-        "GEMINI_API_KEY",
-        "GEMINI_MODEL",
-        "NEXT_PUBLIC_CONVEX_URL",
-        "NEXT_PUBLIC_SITE_URL"
-      ]
-    },
-    "//#start": {
-      "cache": false,
-      "persistent": true,
-      "passThroughEnv": [
-        "ADMIN_EMAIL",
-        "ADMIN_PASSWORD",
-        "CONVEX_DEPLOYMENT",
-        "GEMINI_API_KEY",
-        "GEMINI_MODEL",
-        "NEXT_PUBLIC_CONVEX_URL",
-        "NEXT_PUBLIC_SITE_URL"
-      ]
+      "inputs": ["convex/**", "package.json", "scripts/typecheck-root.mjs", "tsconfig.json"],
+      "outputs": []
     },
     "//#clean": {
       "cache": false
     },
     "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$"],
-      "outputs": ["dist/**"]
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": ["GEMINI_MODEL", "NEXT_PUBLIC_CONVEX_URL", "NEXT_PUBLIC_SITE_URL"]
     },
     "lint": {
-      "dependsOn": ["^lint"],
       "inputs": ["$TURBO_DEFAULT$"],
       "outputs": []
     },
     "typecheck": {
-      "dependsOn": ["^typecheck"],
-      "inputs": ["$TURBO_DEFAULT$"],
-      "outputs": []
+      "inputs": ["$TURBO_DEFAULT$", "scripts/typecheck.mjs"],
+      "outputs": [".next/types/**", ".next/dev/types/**"]
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "passThroughEnv": [
+        "ADMIN_EMAIL",
+        "ADMIN_PASSWORD",
+        "CONVEX_DEPLOYMENT",
+        "GEMINI_API_KEY",
+        "GEMINI_MODEL",
+        "NEXT_PUBLIC_CONVEX_URL",
+        "NEXT_PUBLIC_SITE_URL"
+      ]
     },
     "start": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "passThroughEnv": [
+        "ADMIN_EMAIL",
+        "ADMIN_PASSWORD",
+        "CONVEX_DEPLOYMENT",
+        "GEMINI_API_KEY",
+        "GEMINI_MODEL",
+        "NEXT_PUBLIC_CONVEX_URL",
+        "NEXT_PUBLIC_SITE_URL"
+      ]
     },
     "clean": {
       "cache": false
