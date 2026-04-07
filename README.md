@@ -1,8 +1,32 @@
 # Ibragim Ibragimov Archive
 
-Root-first editorial archive built with Next.js 16, Bun, Convex, and Turborepo.
+Personal editorial archive built with Next.js, Convex, Bun, and Turborepo.
 
-The public app lives in the repository root. Shared domain code lives in [`packages/core`](/Users/ibragimibragimov/Eldenlord/Blog/packages/core/package.json). Turbo orchestrates both as one graph instead of treating the monorepo as a release-only wrapper.
+This repository contains the public website, a private admin panel, and the shared domain package used by both. The project is designed for publishing essays, notes, archive entries, and curated links with bilingual content support and live updates from Convex.
+
+## What This Project Is
+
+The archive has three main user-facing areas:
+
+- `/` - homepage with the current featured text
+- `/archive` - published archive entries
+- `/links` - public links page
+
+There is also a private editorial area:
+
+- `/login` - admin authentication
+- `/admin` - manage posts and links
+
+Content is stored in Convex. The site renders public pages with Next.js App Router and updates public/admin views in near real time through Convex.
+
+## Core Features
+
+- Public reading experience for essays, notes, and long-form writing
+- Bilingual post model with Russian and optional English content
+- Private admin panel for managing posts and links
+- Real-time sync for homepage, archive list, and links
+- Markdown rendering with code highlighting and math support
+- Shared internal package for domain logic used across the app
 
 ## Stack
 
@@ -12,210 +36,107 @@ The public app lives in the repository root. Shared domain code lives in [`packa
 - Turborepo
 - Convex
 - Tailwind CSS 4
+- TypeScript
 - Biome
 - ESLint
-- TypeScript
 
-## Repository Shape
+## Repository Structure
 
 ```text
 .
-├── .github/workflows/ci.yml   # Turbo-aware CI
-├── convex/                    # Convex schema, auth, queries, mutations
-├── packages/core/             # Shared internal domain package
-├── scripts/                   # Local wrappers for Turbo-first root tasks
-├── src/                       # Root Next.js application
-├── package.json               # Root app + workspace scripts
-├── turbo.json                 # Task graph, cache policy, env contract
-└── vercel.json                # Build contract only, not a deploy workflow
+├── src/                 # Next.js application
+├── convex/              # Convex schema, queries, mutations, auth
+├── packages/core/       # Shared domain package
+├── scripts/             # Root task wrappers and tooling helpers
+├── .env.example         # Safe environment template
+├── package.json         # Root scripts and workspace config
+└── turbo.json           # Task graph for the repo
 ```
 
-## Turbo Graph
+Important directories inside the app:
 
-This repository is intentionally root-first.
+- `src/app` - routes, metadata, app shell
+- `src/components` - UI for public pages and admin flows
+- `src/lib` - shared client/server utilities
+- `src/lib/server` - server-side data and auth helpers
 
-- Root app: `//`
-- Shared package: `@archive/core`
-- Root tasks: `//#dev`, `//#build`, `//#lint`, `//#typecheck`, `//#start`, `//#clean`
-- Workspace tasks: `@archive/core#build`, `@archive/core#lint`, `@archive/core#typecheck`, `@archive/core#clean`
+## How The Project Is Organized
 
-Build, lint, and typecheck all run topologically:
+The repository is root-first:
 
-```text
-@archive/core#build      -> //#build
-@archive/core#lint       -> //#lint
-@archive/core#typecheck  -> //#typecheck
+- the main application lives in the repository root
+- `packages/core` contains shared domain utilities such as site config, content helpers, dates, and translation helpers
+- Turbo runs build, lint, and typecheck across the root app and workspace package as one graph
+
+Convex data model currently includes:
+
+- `posts` - archive entries and page-like content
+- `links` - ordered public links
+- `sessions` - admin sessions
+
+## Requirements
+
+- Bun `>= 1.2.21`
+- A configured Convex deployment
+- A private `.env` file based on `.env.example`
+
+## Environment Setup
+
+1. Copy [`.env.example`](/Users/ibragimibragimov/Eldenlord/Blog/.env.example) to `.env`.
+2. Fill in the values for your environment.
+3. Keep secrets only in `.env`.
+
+Main variables:
+
+- `NEXT_PUBLIC_SITE_URL` - canonical site URL
+- `CONVEX_DEPLOYMENT` - Convex deployment used by CLI/runtime
+- `NEXT_PUBLIC_CONVEX_URL` - public Convex endpoint used by the Next.js app
+- `ADMIN_EMAIL` - admin login email
+- `ADMIN_PASSWORD` - admin login password
+- `GEMINI_MODEL` - optional translation model
+- `GEMINI_API_KEY` - optional private key for translation features, stored only in `.env`
+
+[`.gitignore`](/Users/ibragimibragimov/Eldenlord/Blog/.gitignore) already ignores private `.env` files and keeps only `.env.example` tracked.
+
+## Quick Start
+
+```bash
+bun install
+bun run dev
 ```
 
-The important detail is the root wrapper in [`scripts/turbo-task.mjs`](/Users/ibragimibragimov/Eldenlord/Blog/scripts/turbo-task.mjs):
+Then open `http://localhost:3000`.
 
-- `bun run build` starts `bunx turbo run build --filter=//`
-- when Turbo executes the root task internally, the wrapper detects `TURBO_HASH` and runs the real command directly
-- this keeps `bun run build` Turbo-first without creating recursive `turbo -> bun run build -> turbo` loops
+Useful local routes:
+
+- `http://localhost:3000/`
+- `http://localhost:3000/archive`
+- `http://localhost:3000/links`
+- `http://localhost:3000/login`
+- `http://localhost:3000/admin`
 
 ## Daily Commands
 
 ```bash
-bun install
-
-# local development
+# development
 bun run dev
 
-# full root app flow through Turbo
+# production checks
 bun run lint
 bun run typecheck
 bun run build
 bun run verify
 
-# incremental CI-style flow
+# affected-only checks
+bun run lint:affected
+bun run typecheck:affected
 bun run verify:affected
 
-# targeted workspace operations
+# shared package only
 bun run build:core
 bun run lint:core
 bun run typecheck:core
-
-# graph and diagnostics
-bun run graph:build
-bun run ls:affected
-bun run devtools
 ```
-
-## Cache Policy
-
-Turbo is configured to cache only tasks that benefit from deterministic replay.
-
-Cached:
-
-- `//#build`
-- `//#lint`
-- `//#typecheck`
-- `@archive/core#build`
-- `@archive/core#lint`
-- `@archive/core#typecheck`
-
-Not cached:
-
-- `//#dev`
-- `//#start`
-- `//#clean`
-- `dev`
-- `start`
-- `clean`
-
-Root typecheck declares [`.next/types/**`](/Users/ibragimibragimov/Eldenlord/Blog/.next/types) and [`.next/dev/types/**`](/Users/ibragimibragimov/Eldenlord/Blog/.next/dev/types) as outputs because `next typegen` generates those artifacts before `tsc` runs. That keeps the cache model honest instead of pretending the task is output-free.
-
-## Environment Contract
-
-Global cache inputs:
-
-- [`.env.example`](/Users/ibragimibragimov/Eldenlord/Blog/.env.example)
-- [`biome.json`](/Users/ibragimibragimov/Eldenlord/Blog/biome.json)
-- [`bun.lock`](/Users/ibragimibragimov/Eldenlord/Blog/bun.lock)
-- [`eslint.config.mjs`](/Users/ibragimibragimov/Eldenlord/Blog/eslint.config.mjs)
-- [`next.config.ts`](/Users/ibragimibragimov/Eldenlord/Blog/next.config.ts)
-- [`package.json`](/Users/ibragimibragimov/Eldenlord/Blog/package.json)
-- [`postcss.config.mjs`](/Users/ibragimibragimov/Eldenlord/Blog/postcss.config.mjs)
-- [`tsconfig.json`](/Users/ibragimibragimov/Eldenlord/Blog/tsconfig.json)
-- [`turbo.json`](/Users/ibragimibragimov/Eldenlord/Blog/turbo.json)
-- [`vercel.json`](/Users/ibragimibragimov/Eldenlord/Blog/vercel.json)
-
-Global hashed environment:
-
-- `CI`
-- `NODE_ENV`
-
-Root build hashed environment:
-
-- `GEMINI_MODEL`
-- `NEXT_PUBLIC_CONVEX_URL`
-- `NEXT_PUBLIC_SITE_URL`
-
-Root `dev` and `start` pass runtime-only environment through Turbo without caching:
-
-- `ADMIN_EMAIL`
-- `ADMIN_PASSWORD`
-- `CONVEX_DEPLOYMENT`
-- `GEMINI_API_KEY`
-- `GEMINI_MODEL`
-- `NEXT_PUBLIC_CONVEX_URL`
-- `NEXT_PUBLIC_SITE_URL`
-
-Important: `.env` is no longer a global Turbo dependency. Only the root build task hashes `.env*`. That means changing a secret does not unnecessarily invalidate `@archive/core` lint and typecheck caches.
-
-## Remote Cache
-
-Local cache works out of the box in [`.turbo/`](/Users/ibragimibragimov/Eldenlord/Blog/.turbo).
-
-Remote cache is intentionally wired by environment, not by hardcoded config:
-
-- `TURBO_TEAM`
-- `TURBO_TOKEN`
-
-If those variables are present in CI or in your shell, Turbo uses remote cache automatically. If they are absent, the repo still works with local cache only.
-
-## CI
-
-GitHub Actions lives in [`.github/workflows/ci.yml`](/Users/ibragimibragimov/Eldenlord/Blog/.github/workflows/ci.yml).
-
-Behavior:
-
-- `pull_request`: `bun install --frozen-lockfile`, then `bun run verify:affected`
-- `push` to `main`: `bun install --frozen-lockfile`, then `bun run verify`
-- `fetch-depth: 0` is required so Turbo can compute the affected graph correctly
-- `TURBO_SCM_BASE` and `TURBO_SCM_HEAD` are set on pull requests for explicit git comparison
-- remote cache is optional and picked up through `TURBO_TEAM` and `TURBO_TOKEN`
-
-CI does not deploy anything. There is no direct deploy step to Vercel in the repository workflow.
-
-## Filters
-
-The repo now uses filters in real workflows instead of mentioning them abstractly.
-
-Examples:
-
-```bash
-# root app and its internal dependencies
-bunx turbo run build --filter=//
-
-# only the shared package
-bunx turbo run lint --filter=@archive/core
-
-# changed packages and their dependents
-bunx turbo run lint typecheck build --affected
-```
-
-## `turbo prune` Strategy
-
-`turbo prune` is intentionally not part of the default workflow here.
-
-Reason:
-
-- the application is root-first and lives at `//`
-- current Turborepo pruning is package-scope oriented
-- pruning the root app in this repository does not produce a meaningful production subset strategy today
-
-For this repo, `--affected` plus targeted filters gives practical value now. `turbo prune` would be decorative rather than operational.
-
-## Local Environment
-
-Copy the structure from [`.env.example`](/Users/ibragimibragimov/Eldenlord/Blog/.env.example) into a private `.env`.
-
-Safe template values already documented:
-
-- `NEXT_PUBLIC_SITE_URL`
-- `CONVEX_DEPLOYMENT`
-- `NEXT_PUBLIC_CONVEX_URL`
-- `ADMIN_EMAIL`
-- `ADMIN_PASSWORD`
-- `GEMINI_MODEL`
-- `NODE_OPTIONS`
-
-Private secrets must stay only in `.env`:
-
-- `GEMINI_API_KEY`
-
-[`.gitignore`](/Users/ibragimibragimov/Eldenlord/Blog/.gitignore) already ignores `.env*` and explicitly keeps only `.env.example` tracked.
 
 ## Verification Standard
 
@@ -227,4 +148,21 @@ bun run typecheck
 bun run verify
 ```
 
-That is the production path for this repository.
+This repository treats linting and type safety as part of the normal development flow, not as optional cleanup.
+
+## Notes About Running The Repo
+
+- `bun run dev` starts the root Next.js app through the Turbo task wrapper
+- `bun run build`, `bun run lint`, and `bun run typecheck` also go through Turbo
+- the app depends on Convex-backed data, so a missing or invalid Convex environment will break public/admin data flows
+- CI verifies the repository but does not perform direct Vercel deployment from this repo
+
+## In Short
+
+This project is a production-style personal publishing archive with:
+
+- a public reading surface
+- a private editorial admin panel
+- Convex as the data/auth backend
+- Bun + Turbo for workspace orchestration
+- strict lint/typecheck standards before release

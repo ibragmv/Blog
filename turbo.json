@@ -13,6 +13,13 @@
     "vercel.json"
   ],
   "globalEnv": ["CI", "NODE_ENV"],
+  "globalPassThroughEnv": [
+    "ADMIN_EMAIL",
+    "ADMIN_PASSWORD",
+    "CONVEX_DEPLOYMENT",
+    "GEMINI_API_KEY",
+    "GEMINI_MODEL"
+  ],
   "tasks": {
     "//#build": {
       "dependsOn": ["^build"],
