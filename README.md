@@ -207,11 +207,12 @@ Vercel should build this repository through Convex so backend deploy, generated 
 Expected setup:
 
 - Vercel project root directory: repository root
-- Vercel build command: `bunx convex deploy --cmd "bun run build:web" --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL`
+- Vercel build command: `bun scripts/vercel-build.mjs`
 - Vercel install command: `bun install --frozen-lockfile`
 - Vercel production environment variables: `CONVEX_DEPLOY_KEY`, `NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_SITE_URL`, admin secrets, and optional Gemini secrets
+- Vercel preview environment variables: `CONVEX_DEPLOY_KEY` with a preview deploy key, because preview builds also need Convex code generation now that `convex/_generated` is not committed
 
-[`vercel.json`](/Users/ibragimibragimov/Eldenlord/Blog/vercel.json) reflects that contract so Vercel deploys Convex first and then builds the Next.js app with the correct public URL injected into the build.
+[`vercel.json`](/Users/ibragimibragimov/Eldenlord/Blog/vercel.json) now calls a repo-local build wrapper so Vercel logs clearly explain whether the deployment is using a production key or a preview key, and fail with an explicit message when the required key is missing.
 
 ## CI
 
