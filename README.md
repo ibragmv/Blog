@@ -28,7 +28,7 @@ The application now lives in [`apps/web`](/Users/ibragimibragimov/Eldenlord/Blog
 ├── .env.example             # Safe environment template
 ├── package.json             # Workspace root orchestrator
 ├── turbo.json               # Task graph and cache policy
-└── vercel.json              # Build contract only
+└── vercel.json              # Turbo-first Vercel build contract
 ```
 
 Important directories inside the app workspace:
@@ -195,6 +195,18 @@ Repo-level pass-through environment includes:
 - `CONVEX_DEPLOYMENT`
 - `GEMINI_API_KEY`
 - `GEMINI_MODEL`
+
+## Vercel
+
+Vercel should build this repository through Turbo, not by calling the Next.js app directly.
+
+Expected setup:
+
+- Vercel project root directory: `apps/web`
+- Vercel build command: `turbo build`
+- Vercel install command: `bun install --frozen-lockfile`
+
+[`vercel.json`](/Users/ibragimibragimov/Eldenlord/Blog/vercel.json) reflects that contract so Vercel can keep Turborepo-aware build summaries instead of bypassing the graph through `bun run release`.
 
 ## CI
 
