@@ -13,7 +13,6 @@
   "scripts": {
     "dev": "bunx turbo run dev --filter=@archive/web --ui=stream",
     "build": "bunx turbo run build --filter=@archive/web --ui=stream",
-    "release": "bun run build",
     "start": "bunx turbo run start --filter=@archive/web --ui=stream",
     "convex:codegen": "bun scripts/convex-codegen.mjs",
     "typecheck": "bun scripts/turbo-task.mjs typecheck",

@@ -213,7 +213,6 @@ Expected setup:
 - Vercel preview environment variables: `CONVEX_DEPLOY_KEY` with a preview deploy key, because preview builds also need Convex code generation now that `convex/_generated` is not committed
 
 [`vercel.json`](/Users/ibragimibragimov/Eldenlord/Blog/vercel.json) now calls a repo-local build wrapper so Vercel logs clearly explain whether the deployment is using a production key or a preview key, and fail with an explicit message when the required key is missing.
-For compatibility with older Vercel project settings that still use `apps/web` as the Root Directory, [`apps/web/scripts/vercel-build.mjs`](/Users/ibragimibragimov/Eldenlord/Blog/apps/web/scripts/vercel-build.mjs) proxies to the root wrapper. The preferred setup is still repository-root builds.
 
 ## CI
 

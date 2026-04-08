@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "bun scripts/dev.mjs",
     "build": "bun scripts/build.mjs",
-    "release": "bunx turbo build --ui=stream",
     "start": "bun scripts/with-root-env.mjs bunx next start",
     "lint": "biome check src package.json tsconfig.json next.config.ts postcss.config.mjs scripts",
     "typecheck": "bun scripts/typecheck.mjs",
