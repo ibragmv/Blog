@@ -1,4 +1,5 @@
-name: CI
+name: CI & Lint
+run-name: CI & Lint
 
 on:
   pull_request:
@@ -8,7 +9,7 @@ on:
 
 jobs:
   verify:
-    name: Lint
+    name: CI & Lint
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:

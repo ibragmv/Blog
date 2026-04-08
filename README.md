@@ -214,7 +214,7 @@ Expected setup:
 
 [`vercel.json`](/Users/ibragimibragimov/Eldenlord/Blog/vercel.json) now calls a repo-local build wrapper so Vercel logs clearly explain whether the deployment is using a production key or a preview key, and fail with an explicit message when the required key is missing.
 
-## CI
+## CI & Lint
 
 GitHub Actions lives in [`.github/workflows/ci.yml`](/Users/ibragimibragimov/Eldenlord/Blog/.github/workflows/ci.yml).
 
