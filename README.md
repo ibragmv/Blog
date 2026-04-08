@@ -220,13 +220,13 @@ GitHub Actions lives in [`.github/workflows/ci.yml`](/Users/ibragimibragimov/Eld
 
 Behavior:
 
-- `pull_request`: `bun install --frozen-lockfile`, then `bun run verify:affected`
-- `push` to `main`: `bun install --frozen-lockfile`, then `bun run verify`
+- `pull_request`: `bun install --frozen-lockfile`, then `bun run lint:affected`
+- `push` to `main`: `bun install --frozen-lockfile`, then `bun run lint`
 - `fetch-depth: 0` is enabled for affected graph detection
 - remote cache is optional through `TURBO_TEAM` and `TURBO_TOKEN`
 - CI does not deploy anything directly to Vercel
 
-The workflow validates the monorepo from the root exactly the same way local production verification does.
+The workflow intentionally stays secret-free. Since `convex/_generated` is not committed, full root `typecheck` and production `build` require live Convex code generation and are verified locally or in deploy environments that already have Convex credentials.
 
 ## Notes About Convex And CI
 

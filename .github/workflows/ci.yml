@@ -8,14 +8,11 @@ on:
 
 jobs:
   verify:
-    name: Lint, typecheck, build
+    name: Lint
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
       CI: "true"
-      CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
-      NEXT_PUBLIC_CONVEX_URL: ${{ vars.NEXT_PUBLIC_CONVEX_URL }}
-      NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
     steps:
@@ -32,13 +29,13 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Verify affected graph
+      - name: Lint affected graph
         if: github.event_name == 'pull_request'
         env:
           TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha }}
           TURBO_SCM_HEAD: ${{ github.event.pull_request.head.sha }}
-        run: bun run verify:affected
+        run: bun run lint:affected
 
-      - name: Verify full graph
+      - name: Lint full graph
         if: github.event_name != 'pull_request'
-        run: bun run verify
+        run: bun run lint
