@@ -1,7 +1,8 @@
 import { spawnSync } from 'node:child_process';
-import { loadRootEnv, repoRoot } from './root-env.mjs';
+import { ensureConvexTmpDir, loadRootEnv, repoRoot } from './root-env.mjs';
 
 loadRootEnv();
+ensureConvexTmpDir();
 
 const [, , ...forwardedArgs] = process.argv;
 const result = spawnSync(

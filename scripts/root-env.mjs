@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseEnv } from 'node:util';
@@ -34,4 +34,15 @@ export function loadRootEnv() {
       }
     }
   }
+}
+
+export function ensureConvexTmpDir() {
+  if (process.env.CONVEX_TMPDIR) {
+    return process.env.CONVEX_TMPDIR;
+  }
+
+  const convexTmpDir = path.join(repoRoot, '.convex', 'tmp');
+  mkdirSync(convexTmpDir, { recursive: true });
+  process.env.CONVEX_TMPDIR = convexTmpDir;
+  return convexTmpDir;
 }

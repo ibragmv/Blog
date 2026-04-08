@@ -63,7 +63,7 @@
         "scripts/root-env.mjs"
       ],
       "outputs": [".next/**", "!.next/cache/**"],
-      "env": ["GEMINI_MODEL", "NEXT_PUBLIC_CONVEX_URL", "NEXT_PUBLIC_SITE_URL"]
+      "env": ["CONVEX_SITE_URL", "GEMINI_MODEL", "NEXT_PUBLIC_CONVEX_URL", "NEXT_PUBLIC_SITE_URL"]
     },
     "lint": {
       "inputs": ["$TURBO_DEFAULT$"],

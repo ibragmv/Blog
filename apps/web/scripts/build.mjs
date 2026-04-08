@@ -5,5 +5,9 @@ const cwd = process.cwd();
 const convexCodegenScript = path.resolve(cwd, '../../scripts/convex-codegen.mjs');
 
 loadRootEnv();
-runWithRootEnv('bun', [convexCodegenScript], { cwd });
+
+if (!process.env.CONVEX_SITE_URL) {
+  runWithRootEnv('bun', [convexCodegenScript], { cwd });
+}
+
 runWithRootEnv('bunx', ['next', 'build', '--turbopack'], { cwd });
